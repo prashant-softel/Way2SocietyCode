@@ -10,6 +10,6 @@ phases:
 artifacts:
   files:
     - '**/*'
-  base-directory: 'var/www/html/'
+  base-directory: '/var/www/html/'
   name: build-artifact-name
   discard-paths: no
