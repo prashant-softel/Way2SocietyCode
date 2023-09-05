@@ -109,7 +109,7 @@ function loadchanges()
 		document.getElementById('FD_Bank_Name').value =  res[0]['BankID'];
 		document.getElementById('status').value =  res[0]['Status'];
 		document.getElementById('Category').value =  res[0]['CategoryID'];
-		document.getElementById('Interest_Note').value = "Interest Note for " + res[0]['LedgerName'];
+		document.getElementById('Interest_Note').value = "Interest for " + res[0]['LedgerName'];
 		document.getElementById('ref').value = res[0]['Ref'];
 		
 		var is_readonly = document.getElementById('fd_readonly').value;
@@ -127,17 +127,20 @@ function loadchanges()
 			
 			document.getElementById('FDR_No_td').innerHTML = res[0]['FDRNO'];
 			
-			document.getElementById('Deposit_Date_td').innerHTML = res[0]['DepositDate'];
+			//document.getElementById('Deposit_Date_td').innerHTML = res[0]['DepositDate'];
 			
-			document.getElementById('Maturity_Date_td').innerHTML = res[0]['MaturityDate'];
+			//document.getElementById('Deposit_Date').value = res[0]['DepositDate'];
+			
+			//document.getElementById('Maturity_Date_td').innerHTML = res[0]['MaturityDate'];
 
-			document.getElementById('FD_Period_td').innerHTML = res[0]['FDPeriod'];
+			//document.getElementById('FD_Period_td').innerHTML = res[0]['FDPeriod'];
 			
-			document.getElementById('Principal_Amount_td').innerHTML = res[0]['PrincipalAmount'];
 			
-			document.getElementById('Interest_Rate_td').innerHTML = res[0]['InterestRate'];
+			//document.getElementById('Principal_Amount_td').innerHTML =principleAMount;// res[0]['PrincipalAmount'];
 			
-			document.getElementById('Maturity_Amount_td').innerHTML = res[0]['MaturityAmount'];
+			//document.getElementById('Interest_Rate_td').innerHTML = res[0]['InterestRate'];
+			
+			//document.getElementById('Maturity_Amount_td').innerHTML = res[0]['MaturityAmount'];
 			
 			document.getElementById('Note_td').innerHTML = res[0]['Note'];
 			
@@ -289,8 +292,8 @@ function loadchanges()
 					}
 	 		    }
 			    //alert(my_data);
-		   			    
-				var table = "<table style='border:1px solid #cccccc' width='100%'><tr><th style='width:50%;text-align:center;background-color:#337ab7; font-size:14px;color: #fff;padding-top: 5px;' colspan='7'>Vouchers</th></tr><tr style='text-align:center'><td>Sr.No.</td><td>Date</td><td>Particular</td><td>Voucher No</td><td>Amount</td><td>Note</td><td>Edit</td></tr>";
+		   		//console.log(my_data);	    
+				var table = "<table style='border:1px solid #cccccc' width='100%'><tr><th style='width:50%;text-align:center;background-color:#337ab7; font-size:14px;color: #fff;padding-top: 5px;' colspan='8'>Vouchers</th></tr><tr style='text-align:center'><td style='width:5%'>Sr.No.</td><td  style='width:5%'>Date</td><td  style='width:15%'>Particular</td><td  style='width:7%'>Internal Id</td><td  style='width:7%'>Voucher No</td><td  style='width:10%'>Amount</td><td  style='width:40%'>Note</td><td  style='width:5%'>Edit</td></tr>";
 			    for(var i = 0; i < my_data.length; i++)
 			    {
 					var d = new Date(my_data[i]['Date']);
@@ -298,12 +301,20 @@ function loadchanges()
 					var curr_month = d.getMonth();
 					var curr_year = d.getFullYear();
 					var dis_date = curr_date + "-" + (curr_month+1) + "-" + curr_year;
-					
+					var prefix="";
+					if(my_data[i]['VoucherTypeID'] == 5)
+					{
+						prefix="JV-"+my_data[i]['ExternalCounter'];
+					}
+					else
+					{
+						prefix=my_data[i]['ExternalCounter'];
+					}
 					if(my_data[i]['VoucherTypeID'] == 2 || my_data[i]['VoucherTypeID'] == 3)
 					{
 						//view_ledger_details.php?lid=1&gid=
 						//table += "<tr style='text-align:center'><td>" + (i+1) + "</td><td>" + dis_date + "</td><td><div style='cursor:pointer;color:#06F' onClick=ViewVoucherDetail('" + my_data[i]['ledger_id'] + "','" + my_data[i]['VoucherTypeID'] + "','" + my_data[i]['id'] + "');>" + my_data[i]['ledger_name'] + "</div></td><td><div style='cursor:pointer;color:#06F' onClick=ViewVoucherDetail('" + my_data[i]['ledger_id'] + "','" + my_data[i]['VoucherTypeID'] + "','" + my_data[i]['id'] + "');>" + my_data[i]['VoucherNo'] + "</div></td><td>" + my_data[i]['Debit'] + "</td><td>" + my_data[i]['Note'] + "</td><td><a href='bank_statement.php?LedgerID=" + my_data[i]['ledger_id'] + "' target='_blank'><img src='images/edit.gif' border='0' alt='Edit' style='cursor:pointer;'/></a></td></tr>";
-						table += "<tr style='text-align:center'><td>" + (i+1) + "</td><td>" + dis_date + "</td><td><div style='cursor:pointer;color:#06F' onClick=window.open('view_ledger_details.php?lid=" + my_data[i]['ledger_id'] + "&gid=" + my_data[i]['group_id'] + "')>" + my_data[i]['ledger_name'] + "</div></td><td><div style='cursor:pointer;color:#06F' onClick=ViewVoucherDetail('" + my_data[i]['ledger_id'] + "','','" + my_data[i]['VoucherTypeID'] + "','" + my_data[i]['id'] + "');>" + my_data[i]['VoucherNo'] + "</div></td><td>" + my_data[i]['Debit'] + "</td><td>" + my_data[i]['Note'] + "</td><td>";
+						table += "<tr style='text-align:center'><td>" + (i+1) + "</td><td>" + dis_date + "</td><td><div style='cursor:pointer;color:#06F' onClick=window.open('view_ledger_details.php?lid=" + my_data[i]['ledger_id'] + "&gid=" + my_data[i]['group_id'] + "')>" + my_data[i]['ledger_name'] + "</div></td><td><div style='cursor:pointer;color:#06F' onClick=ViewVoucherDetail('" + my_data[i]['ledger_id'] + "','','" + my_data[i]['VoucherTypeID'] + "','" + my_data[i]['id'] + "');>" + my_data[i]['VoucherNo'] + "</div></td><td>"+prefix+"</td><td>" + my_data[i]['Debit'] + "</td><td>" + my_data[i]['Note'] + "</td><td>";
 						if(freezYear == 0)
 						{
 							table += "<a href='VoucherEdit.php?Vno="+ my_data[i]['VoucherNo'] + "&pg=' target='_blank'><img src='images/edit.gif' border='0' alt='Edit' style='cursor:pointer;'/></a>";
@@ -312,7 +323,7 @@ function loadchanges()
 					}
 					else
 					{
-						table += "<tr style='text-align:center'><td>" + (i+1) + "</td><td>" + dis_date + "</td><td><div style='cursor:pointer;color:#06F' onClick=window.open('view_ledger_details.php?lid=" + my_data[i]['ledger_id'] + "&gid=" + my_data[i]['group_id'] + "')>" + my_data[i]['ledger_name'] + "</div></td><td><div style='cursor:pointer;color:#06F' onClick=ViewVoucherDetail('" + my_data[i]['ledger_id'] + "','','" + my_data[i]['VoucherTypeID'] + "','" + my_data[i]['id'] + "');>" + my_data[i]['VoucherNo'] + "</div></td><td>" + my_data[i]['Debit'] + "</td><td>" + my_data[i]['Note'] + "</td><td>";
+						table += "<tr style='text-align:center'><td>" + (i+1) + "</td><td>" + dis_date + "</td><td><div style='cursor:pointer;color:#06F' onClick=window.open('view_ledger_details.php?lid=" + my_data[i]['ledger_id'] + "&gid=" + my_data[i]['group_id'] + "')>" + my_data[i]['ledger_name'] + "</div></td><td><div style='cursor:pointer;color:#06F' onClick=ViewVoucherDetail('" + my_data[i]['ledger_id'] + "','','" + my_data[i]['VoucherTypeID'] + "','" + my_data[i]['id'] + "');>" + my_data[i]['VoucherNo'] + "</div></td><td><div style='cursor:pointer;color:#06F' onClick=ViewVoucherDetail('" + my_data[i]['ledger_id'] + "','','" + my_data[i]['VoucherTypeID'] + "','" + my_data[i]['id'] + "');>" +prefix+ "</div></td><td>" + my_data[i]['Debit'] + "</td><td>" + my_data[i]['Note'] + "</td><td>";
 						if(freezYear == 0)
 						{
 						table += "<a href='VoucherEdit.php?Vno="+ my_data[i]['VoucherNo'] + "&pg=' target='_blank'><img src='images/edit.gif' border='0' alt='Edit' style='cursor:pointer;'/></a>";
@@ -537,8 +548,8 @@ function update_mode(fd_id)
 				//document.getElementById('mode').value = "Update";
 				document.getElementById('FD_Renew').hidden = true;
 				//document.getElementById('on_close').style.display = "table-row";
-				document.getElementById('Maturity_Amount_td').innerHTML = "<input type='text' id='Maturity_Amount' name='Maturity_Amount' value='" + document.getElementById('Maturity_Amount_td').innerHTML + "' />";
-				document.getElementById('Maturity_Date_td').innerHTML = "<input type='text' id='Maturity_Date' name='Maturity_Date' value='" + document.getElementById('Maturity_Date_td').innerHTML + "' />";
+				//document.getElementById('Maturity_Amount_td').innerHTML = "<input type='text' id='Maturity_Amount' name='Maturity_Amount' value='" + document.getElementById('Maturity_Amount_td').innerHTML + "' />";
+				//document.getElementById('Maturity_Date_td').innerHTML = "<input type='text' id='Maturity_Date' name='Maturity_Date' value='" + document.getElementById('Maturity_Date_td').innerHTML + "' />";
 				if(document.getElementById('FD_Bank_Payout').checked == true)
 				{
 					document.getElementById('accrued_interest_tr').style.display = "table-row";
@@ -562,7 +573,7 @@ function update_mode(fd_id)
 		document.getElementById('Maturity_Amount_td').innerHTML = document.getElementById('Maturity_Amount').value;
 		document.getElementById('Maturity_Date_td').innerHTML = document.getElementById('Maturity_Date').value;
 		document.getElementById('accrued_interest_amt').value="0.00";
-		
+		document.getElementById('tds_amt').value="0.00";
 		//added if check payout to bank disable accrude intrest 
 		document.getElementById('accrued_interest_tr').style.display = "none";
 		document.getElementById('on_close').style.display = "none";
@@ -600,6 +611,7 @@ function for_renew(fd_id)
 		document.getElementById('FD_Close').hidden = false;
 		document.getElementById('for_renew').style.display = "none";
 		document.getElementById('accrued_interest_amt').value="0.00";
+		document.getElementById('tds_amt').value="0.00";
 		//document.getElementById('on_close').style.display = "none";
 		//document.getElementById('mode').value = "UpdateInterest";
 	}
@@ -1527,6 +1539,68 @@ function CheckYearValidation()
 						return false;
 					}
 				}
+				
+		  });
+}
+function EditFD()
+{
+	//document.getElementById('btnViewReport').style.display = "none";
+	document.getElementById('btnEditFD').style.display = "none";
+	document.getElementById('btnUpdateFD').style.display = "table-row";
+	document.getElementById('btncancle').style.display = "table-row";
+	
+	document.getElementById('Deposit_Date').disabled = false;
+ 	document.getElementById('Maturity_Date').disabled = false;
+ 	document.getElementById('FD_Period').disabled = false;
+  	document.getElementById('Interest_Rate').disabled = false;
+ 	document.getElementById('Principal_Amount').disabled = false;
+ 	document.getElementById('Maturity_Amount').disabled = false;
+  	document.getElementById('Deposit_Date').style.backgroundColor= "";
+   	document.getElementById('Maturity_Date').style.backgroundColor= "";
+   	document.getElementById('FD_Period').style.backgroundColor= "";
+    document.getElementById('Interest_Rate').style.backgroundColor= "";
+ 	document.getElementById('Principal_Amount').style.backgroundColor= "";
+  	document.getElementById('Maturity_Amount').style.backgroundColor= "";
+}
+function Cancle()
+{
+	//document.getElementById('btnViewReport').style.display = "block";
+	document.getElementById('btnEditFD').style.display = "table-row";
+	document.getElementById('btnUpdateFD').style.display = "none";
+	document.getElementById('btncancle').style.display = "none";
+	document.getElementById('Deposit_Date').disabled = true;
+ 	document.getElementById('Maturity_Date').disabled = true;
+ 	document.getElementById('FD_Period').disabled = true;
+  	document.getElementById('Interest_Rate').disabled = true;
+ 	document.getElementById('Principal_Amount').disabled = true;
+ 	document.getElementById('Maturity_Amount').disabled = true;
+  	document.getElementById('Deposit_Date').style.backgroundColor= "#d3d3d32e";
+   	document.getElementById('Maturity_Date').style.backgroundColor= "#d3d3d32e";
+   	document.getElementById('FD_Period').style.backgroundColor= "#d3d3d32e";
+    document.getElementById('Interest_Rate').style.backgroundColor= "#d3d3d32e";
+ 	document.getElementById('Principal_Amount').style.backgroundColor= "#d3d3d32e";
+  	document.getElementById('Maturity_Amount').style.backgroundColor= "#d3d3d32e";
+}
+function UpdateFD(ledgerId,fd_id)
+{
+	
+	//var fd_id            = document.getElementById('fd_id').value;
+	//var fd_ledgerId      = document.getElementById('fd_ledgerId').value;
+	var DateOfDeposite 	 = document.getElementById('Deposit_Date').value;
+	var DateOfMaturity 	 = document.getElementById('Maturity_Date').value;
+	var FD_Period 		 = document.getElementById('FD_Period').value;
+	var Intrest_Rate     = document.getElementById('Interest_Rate').value;
+	var Principle_Amount = document.getElementById('Principal_Amount').value;
+	var Maturity_Amount  = document.getElementById('Maturity_Amount').value;
+	
+	$.ajax({
+			url: 'ajax/ajaxFixedDeposit2.php', 
+			type: 'POST',
+        	data: {"DateOfDeposite": DateOfDeposite, "DateOfMaturity": DateOfMaturity, "FD_Period": FD_Period, "Intrest_Rate": Intrest_Rate, "Principle_Amount": Principle_Amount, "Maturity_Amount": Maturity_Amount, "fd_ledgerId": ledgerId, "fd_id": fd_id, "method": "UpdateFDData"},
+        	success: function(data)
+			{	
+			  location.reload();	
+			}
 				
 		  });
 }

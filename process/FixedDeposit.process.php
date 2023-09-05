@@ -5,10 +5,22 @@
 	  $obj_FixedDeposit = new FixedDeposit($dbConn,$dbConnRoot);
 	  $validator = $obj_FixedDeposit->startProcess();
 	  $module = $_REQUEST['module'];
-	  if($module == "1")
-	  {
-		  $obj_FixedDeposit->actionPage = "../UpdateFDInterest.php?edt=".$_POST['id']."&fdreadonly=1&fd_id=".$_POST['ref']."&status=".$_POST['fd_status']."";
-	  }
+	  //echo "module".$module;
+	  //echo "validator".$validator;
+	 if($module == "1")
+	 {
+		 $status = $_POST['fd_status'];
+		 if($validator=="Renew")
+		 {
+			  $status ="Renewed";
+		 }
+		 if($validator=="Closed")
+		 {
+			  $status ="Closed";
+		 }
+		 // $obj_FixedDeposit->actionPage = "../UpdateFDInterest.php?edt=".$_POST['id']."&fdreadonly=1&fd_id=".$_POST['ref']."&status=".$_POST['fd_status']."";
+		  $obj_FixedDeposit->actionPage = "../UpdateFDInterest.php?edt=".$_POST['id']."&fdreadonly=1&fd_id=".$_POST['ref']."&status=".$status."";
+	 }
 	  else if($module == "2")
 	  {
 		  $obj_FixedDeposit->actionPage = "../FixedDeposit.php";

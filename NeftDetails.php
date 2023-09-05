@@ -368,6 +368,7 @@ else
         <tr><td>
         <input type="hidden" name="DepositID" id="DepositID"  value="<?php echo $_REQUEST["depositid"] ?>" /></td></tr>
         <input type="hidden" name="edit" id="edit" value="<?php echo $_REQUEST['edt']; ?>" />
+        <input type="hidden" name="login_id" id="login_id" value="<?php echo $_SESSION['login_id']; ?>" />
 </table>
 </form>
 <script>

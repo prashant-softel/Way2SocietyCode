@@ -104,7 +104,7 @@ $_SESSION['wwid'] = $_REQUEST['wwid'];
     
 	<script type="text/javascript" src="js/ajax_new.js"></script>
     <script type="text/javascript" src="js/populateData.js"></script>
-	<script type="text/javascript" src="js/jsgenbill_20190326.js?1234"></script>
+	<script type="text/javascript" src="js/jsgenbill_20190326.js?15062023"></script>
     <script type="text/javascript" src="ckeditor/ckeditor.js"></script>
    <script type="text/javascript" src="js/status.js"></script> 
     <!--<link rel="stylesheet" href="css/ui.datepicker.css" type="text/css" media="screen" />
@@ -270,16 +270,16 @@ $_SESSION['wwid'] = $_REQUEST['wwid'];
             </td>
 		</tr>
         
-        <tr align="left">
-        	<td valign="middle"><?php if(isset($_GET['ws'])){echo $star;}?></td>
+        <!--<tr align="left">
+        	<td valign="middle"><?php //if(isset($_GET['ws'])){echo $star;}?></td>
 			<td>Bill Year </td>
             <td>&nbsp; : &nbsp;</td>
 			<td>
             	<select name="year_id" id="year_id" style="width:142px;" onChange="get_period(this.value, <?php echo DEFAULT_PERIOD; ?> );">
-                	<?php echo $combo_state = $obj_genbill->combobox("select YearID,YearDescription from year where status='Y' and YearID = '".$_SESSION['default_year']."' ORDER BY YearID DESC", DEFAULT_YEAR, '' ); ?>
+                	<?php //echo $combo_state = $obj_genbill->combobox("select YearID,YearDescription from year where status='Y' and YearID = '".$_SESSION['default_year']."' ORDER BY YearID DESC", DEFAULT_YEAR, '' ); ?>
 				</select>
             </td>
-		</tr>        
+		</tr> -->       
         <tr align="left">
         	<td valign="middle"><?php if(isset($_GET['ws'])){echo $star;}?></td>
 			<td>Bill Year </td>
@@ -304,8 +304,8 @@ $_SESSION['wwid'] = $_REQUEST['wwid'];
                 <select name="period_id" id="period_id" style="width:142px;" onChange="get_date(this.value); get_prevperiod();">  		
 			</select>
 					&nbsp; &nbsp;
-		         Bill For previous period :	
-				 <span name="prevperiod_id" id="prevperiod_id" style="line-height: 20px;"></span>   
+		         <!--Bill For previous period :	
+				 <span name="prevperiod_id" id="prevperiod_id" style="line-height: 20px;"></span>   -->
 			</td>
 	
 		</tr>
@@ -437,14 +437,15 @@ $_SESSION['wwid'] = $_REQUEST['wwid'];
             ?>
 			&nbsp;&nbsp;&nbsp;
             <input type="button" id="insertGenerate" value="Generate" style="width:92px;"  class="btn btn-primary" onClick="SetMode(this.value);" <?php echo $btnDisable; ?>/>
-            <?php } } ?>
+            <?php } 
+			} ?>
 			&nbsp;&nbsp;&nbsp;
             <input type="button" id="insertExport" value="Export To Excel" class="btn btn-primary" onClick="SetMode(this.value);" style="display:none;" />
-            <?php if(IsReadonlyPage() == false){?>
+            <?php if(IsReadonlyPage() == false && $_SESSION['profile'][PROFILE_GENERATE_BILL] == 1 ){?>
 			&nbsp;&nbsp;&nbsp;
             <input type="button" id="insertNote" value="Update Notes" class="btn btn-primary" onClick="SetMode(this.value);" />
             <?php } ?>
-            <?php if(IsReadonlyPage() == false){?>
+            <?php if(IsReadonlyPage() == false && $_SESSION['profile'][PROFILE_GENERATE_BILL] == 1 ){?>
 			&nbsp;&nbsp;&nbsp;
             <input type="button" id="insertFont" value="Update Font Size" class="btn btn-primary" onClick="SetMode(this.value);" />
                <?php } ?>
@@ -463,7 +464,14 @@ $_SESSION['wwid'] = $_REQUEST['wwid'];
 <br/>
 <div id="exportstatus" style="color:#0000FF;font-weight:bold;display:none;"></div>
 <iframe id="download_bill" style="display:none"></iframe>
-<table id="operations" style="display:none;width:550px;;">
+<?php 
+$width=550;
+if($_SESSION['profile'][PROFILE_GENERATE_BILL] == 0)
+{
+	$width=400;
+}
+?>
+<table id="operations" style="display:none;width:<?php echo $width?>px;">
 		<tr>
 			<td>
 				<input type="button" id="export" value="Generate PDF"  onclick="ExportPDF();" class="btn btn-primary" />
@@ -625,6 +633,13 @@ if($errorMsg <> "" || $errorMsg2 <> "" || $errorMsg3 <> "")
 		</div>
 	</div>
 </div>
+<div id="openDialogdownloadBill" class="modalDialog" >
+	<div>
+		<div id="message_downloadbill">
+		</div>
+	</div>
 </div>
+</div>
+  
 <!--<iframe name="pdfexport" id="pdfexport" style="border:1px solid #0F0;width:100%;height:50px;"></iframe>-->
 <?php include_once "includes/foot.php"; ?>

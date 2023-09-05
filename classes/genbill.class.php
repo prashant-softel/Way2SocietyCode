@@ -4500,7 +4500,8 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 		$IsCGST_IDExits = in_array($CGST_Id,$Ledgers);
 		$IsSGST_IDExits = in_array($SGST_Id,$Ledgers);
 
-		if(($CGST <> 0 && $CGST <> '') || ($SGST <> 0 && $SGST <> ''))
+		//if(($CGST <> 0 && $CGST <> '') || ($SGST <> 0 && $SGST <> '')) // cahnges on gst update not working 
+		if(($CGST <> '') || ($SGST <> ''))
 		{
 			if($IsCGST_IDExits === true || $IsSGST_IDExits === true)
 			{

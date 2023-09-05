@@ -788,7 +788,15 @@ where  voucherdate >= '". $EndDate . "'  AND PaidBy = " . $UnitID." AND periodtb
 		{
 			$PeriodID=$this->getNextPeriodID($PeriodID);
 		}
-		$Prevresult = $this->getBeginEndReceiptDate($UnitID, $PeriodID);
+		if($_SESSION['society_id'] == 427)
+		{
+			$Prevresult = $this->getBeginEndReceiptDate($UnitID, $PeriodID,$BillType);
+		}
+		else
+		{
+			$Prevresult = $this->getBeginEndReceiptDate($UnitID, $PeriodID);
+		}
+		
 		
 		$ledgername_array = array();
 		$get_ledger_name ="select id,ledger_name from `ledger`";
@@ -1124,7 +1132,7 @@ periodtable.YearID = yeartable.YearID WHERE periodtable.id =".$sPeriodID;
 	function GetFieldsToShowInBill($UnitID)
 	{
 		$society_ID = $this->GetSocietyID($UnitID);
-		$sql = 'SELECT `show_wing`,`show_parking`,`show_area`, `bill_method`, `show_share`, `bill_footer`,`bill_due_date`,`show_floor`,`show_vertual_ac`,`show_intercom`,`show_mem_email`  FROM `society` WHERE 
+		$sql = 'SELECT `show_wing`,`show_parking`,`show_area`, `bill_method`, `show_share`, `bill_footer`,`bill_due_date`,`show_floor`,`show_vertual_ac`,`show_intercom`,`show_mem_email`,`show_reciept_on_supp`  FROM `society` WHERE 
 
 `society_id` = '.$society_ID;
 		$res = $this->m_dbConn->select($sql);

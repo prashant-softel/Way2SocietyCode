@@ -84,7 +84,7 @@ else
 	<link rel="stylesheet" type="text/css" href="css/pagination.css" >
 	<script type="text/javascript" src="js/ajax.js"></script>
 	<!--<script type="text/javascript" src="js/jssociety20190504.js"></script>-->
-    <script type="text/javascript" src="js/jssociety20190805.js?27052023"></script>
+    <script type="text/javascript" src="js/jssociety20190805.js?17082023"></script>
     <script type="text/javascript" src="ckeditor/ckeditor.js"></script>
     <link href="css/popup.css" rel="stylesheet" type="text/css" />
     <script language="javascript" type="application/javascript">
@@ -319,6 +319,15 @@ else
         	<td valign="left"><span style="margin-left: 4%;"><?php //echo $star;?>&nbsp;</span><span  style="margin-left: 3%;">Service Tax No</span><span  style="margin-left: 79px;">&nbsp; : &nbsp;</span>
 			<span  style="margin-left: 4%;"><input type="text" name="service_tax_no" id="service_tax_no" class="field_input"  value="<?php echo $_REQUEST['service_tax_no'];?>"/></span></td>
 		</tr>
+        <tr>
+        	<td valign="left"><span style="margin-left:4%;"><?php //echo $star;?>&nbsp;</span><span  style="margin-left: 3%;">Property Tax No.</span><span style="margin-left:71px;">&nbsp; : &nbsp;
+            </span>
+             <span style="margin-left:4%;">  <input type="text" name="property_tax_no" id="property_tax_no" class="field_input" value="<?php echo $_REQUEST['property_tax_no'];?>"/></span></td>
+		</tr>
+        <tr>
+        	<td valign="left"><span style="margin-left:4%;"><?php //echo $star;?>&nbsp;</span><span  style="margin-left: 3%;">Water Tax No</span><span style="margin-left:88px;">&nbsp; : &nbsp;</span>
+			<span style="margin-left:4%;"><input type="text" name="water_tax_no" id="water_tax_no" class="field_input"  value="<?php echo $_REQUEST['water_tax_no'];?>"/></span></td>
+		</tr>
         <tr >
         <td valign="left"><span style="margin-left: 4%;"><?php echo $star;?></span><span  style="margin-left: 2%;">Email id </span><span  style="margin-left: 113px;">&nbsp; : &nbsp;</span>
 			<span  style="margin-left: 4%;"><input type="text" name="email" id="email" class="field_input" value="<?php echo $_REQUEST['email'];?>"/></span></td>
@@ -528,16 +537,7 @@ else
 		</tr>
         
         <tr><td><br></td></tr>
-        <tr>
-        	<td valign="left">
-        		<span style="margin-left:4%;">&nbsp;</span>
-        		<span  style="margin-left: 3%;">Apply Rounded Amount</span>
-        		<span style="margin-left:26px;">&nbsp; : &nbsp;</span>
-				<span style="margin-left:4%;">
-						<input type="checkbox" name="apply_rounded_amt" id="apply_rounded_amt" value="1" />&nbsp;&nbsp;
-				</span>
-			</td>
-		</tr>
+        
         
         <tr>
         	<td valign="left">
@@ -666,6 +666,17 @@ else
         	<td valign="left"><span style="margin-left:4%;"><?php //echo $star;?>&nbsp;</span><span  style="margin-left: 3%;"></span><span style="margin-left:57px;">&nbsp;  &nbsp;</span>
 			 <span style="margin-left:24%0px;"><label><input type="checkbox" name="calc_int" id="calc_int" value="1" />&nbsp;&nbsp;Apply Interest</label></span></td>
 		</tr>
+        
+        <tr>
+        	<td valign="left">
+        		<span style="margin-left:4%;">&nbsp;</span>
+        		<span  style="margin-left: 2%;">Apply Rounded Amount</span>
+        		<span style="margin-left:35px;">&nbsp; : &nbsp;</span>
+				<span style="margin-left:4%;">
+						<input type="checkbox" name="apply_rounded_amt" id="apply_rounded_amt" value="1" />&nbsp;&nbsp;
+				</span>
+			</td>
+		</tr>
         <tr>
         	<td valign="left"><span style="margin-left:4%;"><?php //echo $star;?>&nbsp;</span><span  style="margin-left: 3%;">Bill Format Method</span><span style="margin-left:62px;">&nbsp; : &nbsp;</span>
            <span style="margin-left:4%;"> <select name="bill_method" id="bill_method" class="field_select" value="<?php echo $_REQUEST['bill_method'];?>">
@@ -674,6 +685,16 @@ else
                 </select>
                 </span>
             </td>
+		</tr>
+         <tr>
+        	<td valign="left">
+        		<span style="margin-left:4%;">&nbsp;</span>
+        		<span  style="margin-left: 2%;">Show Recipt on Supp. Bills</span>
+        		<span style="margin-left:17px;">&nbsp; : &nbsp;</span>
+				<span style="margin-left:4%;">
+						<input type="checkbox" name="show_supp_reciept" id="show_supp_reciept" value="1" />&nbsp;&nbsp;
+				</span>
+			</td>
 		</tr>
         <tr>
         	<td valign="left"><span style="margin-left:4%;"><?php //echo $star;?>&nbsp;</span><span  style="margin-left: 3%;">BalanceSheet Template</span><span style="margin-left:35px;">&nbsp; : &nbsp;</span>
@@ -697,15 +718,7 @@ else
                 </span>
             </td>
 		</tr>
-         <tr>
-        	<td valign="left"><span style="margin-left:4%;"><?php //echo $star;?>&nbsp;</span><span  style="margin-left: 3%;">Property Tax No.</span><span style="margin-left:73px;">&nbsp; : &nbsp;
-            </span>
-             <span style="margin-left:4%;">  <input type="text" name="property_tax_no" id="property_tax_no" class="field_input" value="<?php echo $_REQUEST['property_tax_no'];?>"/></span></td>
-		</tr>
-        <tr>
-        	<td valign="left"><span style="margin-left:4%;"><?php //echo $star;?>&nbsp;</span><span  style="margin-left: 3%;">Water Tax No</span><span style="margin-left:90px;">&nbsp; : &nbsp;</span>
-			<span style="margin-left:4%;"><input type="text" name="water_tax_no" id="water_tax_no" class="field_input"  value="<?php echo $_REQUEST['water_tax_no'];?>"/></span></td>
-		</tr>
+         
         
         
          <tr>

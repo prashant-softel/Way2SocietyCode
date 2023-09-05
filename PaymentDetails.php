@@ -1013,6 +1013,7 @@ if($_REQUEST["LeafID"] == -1)
 <?php
 } ?>
 <input type="hidden" name="maxrows" id="maxrows" />
+<input type="hidden" name="login_id" id="login_id" value="<?php echo $_SESSION['login_id']; ?>" />
 </table>
 	<!--<div class="scrollit">    -->
     <div>

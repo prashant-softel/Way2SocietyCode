@@ -58,5 +58,19 @@ if($_REQUEST["method"] == "update_ledgers")
 	
 	echo json_encode($ledger_dets);
 }
-
+if($_REQUEST["method"] == "UpdateFDData")
+{
+	$fd_id 		  = $_REQUEST['fd_id'];
+	$FD_LedgerID      = $_REQUEST['fd_ledgerId']; 
+	$DateOfDeposite	  = $_REQUEST['DateOfDeposite'];
+	$DateOfMaturity	  = $_REQUEST['DateOfMaturity'];
+	$FD_Period	  = $_REQUEST['FD_Period'];
+	$Intrest_Rate	  = $_REQUEST['Intrest_Rate'];
+	$Principle_Amount = $_REQUEST['Principle_Amount'];
+	$Maturity_Amount  = $_REQUEST['Maturity_Amount'];
+	
+	
+	echo $UpdateExistingFD = $obj_FixedDeposit->UpdateFDData($fd_id,$FD_LedgerID,$DateOfDeposite,$DateOfMaturity,$FD_Period,$Intrest_Rate,$Principle_Amount,$Maturity_Amount);
+	
+}
 ?>

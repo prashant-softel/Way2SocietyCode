@@ -317,6 +317,7 @@ else
     <th style="width:20%;text-align:center;">Particulars</th>
 						<th style="width:13%;text-align:center;">Note</th>
     <th style="width:5%;text-align:center;">Voucher Type</th>
+    <th style="width:5%;text-align:center;">Voucher No</th>
     <th style="width:9%;text-align:center;">Ref.</th>
     <th style="width:12%;text-align:center;">Deposits</th>
     <th style="width:12%;text-align:center;">Withdrawals</th>
@@ -338,8 +339,8 @@ else
 		$openingBalancePresent = 0;
 		$reference = 0;
 		
-		if($balance >= 0)
-		{?>
+		//if($balance >= 0)
+		//{?>
 			<tr style="height:30px;">
 							<?php if ($showDeleteBtn) { ?>
 								<td style="width:5%;text-align:center;"><?php echo '-' ?></td>
@@ -349,6 +350,7 @@ else
                 <td style="width:20%;text-align:left;"><?php echo 'Opening Balance'; ?></td>
                 <td style="width:15%;text-align:left;"><?php echo '-'; ?></td>
                 <td style="width:5%;text-align:center;"><?php echo '-' ?></td>
+                 <td style="width:5%;text-align:center;"><?php echo '-' ?></td>
                 <td style="width:9%;text-align:center;"><?php echo '-' ?></td>
 		<td style="width:12%;text-align:right;"><?php echo number_format($balance, 2); ?></td>
 		<td style="width:12%;text-align:right;"><?php echo '-' ?></td>							
@@ -358,13 +360,15 @@ else
                
                </td>-->
        		</tr>
-<?php	}
+<?php	//}
 
 		for($i = 0; $i < sizeof($details); $i++)
 		{
 			$chequeNumber = "-";	
 			//echo "ID:".$details[$i]['VoucherID'];
-			$voucherDetails = $obj_view_bank_statement->getRefTableName($details[$i]['VoucherID']);				
+			$voucherDetails = $obj_view_bank_statement->getRefTableName($details[$i]['VoucherID']);		
+			//var_dump($voucherDetails);	
+			$ExvoucherNo = $voucherDetails[0]['ExternalCounter'];	
 			$voucherNo = $voucherDetails[0]['VoucherNo'];
 			$RefTableName= $voucherDetails[0]['RefTableID'];
 			$RefNo 		= $voucherDetails[0]['RefNo'];
@@ -503,8 +507,7 @@ else
 				{
 					$paidAmount = 0;										
 				}
-				
-				if($receivedAmount > 0 || $isReceipt == 1)
+				if($receivedAmount != 0 || $isReceipt == 1)
 				{				
 					$balance += $receivedAmount;	
 					$totalDeposits += $receivedAmount;
@@ -682,6 +685,7 @@ else
 
              <td style="width:15%;text-align:left;"><?php if($comment == ""){echo "-";}else{echo $comment;} ?></td>
             <td style="width:5%;text-align:center;"><?php echo $voucherType ?></td>
+              <td style="width:5%;text-align:center;"><?php echo $ExvoucherNo?></td>
             <td style="width:9%;text-align:center;"><?php echo $chequeNumber ?></td>
 							<td style="width:12%;text-align:right;"><?php //echo "dID : ". $RefTableName;
 																	if ($chqDtlUrl <> "" && ($receivedAmount > 0 || $isReceipt == 1)) { ?>
@@ -727,6 +731,7 @@ else
 						<?php } ?>
 	 <td ></td>
      <td ></td>
+    <td ></td>
     <td ></td>
     <td > **Totals** </td>
      <td ></td>

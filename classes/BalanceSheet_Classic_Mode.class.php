@@ -31,7 +31,7 @@ class BalanceSheet
 		 $YearID = $this->m_objUtility->getYearIDFromDates($from,$to);
 		
 		//fetch all categories of groupid GroupID 
-		$sql = "SELECT *  FROM `account_category` where group_id = ".$GroupID." order by srno is null, srno";
+		$sql = "SELECT *  FROM `account_category` where group_id = ".$GroupID;
 		$data = $this->m_dbConn->select($sql);
 		
 		//converting category array to tree display format array

@@ -270,6 +270,16 @@ class BankReco
 					{
 						$details['Particulars'] = $this->getLedgerName($lID);
 					}
+					// added new if FD 23082023
+					$tableQuery = "SELECT * FROM `voucher` WHERE `id` = '".$result[$i]['VoucherID']."'";	
+					$res1 = $this->m_dbConn->select($tableQuery); 			
+					if($result[$i]['ChkDetailID']== 0)
+					{				
+					
+					$details['ChequeNo'] = '-';
+					$details['Particulars'] =$res1[0]['Note'];	
+					//$ledgers[0]['ledger_name'] = $res[0]['Note'];
+					}	
 					array_push($finalArray, $details);
 				}
 			}						
