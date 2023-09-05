@@ -362,7 +362,7 @@ $maxDate = getDisplayFormatDate($m_objUtility->getMaxDate());
 			let selectedDate = new Date($('#from').val());
 			let minimumDate  = new Date(minDate);
 			if(selectedDate.getTime() < minimumDate.getTime()){
-				alert(`Date can't be less that ${minDate}`);
+				alert(`Date can't be less than ${minDate}`);
 				$("#from").val(minDate);
 			}
 		}

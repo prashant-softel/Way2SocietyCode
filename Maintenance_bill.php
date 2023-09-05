@@ -218,8 +218,16 @@ else
 	$obj_genbill->setMaintenanceBillReadUnreadFlag($_REQUEST['UnitID'],$_REQUEST["PeriodID"],$_REQUEST['BT']);
 }
 //echo "skip:".$SkipLedger;
-
-$receiptDetails = $objFetchData->getReceiptDetailsEx($_REQUEST["UnitID"], $_REQUEST["PeriodID"], false, 0, true);
+if($IsSupplementaryBill==1)
+{
+	
+	$receiptDetails = $objFetchData->getReceiptDetailsEx($_REQUEST["UnitID"], $_REQUEST["PeriodID"], false, 0, true,$IsSupplementaryBill);
+}
+else
+{
+	$receiptDetails = $objFetchData->getReceiptDetailsEx($_REQUEST["UnitID"], $_REQUEST["PeriodID"], false, 0, true);
+}
+//$receiptDetails = $objFetchData->getReceiptDetailsEx($_REQUEST["UnitID"], $_REQUEST["PeriodID"], false, 0, true);
 $iCounter = 0;
 ?>
 <script> var HeaderAndAmount = new Array();</script>	 
@@ -228,9 +236,7 @@ $iCounter = 0;
 for($iVal = 0; $iVal < sizeof($BillRegisterData) ; $iVal++) 
 {
 	$BillDetails = $BillRegisterData[$iVal]["value"];
-	//echo "<pre>";
-	//print_r($BillDetails);
-	//echo "</pre>";
+	
 	$BillDate = getDisplayFormatDate($BillDetails->sBillDate);
 	$DueDate = getDisplayFormatDate($BillDetails->sDueDate);
 	$BillDisplayDueDate = getDisplayFormatDate($BillDetails->sBillDisplayDueDate);
@@ -356,6 +362,7 @@ $show_wing = $showInBillDetails[0]["show_wing"];
 $show_parking = $showInBillDetails[0]["show_parking"];
 $show_area = $showInBillDetails[0]["show_area"];
 $show_receipt = $showInBillDetails[0]["bill_method"];
+$show_supply_receipt = $showInBillDetails[0]["show_reciept_on_supp"];
 $show_shareCertificate = $showInBillDetails[0]["show_share"];
 $bill_footer = $showInBillDetails[0]['bill_footer'];
 $show_due_date = $showInBillDetails[0]["bill_due_date"];
@@ -757,8 +764,14 @@ var NewRowCounter=0;
        
 		<?php }?>
       
-      
-          <td><div id="bill_header" style="text-align:center;">
+      	 <?php if($_SESSION['society_id'] == 448)
+		 {?>	
+          <td style="width:80%">
+          <?php }
+		  else{?>
+          <td>
+          <?php }?>
+          <div id="bill_header" style="text-align:center;">
             <div id="society_name" style="font-weight:bold; font-size:16px;"><?php echo $objFetchData->objSocietyDetails->sSocietyName; ?></div>
             <div id="society_reg" style="font-size:14px;"><?php if($objFetchData->objSocietyDetails->sSocietyRegNo <> "")
 				{
@@ -783,6 +796,10 @@ var NewRowCounter=0;
             <div style="font-weight:bold; font-size:14px;"> <?php echo $bBillType = $IsSupplementaryBill ?  "Supplementary" : "Maintenance "  ?> Bill <?php echo $BillFor_Bill; ?></div>
              </div>
              </td>
+              <?php if($_SESSION['society_id'] == 448)
+		 	{?>
+             <td style="font-weight:bold; font-size:13px; width:10%"> <b>Flat No : <?php echo $objFetchData->objMemeberDetails->sUnitNumber; ?></b></td>
+        	<?php }?>
         </tr>
         </table>
        
@@ -1437,9 +1454,16 @@ var NewRowCounter=0;
         		<?php
         	}
         ?>
-        <?php if($show_receipt == 1 && sizeof($receiptDetails) > 0)
-			{ ?>
-        <div id="bill_receipt" style="text-align:center;border-top:1px solid black;border-bottom:none;">        	
+        
+        <?php
+		//echo "Show Reciept".$show_receipt;
+		//echo "size of ::".sizeof($receiptDetails);
+		
+		if($show_receipt == 1 && sizeof($receiptDetails) > 0)
+		{
+			
+		?>
+        	<div id="bill_receipt" style="text-align:center;border-top:1px solid black;border-bottom:none;">        	
             <div id="society_name" style="font-weight:bold; font-size:14px;"><?php echo $objFetchData->objSocietyDetails->sSocietyName; ?></div>           
             <div id="society_reg" style="font-size:10px;">
 				<?php if($objFetchData->objSocietyDetails->sSocietyRegNo <> "")
@@ -1453,51 +1477,50 @@ var NewRowCounter=0;
             	RECEIPT
             </div>
             <div id="bill_details" style="text-align:right;font-size:12px;">
-            <table style="width:100%;">
-            	<!--<tr>                	
-                    <td style="width:10%">Date</td>
-                    <td id='bill_date' style="width:15%;" colspan="3"><?php echo $BillDate ?></td>                    
-              	</tr>-->  
-            	<tr>
-                	<td style="width:20%;" colspan="4">Received with thanks from  <?php echo $objFetchData->objMemeberDetails->sMemberName; ?></td>                    
-              	</tr>
-                <tr>
-                	<td style="width:20%">Receipt Period:</td>
-                    <td id='receipt_period' style="width:30%;"><?php  echo $StartDate . " to ". $EndDate ?></td>
-                	<td style="width:40%; text-align:right;"><?php echo $unitText;?>:</td>
-                    <td id='owner_unit' style="width:10%; text-align:center;"><?php echo $objFetchData->objMemeberDetails->sUnitNumber; ?></td>
-                </tr>                                             
-            </table>
-        </div>
-        <div id="bill_payment" style="width:100%;">
-        	<table style="width:100%;font-size:<?php echo $BillFont?>px;">
-                <tr>
-                <th style="text-align:center; border:1px solid black;border-left:none;border-right:1px solid black;width:10%;">Bill Type</th>
-                <th style="text-align:center; border:1px solid black;border-left:none;width:10%;">Recpt Date</th>
-                <th style="text-align:center; border:1px solid black;border-left:none;width:10%;">Receipt No.</th>
-                <th style="text-align:center; border:1px solid black;border-left:none;width:10%;">Chk Date</th>
-                <th style="text-align:center; border:1px solid black;border-left:none;width:15%;">Cheque/NEFT No.</th>
-                <th style="text-align:center; border:1px solid black;border-left:none;width:15%;">Payer Bank</th>
-                <th style="text-align:center; border:1px solid black;border-left:none;width:15%;">Payer Branch</th>
-                <th style="text-align:center; border:1px solid black;border-left:none;border-right:none;width:25%;">Amount</th>  
-                </tr> 
-                <?php 
-					//echo "Receipt Details";
-					//echo sizeof($receiptDetails) ;
-					$total = '';
-					
-					$CreditDebitNote = '';
-					
-					for($i=0; $i < sizeof($receiptDetails) ; $i++)
-					{						
-						$voucherDate = $receiptDetails[$i]['VoucherDate'];
-						$receiptNo   = $receiptDetails[$i]['ExternalCounter'];
-						$amount = (float)$receiptDetails[$i]['Amount'];
-						$payerBank = $receiptDetails[$i]['PayerBank'];
-						$payerBranch = $receiptDetails[$i]['PayerChequeBranch'];
-						$chequeDate = $receiptDetails[$i]['Date'];
-						$chequeNo = $receiptDetails[$i]['ChequeNumber'];
-						$billtype=$receiptDetails[$i]['BillType'];
+            	<table style="width:100%;">
+            		<!--<tr>                	
+                    	<td style="width:10%">Date</td>
+                    	<td id='bill_date' style="width:15%;" colspan="3"><?php echo $BillDate ?></td>                    
+              		</tr>-->  
+            		<tr>
+                		<td style="width:20%;" colspan="4">Received with thanks from  <?php echo $objFetchData->objMemeberDetails->sMemberName; ?></td>                    
+              		</tr>
+                	<tr>
+                		<td style="width:20%">Receipt Period:</td>
+                    	<td id='receipt_period' style="width:30%;"><?php  echo $StartDate . " to ". $EndDate ?></td>
+                		<td style="width:40%; text-align:right;"><?php echo $unitText;?>:</td>
+                    	<td id='owner_unit' style="width:10%; text-align:center;"><?php echo $objFetchData->objMemeberDetails->sUnitNumber; ?></td>
+                	</tr>                                             
+            	</table>
+        	</div>
+          
+        	<div id="bill_payment" style="width:100%;">
+        		<table style="width:100%;font-size:<?php echo $BillFont?>px;">
+                	<tr>
+                		<th style="text-align:center; border:1px solid black;border-left:none;border-right:1px solid black;width:10%;">Bill Type</th>
+                		<th style="text-align:center; border:1px solid black;border-left:none;width:10%;">Recpt Date</th>
+                		<th style="text-align:center; border:1px solid black;border-left:none;width:10%;">Receipt No.</th>
+                        <th style="text-align:center; border:1px solid black;border-left:none;width:10%;">Chk Date</th>
+                        <th style="text-align:center; border:1px solid black;border-left:none;width:15%;">Cheque/NEFT No.</th>
+                        <th style="text-align:center; border:1px solid black;border-left:none;width:15%;">Payer Bank</th>
+                        <th style="text-align:center; border:1px solid black;border-left:none;width:15%;">Payer Branch</th>
+                        <th style="text-align:center; border:1px solid black;border-left:none;border-right:none;width:25%;">Amount</th>  
+                    </tr> 
+                	<?php 
+						//echo "Receipt Details";
+						//echo sizeof($receiptDetails) ;
+						$total = '';
+						$CreditDebitNote = '';
+						for($i=0; $i < sizeof($receiptDetails) ; $i++)
+						{						
+							$voucherDate = $receiptDetails[$i]['VoucherDate'];
+							$receiptNo   = $receiptDetails[$i]['ExternalCounter'];
+							$amount = (float)$receiptDetails[$i]['Amount'];
+							$payerBank = $receiptDetails[$i]['PayerBank'];
+							$payerBranch = $receiptDetails[$i]['PayerChequeBranch'];
+							$chequeDate = $receiptDetails[$i]['Date'];
+							$chequeNo = $receiptDetails[$i]['ChequeNumber'];
+							$billtype=$receiptDetails[$i]['BillType'];
 						
 						if($receiptDetails[$i]['IsReturn'] == 0)
 						{
@@ -1571,10 +1594,228 @@ var NewRowCounter=0;
           <?php } ?>      
            </table>
            </div>
+          
         </div>
-        <?php } ?>
-        
         <?php
+        }
+		if($show_receipt == 1 && sizeof($receiptDetails) == 0 && $_SESSION['client_id'] != 9)
+		{?>
+			<div id="bill_receipt" style="text-align:center;border-top:1px solid black;border-bottom:none;">        	
+            <div id="society_name" style="font-weight:bold; font-size:14px;"><?php echo $objFetchData->objSocietyDetails->sSocietyName; ?></div>           
+            <div id="society_reg" style="font-size:10px;">
+				<?php if($objFetchData->objSocietyDetails->sSocietyRegNo <> "")
+				{
+					echo "Registration No. ".$objFetchData->objSocietyDetails->sSocietyRegNo; 
+				}
+				?>
+            </div> 
+            <div id="society_address"; style="font-size:10px;"><?php echo $objFetchData->objSocietyDetails->sSocietyAddress; ?></div>            <div id="bill_subheader" style="text-align:center;font-weight:bold; font-size:14px;">
+            	RECEIPT
+            </div>
+            <div id="bill_details" style="text-align:right;font-size:12px;">
+            	<table style="width:100%;">
+            		<!--<tr>                	
+                    	<td style="width:10%">Date</td>
+                    	<td id='bill_date' style="width:15%;" colspan="3"><?php echo $BillDate ?></td>                    
+              		</tr>-->  
+            		<tr>
+                		<td style="width:20%;" colspan="4">Received with thanks from  <?php echo $objFetchData->objMemeberDetails->sMemberName; ?></td>                    
+              		</tr>
+                	<tr>
+                		<td style="width:20%">Receipt Period:</td>
+                    	<td id='receipt_period' style="width:30%;"><?php  echo $StartDate . " to ". $EndDate ?></td>
+                		<td style="width:40%; text-align:right;"><?php echo $unitText;?>:</td>
+                    	<td id='owner_unit' style="width:10%; text-align:center;"><?php echo $objFetchData->objMemeberDetails->sUnitNumber; ?></td>
+                	</tr>                                             
+            	</table>
+        	</div>
+           <?php  if($_SESSION['society_id'] == 448)
+			   {?>
+           		<div id="bill_payment" style="width:100%;">
+        		<table style="width:100%;font-size:<?php echo $BillFont?>px;">
+                	<tr>
+                		<th style="text-align:center; border:1px solid black;border-left:none;border-right:1px solid black;width:10%;">Bill Type</th>
+                		<th style="text-align:center; border:1px solid black;border-left:none;width:10%;">Recpt Date</th>
+                		<th style="text-align:center; border:1px solid black;border-left:none;width:10%;">Receipt No.</th>
+                        <th style="text-align:center; border:1px solid black;border-left:none;width:10%;">Chk Date</th>
+                        <th style="text-align:center; border:1px solid black;border-left:none;width:15%;">Cheque/NEFT No.</th>
+                        <th style="text-align:center; border:1px solid black;border-left:none;width:15%;">Payer Bank</th>
+                        <th style="text-align:center; border:1px solid black;border-left:none;width:15%;">Payer Branch</th>
+                        <th style="text-align:center; border:1px solid black;border-left:none;border-right:none;width:25%;">Amount</th>  
+                    </tr> 
+                    <tr>
+                			<!--<td style="text-align:center;border:1px solid black;border-left:none;"><?php //echo $i+1 ?> </td>-->         
+                  			<td style="text-align:center;border:1px solid black;border-left:none;border-right:1px solid black;">&nbsp;</td>
+					 		<td style="text-align:center;border:1px solid black;border-left:none;">&nbsp;</td>           
+                    		<td style="text-align:center;border:1px solid black;border-left:none;">&nbsp;</td>
+                    		<td style="text-align:center;border:1px solid black;border-left:none;">&nbsp;</td>
+                            <td style="text-align:center;border:1px solid black;border-left:none;">&nbsp;</td>           
+                    		<td style="text-align:center;border:1px solid black;border-left:none;">&nbsp;</td>
+                    		<td style="text-align:center;border:1px solid black;border-left:none;">&nbsp;</td>
+                            <td style="text-align:center;border:1px solid black;border-left:none;">&nbsp;</td>           
+                    </tr>
+                    <tr>
+                    
+                    <td colspan="7" style="text-align:right;border:1px solid black;border-left:none;"><?php echo "Total    :  " ?></td>
+                    <td style="text-align:center;border:1px solid black;border-left:none;border-right:none;"> &nbsp;</td>
+
+					</tr>
+                    </table>
+                    </div>
+                    <?php }
+					else
+					{?>
+						<div style="font-size: 14px;"><b>There is no receipt for this billing period</b></div>
+						<?php }?>
+			
+		   <?php } ?>
+		<?php 
+	
+		 ?>
+        
+       <?php 
+			// Supplymentry Reciept
+			foreach($receiptDetails as $key => $val){
+				if($val['BillType'] == 1)
+				{
+					$newreceiptDetails[]= $val;
+				}
+			}
+			unset($receiptDetails);
+			$receiptDetails = $newreceiptDetails;
+			
+			if($show_supply_receipt == 1 && sizeof($receiptDetails) > 0 && $_SESSION['client_id'] != 9  && $bBillType = $IsSupplementaryBill)
+			{
+				
+				?>
+			<div id="bill_receipt" style="text-align:center;border-top:1px solid black;border-bottom:none;">        	
+            <div id="society_name" style="font-weight:bold; font-size:14px;"><?php echo $objFetchData->objSocietyDetails->sSocietyName; ?></div>           
+            <div id="society_reg" style="font-size:10px;">
+				<?php if($objFetchData->objSocietyDetails->sSocietyRegNo <> "")
+				{
+					echo "Registration No. ".$objFetchData->objSocietyDetails->sSocietyRegNo; 
+				}
+				?>
+            </div> 
+            <div id="society_address"; style="font-size:10px;"><?php echo $objFetchData->objSocietyDetails->sSocietyAddress; ?></div>            <div id="bill_subheader" style="text-align:center;font-weight:bold; font-size:14px;">
+            	RECEIPT
+            </div>
+            <div id="bill_details" style="text-align:right;font-size:12px;">
+            	<table style="width:100%;">
+            		<!--<tr>                	
+                    	<td style="width:10%">Date</td>
+                    	<td id='bill_date' style="width:15%;" colspan="3"><?php echo $BillDate ?></td>                    
+              		</tr>-->  
+            		<tr>
+                		<td style="width:20%;" colspan="4">Received with thanks from  <?php echo $objFetchData->objMemeberDetails->sMemberName; ?></td>                    
+              		</tr>
+                	<tr>
+                		<td style="width:20%">Receipt Period:</td>
+                    	<td id='receipt_period' style="width:30%;"><?php  echo $StartDate . " to ". $EndDate ?></td>
+                		<td style="width:40%; text-align:right;"><?php echo $unitText;?>:</td>
+                    	<td id='owner_unit' style="width:10%; text-align:center;"><?php echo $objFetchData->objMemeberDetails->sUnitNumber; ?></td>
+                	</tr>                                             
+            	</table>
+        	</div>
+          
+        	<div id="bill_payment" style="width:100%;">
+        		<table style="width:100%;font-size:<?php echo $BillFont?>px;">
+                	<tr>
+                		<th style="text-align:center; border:1px solid black;border-left:none;border-right:1px solid black;width:10%;">Bill Type</th>
+                		<th style="text-align:center; border:1px solid black;border-left:none;width:10%;">Recpt Date</th>
+                		<th style="text-align:center; border:1px solid black;border-left:none;width:10%;">Receipt No.</th>
+                        <th style="text-align:center; border:1px solid black;border-left:none;width:10%;">Chk Date</th>
+                        <th style="text-align:center; border:1px solid black;border-left:none;width:15%;">Cheque/NEFT No.</th>
+                        <th style="text-align:center; border:1px solid black;border-left:none;width:15%;">Payer Bank</th>
+                        <th style="text-align:center; border:1px solid black;border-left:none;width:15%;">Payer Branch</th>
+                        <th style="text-align:center; border:1px solid black;border-left:none;border-right:none;width:25%;">Amount</th>  
+                    </tr> 
+                	<?php 
+						//echo "Receipt Details";
+						//echo sizeof($receiptDetails) ;
+						$total = '';
+						$CreditDebitNote = '';
+						for($i=0; $i < sizeof($receiptDetails) ; $i++)
+						{						
+							$voucherDate = $receiptDetails[$i]['VoucherDate'];
+							$receiptNo   = $receiptDetails[$i]['ExternalCounter'];
+							$amount = (float)$receiptDetails[$i]['Amount'];
+							$payerBank = $receiptDetails[$i]['PayerBank'];
+							$payerBranch = $receiptDetails[$i]['PayerChequeBranch'];
+							$chequeDate = $receiptDetails[$i]['Date'];
+							$chequeNo = $receiptDetails[$i]['ChequeNumber'];
+							$billtype=$receiptDetails[$i]['BillType'];
+						
+							if($receiptDetails[$i]['IsReturn'] == 0)
+							{
+								$total += $amount;
+							}
+							/*if($billtype == DEBIT_NOTE || $billtype == CREDIT_NOTE)
+							{
+								$receiptNote = strip_tags($receiptDetails[$i]['Note']);
+								if($receiptNote <> '')
+								{
+									$CreditDebitNote .= 'Rs. '.$amount.' : ' . $receiptNote;							
+								}
+							}
+							else if($billtype == Invoice || $billtype == Supplementry)
+							{
+								$receiptNote = strip_tags($receiptDetails[$i]['Comments']);
+								if($receiptNote <> '')
+								{
+									$CreditDebitNote .= 'Rs. '.$amount.' : ' . $receiptNote;
+								}
+							}*/
+							?>
+                		<tr>
+                			<!--<td style="text-align:center;border:1px solid black;border-left:none;"><?php //echo $i+1 ?> </td>-->         
+                  			<td style="text-align:center;border:1px solid black;border-left:none;border-right:1px solid black;"><?php echo $m_objUtility->returnBillTypeString($billtype);?></td>
+					 
+                    		<td style="text-align:center;border:1px solid black;border-left:none;"><?php echo getDisplayFormatDate($voucherDate) ?> </td>           
+                    		<td style="text-align:center;border:1px solid black;border-left:none;"><?php echo $receiptNo; ?> </td>
+                    		<td style="text-align:center;border:1px solid black;border-left:none;">
+							<?php 
+							
+								echo getDisplayFormatDate($chequeDate);
+							
+							?> </td>
+                            <td style="text-align:center;border:1px solid black;border-left:none;"><?php echo $chequeNo ?> </td>
+                            <td style="text-align:center;border:1px solid black;border-left:none;"><?php echo $payerBank ?> </td>
+                            <td style="text-align:center;border:1px solid black;border-left:none;"><?php echo $payerBranch ?> </td>
+ 		                   <td style="text-align:center;border:1px solid black;border-left:none;border-right:none;"><?php if($receiptDetails[$i]['IsReturn'] == 1){echo "Returned";}else{echo number_format($amount, 2);} ?> </td>
+                     
+        	        </tr>                                                            
+             <?php } 
+				if($total <> '')
+				{
+				?>
+               	<tr>
+                	<td colspan="5" style="text-align:left;"><?php 
+					if(!empty($CreditDebitNote))
+					{
+						echo $CreditDebitNote;
+					}
+					?></td>
+                    <td colspan="2" style="text-align:right;"><?php echo "Total    :  " ?></td>
+                    <td style="text-align:center;border:1px solid black;border-left:none;border-right:none;"><?php echo number_format($total, 2); ?> </td>
+
+                </tr>
+               
+                <tr>
+                	<td style="border:1px solid black;border-right:none;border-left:none;" colspan="8">
+					In Words : <?php  echo "Rupees ". convert_number_to_words($total); if($total <> ''){ echo " Only"; }?>
+					 </td>
+                </tr>
+          <?php }
+		   ?>
+		   
+           </table>
+           </div>
+           
+          
+          <?php }
+		  ?>
+           <?php
         	if($_SESSION['society_id'] <> 195)
         	{	
         		?>

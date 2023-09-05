@@ -41,7 +41,8 @@ else
 	$VoucherDate = 	getDisplayFormatDate($_SESSION['default_year_end_date']);		
 }
 $Latest_Bill_Start_Date = $objFetchDetails->getlatestbillstartdate();
-
+$newDate = date('Y-m-d', strtotime(getDBFormatDate($Latest_Bill_Start_Date) . ' -23 day'));
+$Latest_Bill_Start_Date1 = getDisplayFormatDate($newDate);
 $IsSameCntApply = $objUtility->IsSameCounterApply();
 /*if($_REQUEST['depositid'] != -3)
 {
@@ -281,8 +282,8 @@ $_SESSION['wwid'] = $_REQUEST['wwid'];
 			
 	    <?php if($_SESSION['role'] == ROLE_MANAGER)
 	   { ?>
-		minGlobalCurrentYearStartDate = '<?php echo $Latest_Bill_Start_Date;?>';
-				
+		minGlobalCurrentYearStartDate = '<?php echo $Latest_Bill_Start_Date1;?>';
+		console.log(minGlobalCurrentYearStartDate);		
 	   <?php }?>
 			
 	    $.datepicker.setDefaults($.datepicker.regional['']);
@@ -423,6 +424,7 @@ else
         <tr><td>
         <input type="hidden" name="DepositID" id="DepositID"  value="<?php echo $_REQUEST["depositid"] ?>" /></td></tr>
         <input type="hidden" name="edit" id="edit" value="<?php echo $_REQUEST['edt']; ?>" />
+        <input type="hidden" name="login_id" id="login_id" value="<?php echo $_SESSION['login_id']; ?>" />
 </table>
 </form>
 <script>

@@ -71,7 +71,7 @@ $m_objUtility = new utility($m_dbConn);
 	
 	p{ font-size: 4vmin; margin: 0px; padding: 0px;}
 </style>
-<script type="text/javascript" src="js/multiple_ledger_print.js"></script>
+<script type="text/javascript" src="js/multiple_ledger_print.js?20230823a"></script>
       
 <script>
 $ledgertodisplay = "";
@@ -242,6 +242,11 @@ function PrintPage(divId)
                 <td><input type="checkbox" name="merge" id="merge" value="1"  <?php if($_REQUEST['merge']=='1'){echo "checked";}?>/>&nbsp;&nbsp;&nbsp;</td>
                 <td  style="padding-top: 2px;">Combined Contribution Ledgers  </td>
                 </tr>
+               
+                <tr >
+                <td><input type="checkbox" name="exp_group" id="exp_group" value="1"  <?php if($_REQUEST['exp_group']=='1'){echo "checked";}?>/>&nbsp;&nbsp;&nbsp;</td>
+                <td  style="padding-top: 2px;">Group by Vendor</td>
+                </tr>
             </tr>
                <tr style="border: none;"><td style="border: none;"><br></td></tr>
                  </table>
@@ -251,12 +256,13 @@ function PrintPage(divId)
                
                
                  </table>
-                   <table id = "tbl_showheader" style="padding-left: 60px;"> 
+                   <table id = "tbl_showheader" style="padding-left: 30px;"> 
                 <tr>
                <td><input type="checkbox" name="show_header" id="show_header" value="1" <?php if($_REQUEST['show_header']=='1'){echo "checked";}?>/>&nbsp;&nbsp;&nbsp;</td><td style="padding-top: 2px;">Show Header &nbsp;&nbsp;&nbsp; </td>
                 <td><input type="checkbox" name="show_zero" id="show_zero" value="1"  <?php if($_REQUEST['show_zero']=='1'){echo "checked";}?>/>&nbsp;&nbsp;&nbsp;</td><td  style="padding-top: 2px;">Show Zero &nbsp;&nbsp;&nbsp; </td>
                 <td><input type="checkbox" name="add_pg_br" id="add_pg_br" value="1"  <?php if($_REQUEST['add_pg_br']=='1'){echo "checked";}?>/>&nbsp;&nbsp;&nbsp;</td><td  style="padding-top: 2px;">Each Report On Seperate Page(For Print) &nbsp;&nbsp;&nbsp; </td>
                 <td><input type="checkbox" name="merge" id="merge" value="1"  <?php if($_REQUEST['merge']=='1'){echo "checked";}?>/>&nbsp;&nbsp;&nbsp;</td><td  style="padding-top: 2px;">Combined Contribution Ledgers &nbsp;&nbsp;&nbsp; </td>
+               <td ><input type="checkbox" name="exp_group" id="exp_group" value="1"  <?php if($_REQUEST['exp_group']=='1'){echo "checked";}?>/>&nbsp;&nbsp;&nbsp;</td><td  style="padding-top: 2px;">Group by Vendor</td>
             </tr>
                <tr style="border: none;"><td style="border: none;"><br></td></tr>
                  </table>
@@ -329,10 +335,16 @@ if($_REQUEST['merge']=='1')
 {
 	$get_details = $obj_ledger_details->details($ledgerIDArray[$m]['group_id'],$ledgerIDArray[$m]['id'],getDBFormatDate( $_REQUEST['from_date']) ,getDBFormatDate($_REQUEST['to_date']),true,true);
 }
+else if($_REQUEST['exp_group']=='1')
+{
+	//echo "Inside exp 1";
+	$get_details = $obj_ledger_details->details1($ledgerIDArray[$m]['group_id'],$ledgerIDArray[$m]['id'],getDBFormatDate( $_REQUEST['from_date']) ,getDBFormatDate($_REQUEST['to_date']),true,true);
+}
 else
 {
 	$get_details = $obj_ledger_details->details($ledgerIDArray[$m]['group_id'],$ledgerIDArray[$m]['id'],getDBFormatDate( $_REQUEST['from_date']) ,getDBFormatDate($_REQUEST['to_date']),true,false);	
 }
+
 if($GroupID == '' || $GroupID <> $ledgerIDArray[$m]['group_id'])
 {
 	$GroupID = $ledgerIDArray[$m]['group_id'];
@@ -525,8 +537,18 @@ if(isset($_REQUEST['show_header']) && $_REQUEST['show_header'] == '1')
 				?>
 				<tr >
                 <?php //$voucher_details=$obj_ledger_details->get_voucher_details('',$data[$k]['VoucherID']);?>
-         
-					<td  style="text-align:center;border:1px solid #cccccc;width:80px;border-left:none;"><?php if($ledgerIDArray[$m]['group_id'] == INCOME && $_REQUEST['merge']=='1'){ echo $data[$k]['Date'];}else{echo getDisplayFormatDate($data[$k]['Date']);}?></td>
+         			<?php  if($_REQUEST['exp_group']=='1')
+					{?>
+					<td  style="text-align:center;border:1px solid #cccccc;width:80px;border-left:none;"><?php if($data[$k]['Date'] == 'Various'){ echo $data[$k]['Date'];}else{echo getDisplayFormatDate($data[$k]['Date']);}?>
+               
+                    </td>
+                    <?php }
+                    else
+                    {?>
+                    <td  style="text-align:center;border:1px solid #cccccc;width:80px;border-left:none;"><?php if($ledgerIDArray[$m]['group_id'] == INCOME && $_REQUEST['merge']=='1'){ echo $data[$k]['Date'];}else{echo getDisplayFormatDate($data[$k]['Date']);}?>
+                  
+                   <?php }?>
+                    
 					<td style="border:1px solid #cccccc;padding-top:0px;padding-bottom:0px;">
 					<?php
 						if(( $ledgerIDArray[$m]['group_id'] == LIABILITY ||  $ledgerIDArray[$m]['group_id']== ASSET) && $data[$k]['Is_Opening_Balance'] ==1)

@@ -782,8 +782,10 @@ function loadchanges()
 		}
 		
 		document.getElementById('DrpDwnBillType1').value = arr2[0].BillType;
-		
+		var login_id = document.getElementById('login_id').value;
 		//checking reconcile status
+		if(login_id != 4)
+		{
 		if(arr2[0].ReconcileStatus == 1)
 		{
 			document.getElementById('ChequeDate1').style.backgroundColor = 'lightgray';
@@ -801,6 +803,7 @@ function loadchanges()
 				document.getElementById('TDS_Amount1').disabled = true;
 			}
 			document.getElementById('DrpDwnBillType1').disabled = true;
+		 }
 		}
 		//Checking return cheque entry
 		if(arr2[0].Return == 1)

@@ -42,16 +42,21 @@ $bIsHide = bIsReportOrValidationPage($scriptName);?>
 
           <a href="#" OnClick="window.open('view_ledger_details.php?lid=<?=$_SESSION['default_tds_payable']?>&gid=<?=LIABILITY?>','QuickLedgerLink','type=fullWindow,fullscreen,scrollbars=yes')" id="tdsSideId"><span class="fa fa-T fa-5x" style="font-size:10px;font-size:2.5vw;float:left;margin-left: 2%;"></span><span style="float: left;">&nbsp;&nbsp;&nbsp;&nbsp;TDS Payable</span></a>
   <?php }?>
-  <?php if($_SESSION["role"] == ROLE_MANAGER)
+  <?php if(($_SESSION["role"] == ROLE_MANAGER) && $_SESSION['profile'][PROFILE_GENERATE_BILL] == 1)
   {?>
   	<a href="genbill.php" id="Genbillid" target="_blank"><span class="fa fa-edit fa-5x" style="font-size:10px;font-size:2.5vw;float:left;"></span><span style="float: left;">&nbsp;&nbsp;&nbsp;Generate Bill</span></a>
-  <?php }?>
+  <?php }
+  if(($_SESSION["role"] == ROLE_MANAGER ) && $_SESSION['profile'][PROFILE_GENERATE_BILL] == 0 )
+  {?>
+  <a href="genbill.php" id="Genbillid" target="_blank"><span class="fa fa-edit fa-5x" style="font-size:10px;font-size:2.5vw;float:left;"></span><span style="float: left;">&nbsp;&nbsp;&nbsp;View Bills</span></a>
+<?php }
+  ?>
   	 <?php if($_SESSION["role"] == ROLE_ADMIN_MEMBER)
 	   {?>
       
                             
        <a href="#" OnClick="window.open('ledger.php','QuickLedgerLink','type=fullWindow,fullscreen,scrollbars=yes')" id="contact"><span class="fa fa-L fa-5x" style="font-size:10px;font-size:2.5vw;float:left;margin-left: 5%;"></span><span style="float: left;"> &nbsp;&nbsp;&nbsp;Manage Ledger</span></a>
-<?php if($_SESSION['profile']['genbill.php'] == '1')
+<?php if($_SESSION['profile']['genbill.php'] == 1)
 	   {?> 
          <a href="genbill.php" id="contact1" target="_blank"><span class="fa fa-edit fa-5x" style="font-size:10px;font-size:2.5vw;float:left;"></span><span style="float: left;">&nbsp;&nbsp;&nbsp;Generate Bill</span></a>
        <?php }?>

@@ -230,3 +230,22 @@ function link_vouchers(fd_id)
 	}
 	});
 }
+
+function GetReport()
+{
+	var VoucherType = document.getElementById("voucherTypeID").value;
+	var fromDate    = document.getElementById("from_date").value;
+	var toDate      = document.getElementById("to_date").value;
+	
+	var obj = {"method" : "getReports", "voucherTypeID" : VoucherType, "fromDate" : fromDate, "toDate" : toDate};
+	$.ajax({
+	url : "ajax/view_ledger_details.ajax.php",
+	type : "POST",
+	data: obj,
+	success : function(data)
+	{
+		document.getElementById("export_btn").style.display="block";
+		document.getElementById('showTable').innerHTML = data;
+	}
+	});
+}

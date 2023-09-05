@@ -85,8 +85,8 @@ function get_prevperiod(period_id = 0)
 			var data = JSON.parse("["+main_data[1]+"]")[0];
 			console.log(data);
 			console.log(data[1]['period']);
-			$('#prevperiod_id').html(data[1]['period']); // fetched data from function getpreviusid  
-			$('#year_id1').html(data[1]['year']);
+			//$('#prevperiod_id').html(data[1]['period']); // fetched data from function getpreviusid  
+			$('#year_id1').html(data[1]['period'] +" - " +data[1]['year']);
 		}
          // calling ajax function to show data in span 
 
@@ -447,9 +447,11 @@ function ShowGSTNoThresholdFlag()
 		});
 	
 }
-
-function DownloadBill()
+function DownloadBill1()
 {
+	// var ele = document.getElementsByName('downloadBills');
+	var checkedValue = $('.downloadBills:checked').val();
+	
 	var society_id = document.getElementById('society_id').value;
 	var period_id = document.getElementById('period_id').value;
 	var IsSupplemenataryBill = 0;
@@ -462,14 +464,36 @@ function DownloadBill()
 	{
 		IsSupplemenataryBill = 1;
 	}
-	alert("Downloading Bills...");
-	var downLoadZipLink = "download_bill.php?society_id=" + society_id + "&period_id=" + period_id + "&BT=" + IsSupplemenataryBill +"&Download";
+	//alert("Downloading Bills...");
+	var downLoadZipLink = "download_bill.php?society_id=" + society_id + "&period_id=" + period_id + "&BT=" + IsSupplemenataryBill +"&Download"+"&DownType="+checkedValue;
 	//alert(downLoadZipLink);
 	//document.getElementById('download_bill').src = downLoadZipLink;
 	//window.open(downLoadExcelLink, "download_bill", "toolbar=no, scrollbars=yes, resizable=yes, top=0, left=0");			
 	//window.open(downLoadZipLink, "_blank", "toolbar=no, scrollbars=yes, resizable=yes, top=0, left=0");			
 	window.open(downLoadZipLink, '_blank');
 }
+function DownloadBill()
+{
+	window.location.href = "genbill.php#openDialogdownloadBill";
+		var sText = '<a href="#close" title="Close" class="close" id="close">X</a>';
+		sText += '<div style="padding: 17px 0 0px 0;text-align: center;font-size: 16px; font-weight: bold;">Download Bill PDF</h4></div>';
+		//sText += '<br><br><input type="checkbox" class="downloadBills" value="0" id="all" name="all">&nbsp;&nbsp;&nbsp;Download All Bills<br><br>';
+		//sText += '<input type="checkbox"  class="downloadBills"  value="1" id="mem" name="mem">&nbsp;&nbsp;&nbsp;Download bills for member email not updated<br><br>';
+		
+		sText += '<br><input type="radio" class="downloadBills" value="0" checked  name="pdf"><span style="line-height: 18px;">&nbsp;&nbsp;&nbsp;Download All Bills</span><br><br>';
+		sText += '<input type="radio"  class="downloadBills"  value="1"  name="pdf"><span style="line-height: 18px;">&nbsp;&nbsp;&nbsp;Download Bills of members without email id</span><br><br>';
+	
+		
+		//sText += '<a href="#close" title="Close" class="yes" id="dialogYesNo_yes">YES</a>';
+		sText += '<div style="text-align: center;"><a href="#close" title="Close" style="width: 90px;" id="openDialogdownloadBill" onclick="DownloadBill1();" class="btn btn-primary download">Download</a></div>';
+		//sText += '<div style="text-align: center;"><input type="button" id="download" value="Download Bills"  onclick="DownloadBill1();" class="btn btn-primary" /></div>';
+		document.getElementById('message_downloadbill').innerHTML = sText;
+		//document.getElementById("dialogYesNo_yes").onclick = function () { submitForm(true); };
+		//document.getElementById("dialogYesNo_no").onclick = function () { submitForm(false); };
+	//console.log();
+
+}
+
 
 function updateNotes()
 {

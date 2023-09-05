@@ -145,6 +145,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('FixedDepositReport.php','_blank')"> Fixed Deposits</button>
         <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('FixedAssetMgmt.php','_blank')"> Fixed Assets</button>
         <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('ledger_voucher_detail.php','_blank')"> All Vouchers Detail</button>
+         <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('ledger_voucher_report.php','_blank')"> All Vouchers Reports</button>
         <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('reverse_charges.php?&uid=0', '_blank')"> Reversal Charges Report</button>
          <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('TDS_Challans.php', '_blank')"> TDS Challan Report</button>
      

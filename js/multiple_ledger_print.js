@@ -1,6 +1,15 @@
 function view(id)
-{		
-	
+{	
+//exp_group_id	
+	/*if(id == 8)
+	{
+	 document.getElementById("exp_group").disabled= false;
+	}
+	else
+	{
+		 document.getElementById("exp_group").disabled= true;
+		 document.getElementById("exp_group").checked = false;
+	}*/
 	if(id != 0)
 	{
 	document.getElementById("tbl_showheader").style.display = "none";

@@ -94,16 +94,22 @@ if($commiteeDetails <> "" && !isset($_REQUEST['key']))
 ?>	
 <tr>
 	<th  style="width:25%;"> <?php echo $commiteeDetails[$i]['position']; ?>: </th>
-    <td  style="width:40%;"> <?php echo $member_details[$commiteeDetails[$i]['member_id']]; if($commiteeDetails[$i]['position'] == 'Commitee Member') { $count++; ?>  <a href="#" onClick="deleteCommiteeMember('delete-' + <?php echo $commiteeDetails[$i]['id'] ?>);">
-    <?php if($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN)
-            {?>
-<img src="images/del.gif" align="right" /></a>  <?php }?>
+    <td  style="width:40%;"> <?php echo $member_details[$commiteeDetails[$i]['member_id']]; 
+	if($commiteeDetails[$i]['position'] == 'Commitee Member' || $commiteeDetails[$i]['position'] == 'Secretary' ||$commiteeDetails[$i]['position'] == 'Joint Secretary' ||$commiteeDetails[$i]['position'] == 'Treasurer' ||$commiteeDetails[$i]['position'] == 'Chairman') 
+	{ 
+		$count++; ?>  
+        <a href="#" onClick="deleteCommiteeMember('delete-' + <?php echo $commiteeDetails[$i]['id'] ?>);">
+    	<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN)
+    	{?>
+			<img src="images/del.gif" align="right" /></a>  <?php }?>
  
-<?php }?>
-</td>
-<td><?php echo $commiteeCate[$commiteeDetails[$i]['member_id']]?> </td>
+	<?php 	
+		}?>
+	</td>
+	<td><?php echo $commiteeCate[$commiteeDetails[$i]['member_id']]?> </td>
 
-<?php }
+<?php 
+	}
 ?>
 
 
@@ -131,7 +137,7 @@ if($commiteeDetails <> "" && !isset($_REQUEST['key']))
     <td><?php //echo $commiteeDetails[0]['commitee_member'];?>  </td>
 </tr> -->
 
-<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN)
+<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN ||  $_SESSION['role'] == ROLE_MANAGER)
             {?>
 <tr id="show_commitee_member">
 	<td colspan="3" align="center"> <input type="button" name="showCommiteeMember" value="Add New Commitee Members" onClick="show();" class="btn btn-primary"/> </td>
@@ -143,7 +149,7 @@ if($commiteeDetails <> "" && !isset($_REQUEST['key']))
 <tr style="display:none;"> <td colspan="3"> <input type="hidden" name="no_of_commitee_member_indb" id="no_of_commitee_member_indb" value="<?php echo $count;?>" /> </td> </tr>
 <?php }?>
 </table>
-<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN)
+<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN ||  $_SESSION['role'] == ROLE_MANAGER)
             {?>
 <div align="center" style="width:80px; height:40px;">
 	<input type="submit" name="edit" id="edit" value="Edit" class="btn btn-primary"/> 

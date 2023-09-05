@@ -14,7 +14,7 @@ $data = $obj_FixedDeposit->get_details_for_renew($_REQUEST['edt']);
     <link href="css/messagebox.css" rel="stylesheet" type="text/css" />
     <script type="text/javascript" src="js/ajax.js"></script>
    	<script type="text/javascript" src="js/ajax_new.js"></script>
-	<script type="text/javascript" src="js/jsFixedDeposit.js?456"></script>
+	<script type="text/javascript" src="js/jsFixedDeposit.js?20230812"></script>
     <script type="text/javascript" src="js/jsViewLedgerDetails.js"></script>
     <script type="text/javascript" src="js/validate.js"></script>
       <script type="text/javascript" src="js/populateData.js"></script>
@@ -47,7 +47,7 @@ $data = $obj_FixedDeposit->get_details_for_renew($_REQUEST['edt']);
 	function go_error()
     {
 		document.getElementById('error').style.display = 'block';
-        setTimeout('hide_error()',5000);	
+        setTimeout('hide_error()',10000);	
     }
     function hide_error()
     {
@@ -192,7 +192,7 @@ else{}
         
         <tr>
         		<td><?php echo $star;?>Principal Amount (Rs.) :</td>
-                <td id="Principal_Amount_td"><input type="text" name="Principal_Amount" id="Principal_Amount" value="<?php echo $_REQUEST['Principal_Amount'];?>"  onBlur="extractNumber(this,2,false);" onKeyUp="extractNumber(this,2,false);" onKeyPress="return blockNonNumbers(this, event, true, false);"/></td> 
+                <td id="Principal_Amount_td"><input type="text" name="Principal_Amount" id="Principal_Amount" value="<?php //echo number_format($_REQUEST['Principal_Amount'],2);?>"  onBlur="extractNumber(this,2,false);" onKeyUp="extractNumber(this,2,false);" onKeyPress="return blockNonNumbers(this, event, true, false);"/></td> 
                 <td><?php echo $star;?>Maturity Amount (Rs.) :</td>
                 <td id="Maturity_Amount_td"><input type="text" name="Maturity_Amount" id="Maturity_Amount" value="<?php echo $_REQUEST['Maturity_Amount'];?>"  onBlur="extractNumber(this,2,false);" onKeyUp="extractNumber(this,2,false);" onKeyPress="return blockNonNumbers(this, event, true, false);"/></td>
         </tr>
@@ -212,6 +212,8 @@ else{}
         	<td><?php echo $star;?>Note :</td>
 			<td colspan="3" style="font-size:14px;" id="Note_td"><textarea id="Note" name="Note" style="width:200px; height:60px;border: 1px solid;"  maxlength="1000" ><?php echo $_REQUEST['Note'];?></textarea></td>
         </tr>
+        
+      
         
     	<!--<tr  class="fd_options">
             <td colspan="2">
@@ -243,7 +245,10 @@ else{}
             	<input type='text' id='ChequeNumber' name='ChequeNumber' onBlur='extractNumber(this,0,false);' onKeyUp='extractNumber(this,0,false);' onKeyPress='return blockNonNumbers(this, event, false, false);' style='width:80px;'  value="<?php //echo $_REQUEST['ChequeNumber'];?>"/>
              </td>
         </tr>-->
-        
+         <tr><td colspan="4" style="text-align:center" ><button type="button" class="btn btn-primary" onClick="EditFD()" id="btnEditFD" style="margin-bottom: 10px;">Edit</button>
+<button type="button" class="btn btn-primary" onClick="UpdateFD(<?php echo $_REQUEST['edt']?>, <?php echo $_REQUEST['fd_id']?>)" id="btnUpdateFD" style="margin-bottom: 10px;display:none">Update</button>
+<button type="button" class="btn btn-primary" onClick="Cancle();" id="btncancle" style="margin-bottom: 10px;display:none">Cancle</button>
+</td></tr>
       
          <tr><td colspan="2" ><BR/></td></tr>
    </table>
@@ -294,18 +299,6 @@ else{}
                 <td style="text-align:left;width:25%;"></td>
                 <!--<td><input type="text" name="accrued_interest_amt" id="accrued_interest_amt" value="<?php //echo $_REQUEST['accrued_interest_amt'];?>"  onBlur="extractNumber(this,2,false);" onKeyUp="extractNumber(this,2,false);" onKeyPress="return blockNonNumbers(this, event, true, false);"/></td> -->
         </tr>
-        <tr >
-                <td style="text-align:center;width:50%;"><?php echo $star;?>Interest on FD   (Liability/Income)</td>
-                <td style="text-align:center;width:25%;">
-                    <select name="interest_legder" id="interest_legder"  value="<?php //echo $_REQUEST['interest_legder'];?>" >
-                         <?php echo $interest_legder = $obj_FixedDeposit->combobox("select `id`,concat_ws(' - ', ledgertable.ledger_name,categorytbl.category_name,categorytbl.group_id,ledgertable.id)  from `ledger` as ledgertable Join `account_category` as categorytbl on  categorytbl.category_id=ledgertable.categoryid where categorytbl.group_id = '".LIABILITY."' or categorytbl.group_id = '".INCOME."' ORDER BY ledgertable.ledger_name",$_REQUEST['interest_legder'],'Please Select',0);
-						
-						  ?>
-                    </select>
-                </td>
-                <td style="text-align:left;width:25%;"></td>
-                <!--<td><input type="text" name="interest_amt" id="interest_amt" value="<?php //echo $_REQUEST['interest_amt'];?>"  onBlur="extractNumber(this,2,false);" onKeyUp="extractNumber(this,2,false);" onKeyPress="return blockNonNumbers(this, event, true, false);" /></td> -->
-        </tr>
         <tr id="on_close" >
         	<td style="text-align:center;width:50%;"><?php echo $star;?>Accured Int Amount :</td>
         	<td style="text-align:center;width:25%;">
@@ -320,6 +313,19 @@ else{}
             <input type="text" name="accrued_interest_amt" id="accrued_interest_amt" value="<?php echo $accrude_intrest_amt;?>"  onBlur="extractNumber(this,2,false);" onKeyUp="extractNumber(this,2,false);" onKeyPress="return blockNonNumbers(this, event, true, false);" /></td>
             <td style="text-align:left;width:25%;"></td>
         </tr>
+        <tr >
+                <td style="text-align:center;width:50%;"><?php echo $star;?>Interest on FD   (Liability/Income)</td>
+                <td style="text-align:center;width:25%;">
+                    <select name="interest_legder" id="interest_legder"  value="<?php //echo $_REQUEST['interest_legder'];?>" >
+                         <?php echo $interest_legder = $obj_FixedDeposit->combobox("select `id`,concat_ws(' - ', ledgertable.ledger_name,categorytbl.category_name,categorytbl.group_id,ledgertable.id)  from `ledger` as ledgertable Join `account_category` as categorytbl on  categorytbl.category_id=ledgertable.categoryid where categorytbl.group_id = '".LIABILITY."' or categorytbl.group_id = '".INCOME."' ORDER BY ledgertable.ledger_name",$_REQUEST['interest_legder'],'Please Select',0);
+						
+						  ?>
+                    </select>
+                </td>
+                <td style="text-align:left;width:25%;"></td>
+                <!--<td><input type="text" name="interest_amt" id="interest_amt" value="<?php //echo $_REQUEST['interest_amt'];?>"  onBlur="extractNumber(this,2,false);" onKeyUp="extractNumber(this,2,false);" onKeyPress="return blockNonNumbers(this, event, true, false);" /></td> -->
+        </tr>
+        
         <tr>
         	<td style="text-align:center;width:50%;"><?php echo $star;?>Interest Amount :</td>
 			 <?php if($_REQUEST['interest_amt'] <> '')
@@ -333,7 +339,21 @@ else{}
         	<td style="text-align:center;width:25%;"><input type="text" name="interest_amt" id="interest_amt" value="<?php echo $intrest_amt;?>"  onBlur="extractNumber(this,2,false);" onKeyUp="extractNumber(this,2,false);" onKeyPress="return blockNonNumbers(this, event, true, false);" /></td>
             <td style="text-align:left;width:25%;"></td>
         </tr>
-
+        
+		<tr >
+                <td style="text-align:center;width:50%;"><?php //echo $star;?>TDS Payable</td>
+                <td style="text-align:center;width:25%;">
+                    <select name="tds_legder" id="tds_legder"  value="<?php //echo $_REQUEST['interest_legder'];?>" >
+                        <?php echo $tds_legder = $obj_FixedDeposit->combobox("select `id`,concat_ws(' - ', ledgertable.ledger_name,categorytbl.category_name) from `ledger` as ledgertable Join `account_category` as categorytbl on categorytbl.category_id=ledgertable.categoryid where ledgertable.society_id=".$_SESSION['society_id']." and categorytbl.group_id ='".ASSET."' and ledger_name like '%TDS%' ",TDS_RECEIVABLE);?>
+						  
+						  <?php //echo $tds_legder = $obj_FixedDeposit->combobox("select `id`,ledger_name  from `ledger` where society_id=".$_SESSION['society_id']." and ledger_name like '%TDS%' ",$_SESSION['default_tds_receivable']);
+						
+						  ?>
+                    </select>
+                </td>
+                <td style="text-align:left;width:25%;"></td>
+                <!--<td><input type="text" name="interest_amt" id="interest_amt" value="<?php //echo $_REQUEST['interest_amt'];?>"  onBlur="extractNumber(this,2,false);" onKeyUp="extractNumber(this,2,false);" onKeyPress="return blockNonNumbers(this, event, true, false);" /></td> -->
+        </tr>
         <tr>
         	<td style="text-align:center;width:50%;">TDS Amount :</td>
              <?php if($_SESSION['default_tds_receivable'] == 0 || $_SESSION['default_tds_receivable']== '')
@@ -390,13 +410,15 @@ else{}
                         </tr>
                         <tr>
                         	<td><?php echo $star;?>Principal Amount:</td>
-                            <td><input type="text" id="principal_amt_RN" name="principal_amt_RN" value="<?php echo $data[0]['maturity_amt']; ?>" /></td>
-                            <td><?php echo $star;?>Rate of Interest:</td>
-                            <td><input type="text" id="ROI_RN" name="ROI_RN" /></td>
+                            <td><input type="text" id="principal_amt_RN" name="principal_amt_RN" value="<?php echo $data[0]['maturity_amt']; ?>"  onBlur="extractNumber(this,2,false);" onKeyUp="extractNumber(this,2,false);" onKeyPress="return blockNonNumbers(this, event, true, false);"/></td>
+                          	<td><?php echo $star;?>Maturity Amount:</td>
+                            <td><input type="text" id="maturity_amt_RN" name="maturity_amt_RN" onBlur="extractNumber(this,2,false);" onKeyUp="extractNumber(this,2,false);" onKeyPress="return blockNonNumbers(this, event, true, false);" /></td>
                         </tr>
+                         
                         <tr>
-                        	<td><?php echo $star;?>Maturity Amount:</td>
-                            <td><input type="text" id="maturity_amt_RN" name="maturity_amt_RN" /></td>
+                          	<td><?php echo $star;?>Rate of Interest:</td>
+                            <td><input type="text" id="ROI_RN" name="ROI_RN" /></td>
+                        	
                             <!--<td><?php //echo $star;?>Note:</td>
                             <td><textarea id="Note_RN" name="Note_RN" ></textarea></td>-->
                         </tr>
@@ -415,6 +437,7 @@ else{}
                 <input type="hidden" name="freezyear" id="freezyear"   value="<?php echo $_SESSION['is_year_freeze']; ?>" />
                 <input type="hidden" name="fd_readonly" id="fd_readonly"   value="<?php echo $_REQUEST["fdreadonly"]; ?>" />
                 <input type="hidden" name="fd_status" id="fd_status"   value='<?php echo $_REQUEST["status"]; ?>' />
+                 <input type="hidden" name="IsCallUpdtCnt" id="IsCallUpdtCnt" value="1" />
                 <center>
                 <?php if($_SESSION['is_year_freeze'] == 0)
 				{?>
@@ -490,7 +513,22 @@ $('document').ready(function(e) {
 	
     getDetails('edit-' + <?php echo $_REQUEST['edt'] ?>+'#'+<?php echo $_REQUEST['fd_id'] ?>); 
 });
-	
+
+$(document).ready(function(){
+  	document.getElementById('Deposit_Date').disabled = true;
+ 	document.getElementById('Maturity_Date').disabled = true;
+ 	document.getElementById('FD_Period').disabled = true;
+  	document.getElementById('Interest_Rate').disabled = true;
+ 	document.getElementById('Principal_Amount').disabled = true;
+ 	document.getElementById('Maturity_Amount').disabled = true;
+  	document.getElementById('Deposit_Date').style.backgroundColor= "#d3d3d32e";
+   	document.getElementById('Maturity_Date').style.backgroundColor= "#d3d3d32e";
+   	document.getElementById('FD_Period').style.backgroundColor= "#d3d3d32e";
+    document.getElementById('Interest_Rate').style.backgroundColor= "#d3d3d32e";
+ 	document.getElementById('Principal_Amount').style.backgroundColor= "#d3d3d32e";
+  	document.getElementById('Maturity_Amount').style.backgroundColor= "#d3d3d32e";
+});	
+
 </script>
 <?php    
 }?>

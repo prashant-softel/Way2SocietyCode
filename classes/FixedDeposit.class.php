@@ -394,7 +394,7 @@ class FixedDeposit extends dbop
 							//echo "<br>Bank Name: ".$_POST['FD_Bank_Name'];
 							//echo "Matu date ".$sql22[0]['maturity_date']."<br>p_amt ".$sql22[0]['principal_amt']."<br>matu amt: ".$sql22[0]['maturity_amt']."<br>aacr. int. ledger: ".$_POST['accrued_interest_legder']."<br>acc. int.: ".$final_amt."<br>int. led: ".$_POST['interest_legder']."<br>int amt: ".$_POST['interest_amt']."<br>Note: ".$_POST['Interest_Note'];
 							//Validate finalamounts and maturity amount
-							$returnMsg = $this->fdCloseProcess($_POST['id'] ,$_POST['FD_Bank_Name'],$sql22[0]['maturity_date'],$sql22[0]['principal_amt'],$sql22[0]['maturity_amt'], $_POST['accrued_interest_legder'],$final_amt,$_POST['interest_legder'],$_POST['interest_amt'],$_POST['Interest_Note'],$_POST['tds_amt'] );
+							$returnMsg = $this->fdCloseProcess($_POST['id'] ,$_POST['FD_Bank_Name'],$sql22[0]['maturity_date'],$sql22[0]['principal_amt'],$sql22[0]['maturity_amt'], $_POST['accrued_interest_legder'],$final_amt,$_POST['interest_legder'],$_POST['interest_amt'],$_POST['Interest_Note'],$_POST['tds_amt'],$_POST['tds_legder'],$_POST['IsCallUpdtCnt'] );
 							//public function fdCloseProcess($LedgerID , $BankID ,$MaturityDate , $PrincipalAmount ,$MaturityAmount ,$AccruedInterestLegder ,$AccruedInterestAmt ,$InterestLedger,$InterestAmt,$Note)
 							//echo "<BR>return msg " . $returnMsg;
 							if($returnMsg  == 'Success')
@@ -505,7 +505,7 @@ class FixedDeposit extends dbop
 							$final_amt = $InterestEarnedSoFar + $_POST['interest_amt'];
 
 							
-							$returnMsg = $this->fdCloseProcess($_POST['ref'],$sql11 [0]['BankID'],$sql11[0]['maturity_date'],$sql11[0]['principal_amt'],$sql11[0]['maturity_amt'], $_POST['accrued_interest_legder'],$AccuredInterestAmt,$_POST['interest_legder'],$InterestAmt,$_POST['Interest_Note'], $_POST['Interest_Date'],$TdsAmt );
+							$returnMsg = $this->fdCloseProcess($_POST['ref'],$sql11 [0]['BankID'],$sql11[0]['maturity_date'],$sql11[0]['principal_amt'],$sql11[0]['maturity_amt'], $_POST['accrued_interest_legder'],$AccuredInterestAmt,$_POST['interest_legder'],$InterestAmt,$_POST['Interest_Note'], $_POST['Interest_Date'],$TdsAmt,$_POST['tds_legder'],$_POST['IsCallUpdtCnt'] );
 
 							//echo "<BR>Return msg " . $returnMsg;
 							if($returnMsg  == 'Success')							
@@ -546,8 +546,8 @@ class FixedDeposit extends dbop
 						{
 							//Update fd interest
 							//echo "<BR>New fdInterestUpdate";
-	
-							$returnMsg = $this->fdInterestUpdate($_POST['ref'], $_POST['accrued_interest_legder'],$_POST['accrued_interest_amt'],$_POST['interest_legder'],$_POST['interest_amt'],$_POST['Interest_Note'], $_POST['FD_Bank_Payout'], $_POST['Interest_Date'],$_POST['tds_amt'] );
+							//echo "IsUpdate ".$_POST['IsCallUpdtCnt'];
+							$returnMsg = $this->fdInterestUpdate($_POST['ref'], $_POST['accrued_interest_legder'],$_POST['accrued_interest_amt'],$_POST['interest_legder'],$_POST['interest_amt'],$_POST['Interest_Note'], $_POST['FD_Bank_Payout'], $_POST['Interest_Date'],$_POST['tds_amt'],$_POST['tds_legder'],$_POST['IsCallUpdtCnt'] );
 	
 							//echo "<BR>AFter new fdInterestUpdate";
 						
@@ -934,7 +934,7 @@ class FixedDeposit extends dbop
 
 //This function is called when interest is paid or accured before the maturity or renewal of the FD. For example year end or quarter end payout.
 
-	public function fdInterestUpdate($fd_id , $AccruedInterestLegder ,$AccruedInterestAmt ,$InterestLedger,$InterestAmt, $InterestNote, $bBankPayout, $InterestDate, $TDSAmt = 0)
+	public function fdInterestUpdate($fd_id , $AccruedInterestLegder ,$AccruedInterestAmt ,$InterestLedger,$InterestAmt, $InterestNote, $bBankPayout, $InterestDate, $TDSAmt = 0,$TDSLedger,$IsCallUpdtCnt)
 	{
 		//echo "<BR>fdInterestUpdate TDS:" . $TDSAmt;
 		$LatestVoucherNo = 0;
@@ -983,14 +983,22 @@ class FixedDeposit extends dbop
 				$Voucher_Type = VOUCHER_JOURNAL;
 	 			$reconcileDate = getDBFormatDate('00-00-0000');
 				$AccruedInterestAmt =  $InterestAmt - $TDSAmt; 
-				$TDSReceivableLedgerID = $_SESSION['default_tds_receivable'];
+				$TDSReceivableLedgerID = $TDSLedger;//$_SESSION['default_tds_receivable'];
 				if($bBankPayout == 1)
 				{
 					$Voucher_Type = VOUCHER_RECEIPT;
+					$Counter =  $this->m_objUtility->GetCounter(VOUCHER_RECEIPT,$BankID);
+				//var_dump($Counter);
+					$EXVoucherNumber = $Counter[0]['CurrentCounter'];
+					//echo "IsCallUpdtCnt".$IsCallUpdtCnt;
+					if($IsCallUpdtCnt == 1)
+					{
+						$this->m_objUtility->UpdateExVCounter(VOUCHER_RECEIPT,$EXVoucherNumber,$BankID);
+					}
 					//echo "<BR>Test2";
 					//new fd JV i.e Bank A/C   Dr    
 					$dataVoucher1 = $this->m_voucher->SetVoucherDetails(getDBFormatDate($InterestDate),$data[0]['id'] ,TABLE_FD_MASTER,
-					$LatestVoucherNo,$SrNo,$Voucher_Type,$BankID,TRANSACTION_DEBIT,$AccruedInterestAmt,$InterestNote);
+					$LatestVoucherNo,$SrNo,$Voucher_Type,$BankID,TRANSACTION_DEBIT,$AccruedInterestAmt,$InterestNote,$Counter[0]['CurrentCounter']);
 
 					$depositGroup = -1;
 	 				$chequeDetailID = 0;
@@ -1009,7 +1017,7 @@ class FixedDeposit extends dbop
 					if($TDSAmt > 0)
 					{
 						$SrNo++;
-						$dataVoucher_TDS = $this->m_voucher->SetVoucherDetails(getDBFormatDate($InterestDate),$data[0]['id'] ,TABLE_FD_MASTER, $LatestVoucherNo,$SrNo,$Voucher_Type,$TDSReceivableLedgerID,TRANSACTION_DEBIT,$TDSAmt,"");
+						$dataVoucher_TDS = $this->m_voucher->SetVoucherDetails(getDBFormatDate($InterestDate),$data[0]['id'] ,TABLE_FD_MASTER, $LatestVoucherNo,$SrNo,$Voucher_Type,$TDSReceivableLedgerID,TRANSACTION_DEBIT,$TDSAmt,"",$Counter[0]['CurrentCounter']);
 						$regResult_TDS = $this->m_register->SetRegister(getDBFormatDate($InterestDate), $TDSReceivableLedgerID, $dataVoucher_TDS, $Voucher_Type, TRANSACTION_DEBIT, $TDSAmt, 0);	
 						$SrNo++;
 					}
@@ -1028,11 +1036,18 @@ class FixedDeposit extends dbop
 				}
 				else
 				{
+					//echo "IsCallUpdtCnt".$IsCallUpdtCnt;
+					$Counter =  $this->m_objUtility->GetCounter(VOUCHER_JOURNAL,0);
+					$EXVoucherNumber = $Counter[0]['CurrentCounter']+1;
+					if($IsCallUpdtCnt == 1)
+					{
+						$this->m_objUtility->UpdateExVCounter(VOUCHER_JOURNAL,$EXVoucherNumber,0);
+					}
 					//echo "<BR>In else part Asset";
 					//check InterestAmt and AccruedInterestAmt must be same.
 					//To Accrued Interest on FD JV debit (BY)
 					$dataVoucher3 = $this->m_voucher->SetVoucherDetails(getDBFormatDate($InterestDate),$data[0]['id'],TABLE_FD_MASTER,
-					$LatestVoucherNo,$SrNo,$Voucher_Type,$AccruedInterestLegder,TRANSACTION_DEBIT,$AccruedInterestAmt,$InterestNote);
+					$LatestVoucherNo,$SrNo,$Voucher_Type,$AccruedInterestLegder,TRANSACTION_DEBIT,$AccruedInterestAmt,$InterestNote,$Counter[0]['CurrentCounter']);
 			
 					$regResult3 = $this->m_register->SetRegister(getDBFormatDate($InterestDate), $AccruedInterestLegder, $dataVoucher3,$Voucher_Type, TRANSACTION_DEBIT, $AccruedInterestAmt, 0);	
 
@@ -1047,7 +1062,7 @@ class FixedDeposit extends dbop
 						//echo "<BR>TDS Amtount :" . $TDSAmt;
 
 						$dataVoucher_TDS = $this->m_voucher->SetVoucherDetails(getDBFormatDate($InterestDate),$data[0]['id'],TABLE_FD_MASTER,
-						$LatestVoucherNo,$SrNo,$Voucher_Type,$TDSReceivableLedgerID,TRANSACTION_DEBIT,$TDSAmt,"");
+						$LatestVoucherNo,$SrNo,$Voucher_Type,$TDSReceivableLedgerID,TRANSACTION_DEBIT,$TDSAmt,"",$Counter[0]['CurrentCounter']);
 						//echo "<BR>TDS dataVoucher_TDS :" . $dataVoucher_TDS;
 				
 						$regResult_TDS = $this->m_register->SetRegister(getDBFormatDate($InterestDate), $TDSReceivableLedgerID, $dataVoucher_TDS,$Voucher_Type, TRANSACTION_DEBIT, $TDSAmt, 0);	
@@ -1060,7 +1075,7 @@ class FixedDeposit extends dbop
 				//Interest ledger could be liability or Income type
 				//To Interest on FD JV credit
 				$dataVoucher4 = $this->m_voucher->SetVoucherDetails(getDBFormatDate($InterestDate),$data[0]['id'],TABLE_FD_MASTER,
-				$LatestVoucherNo,$SrNo,$Voucher_Type,$InterestLedger,TRANSACTION_CREDIT,$InterestAmt,$InterestNote);
+				$LatestVoucherNo,$SrNo,$Voucher_Type,$InterestLedger,TRANSACTION_CREDIT,$InterestAmt,$InterestNote,$Counter[0]['CurrentCounter']);
 	
 			
 				$regResult4 = $this->m_register->SetRegister(getDBFormatDate($InterestDate), $InterestLedger, $dataVoucher4,$Voucher_Type, TRANSACTION_CREDIT, $InterestAmt, 0);
@@ -1103,7 +1118,7 @@ class FixedDeposit extends dbop
 		{
 			//$sql03="SELECT v.id, v.Date,v.VoucherNo,v.RefNo,v.By,v.Debit,v.Credit,v.Note,v.VoucherTypeID,l.id as ledger_id, l.ledger_name,vt.desc,p.ID as 'PeriodID' FROM `voucher` as v join vouchertype as vt on v.VouchertypeID=vt.id join ledger as l on v.`By`=l.id join period as p on (v.Date BETWEEN p.BeginingDate and p.EndingDate) where v.VoucherNo = '".$sql22[$i]['voucher_no']."' group by v.`voucherNo`";
 			//echo $sql03="SELECT v.id, v.Date,v.VoucherNo,v.RefNo,v.By,v.Debit,v.Credit,v.Note,v.VoucherTypeID,l.id as ledger_id, l.ledger_name,vt.desc FROM `voucher` as v join vouchertype as vt on v.VouchertypeID=vt.id join ledger as l on v.`By`=l.id where v.VoucherNo = '".$sql22[$i]['voucher_no']."' group by v.`voucherNo`";
-			$sql03 = "SELECT v.id, v.Date,v.VoucherNo,v.RefNo,v.By,v.Debit,v.Credit,v.Note,v.VoucherTypeID,l.id as ledger_id, l.ledger_name,vt.desc,ac.group_id FROM `voucher` as v join vouchertype as vt on v.VouchertypeID=vt.id join ledger as l on v.`By`=l.id join account_category as ac on l.categoryid=ac.category_id where v.VoucherNo = '".$sql22[$i]['voucher_no']."' group by v.`voucherNo`";
+			$sql03 = "SELECT v.id, v.Date,v.VoucherNo,v.RefNo,v.By,v.Debit,v.Credit,v.Note,v.VoucherTypeID,v.ExternalCounter,l.id as ledger_id, l.ledger_name,vt.desc,ac.group_id FROM `voucher` as v join vouchertype as vt on v.VouchertypeID=vt.id join ledger as l on v.`By`=l.id join account_category as ac on l.categoryid=ac.category_id where v.VoucherNo = '".$sql22[$i]['voucher_no']."' group by v.`voucherNo`";
 			$sql33 = $this->m_dbConn->select($sql03);
 			array_push($all_vouchers_array,$sql33);
 		}
@@ -1242,7 +1257,8 @@ class FixedDeposit extends dbop
 			$InterestLedger = $res['interest_legder'];
 			$InterestAmt =  $res['interest_amt'];
 			$TDSAmt = $res['tds_amt'];	
-
+			$TDSLedger=$res['tds_legder'];
+			$IsCallUpdtCnt= $res['IsCallUpdtCnt'];
 			if($this->ShowDebugTrace == 1)
 			{			
 				echo "<BR>LedgerID : " . $LedgerID;
@@ -1265,7 +1281,15 @@ class FixedDeposit extends dbop
 			$this->m_dbConn->begin_transaction();	
 			$SrNo = 1;
 			$LatestVoucherNo = $this->m_latestcount->getLatestVoucherNo($_SESSION['society_id']);
-
+			$Counter =  $this->m_objUtility->GetCounter(VOUCHER_JOURNAL,0);
+			$EXVoucherNumber = $Counter[0]['CurrentCounter'];
+			if($IsCallUpdtCnt == 1)
+			{
+				$this->m_objUtility->UpdateExVCounter(VOUCHER_JOURNAL,$EXVoucherNumber,0);
+			}
+			//echo "LatestVoucherNo".$LatestVoucherNo;
+			//echo "External COunter".$Counter[0]['CurrentCounter'];
+			//var_dump($Counter);
 				if($bBankPayout == 1)
 				{
 					//Interest paid in Bank and FD would be renewed with Principal amount.
@@ -1273,7 +1297,7 @@ class FixedDeposit extends dbop
 					//echo "<BR>Bank Payout processing";
 					//new fd JV i.e Bank A/C   Dr    
 					$dataVoucher1 = $this->m_voucher->SetVoucherDetails(getDBFormatDate($InterestDate),$data[0]['id'] ,TABLE_FD_MASTER,
-					$LatestVoucherNo,$SrNo,$Voucher_Type,$BankID,TRANSACTION_DEBIT,$InterestAmt,"Bank Payout for " . $InterestNote);
+					$LatestVoucherNo,$SrNo,$Voucher_Type,$BankID,TRANSACTION_DEBIT,$InterestAmt,"Bank Payout for " . $InterestNote,$Counter[0]['CurrentCounter']);
 
 					echo "<BR>Updating Bank: " . $BankID . "   Voucher No" . $dataVoucher1 . "   SrNo " . $SrNo . " Ledger No" . $BankID . "   Amount : " . $InterestAmt;
 					 $depositGroup = -1;
@@ -1303,6 +1327,7 @@ class FixedDeposit extends dbop
 			//If no bank payout then add interest amount to FD principal and create FD of added amount
 
 				$New_FDR_No = $_POST['FDR_No_RN'];
+				$New_FDR_Name = $_POST['FD_Name_RN'];
 				$New_Deposit_Date = $_POST['DoD_RN'];
 				//pending : validate New_Deposit_Date to be in current financial year  and is equal to maturity date of old FD
 				$New_Maturity_Date = $_POST['DoM_RN'];
@@ -1314,6 +1339,7 @@ class FixedDeposit extends dbop
 				{ 
 					echo "<BR>Old_FDR_No:" . $FDR_No;
 					echo "<BR>New_FDR_No :" . $New_FDR_No ; //LedgerName
+					echo "<BR>New_FDR_Name :" . $New_FDR_Name ; //LedgerName
 					echo "<BR>New_Deposit_Date:" . $New_Deposit_Date;
 					echo "<BR>New_Maturity_Date:" . $New_Maturity_Date;
 					echo "<BR>New_Principal_Amount:" . $New_Principal_Amount;
@@ -1355,8 +1381,15 @@ class FixedDeposit extends dbop
 						
 //						$New_FDR_No = $_POST['FDR_No_RN'];// => string 'NewFD 999' (length=9)
 						$OpeningBalance = 0;//$_POST['principal_amt_RN']; This is for FD exist when society cretaed, but otherwise opening bal would be 0
-	
-						$NewLedgerID = $this->Create_New_Ledger($New_FDR_No, $Category, $OpeningBalanceDate, $OpeningBalance );
+	                     if($_SESSION['society_creation_yearid'] <> "")
+							{
+								//$OpeningBalanceDate = $this->m_objUtility->GetDateByOffset($_SESSION['default_year_start_date'] , -1);
+								$OpeningBalanceDate = $this->m_objUtility->GetDateByOffset($this->m_objUtility->getCurrentYearBeginingDate($_SESSION['society_creation_yearid']) , -1);
+						}
+						// for renew fd create ledger on fd name 
+						$NewLedgerID = $this->Create_New_Ledger($New_FDR_Name, $Category, $OpeningBalanceDate, $OpeningBalance );
+						//$NewLedgerID = $this->Create_New_Ledger($New_FDR_No, $Category, $OpeningBalanceDate, $OpeningBalance );
+						
 						//echo "<BR>Renewing New Principal amount " . $New_Principal_Amount . " and Calculated Principal amount " . $FD_Calc_NewPrincipal ; //$FD_Calc_NewPrincipal = 
 						//echo "<BR>Created new Ledger" . $NewLedgerID  . " and old LedgerID was " . $LedgerID;
 						//Insert into Ledger	
@@ -1396,7 +1429,7 @@ class FixedDeposit extends dbop
 				
 				echo "<BR>SetVoucherDetails for NewLedgerID" . $NewLedgerID . " New Principal amt : " . $New_Principal_Amount . " Note: " . $InterestNote;
 				$dataVoucher1 = $this->m_voucher->SetVoucherDetails(getDBFormatDate($New_Deposit_Date),$FD_Master_ID ,TABLE_FD_MASTER,
-				$LatestVoucherNo,$SrNo,VOUCHER_JOURNAL,$NewLedgerID,TRANSACTION_DEBIT,$New_Principal_Amount,$InterestNote );
+				$LatestVoucherNo,$SrNo,VOUCHER_JOURNAL,$NewLedgerID,TRANSACTION_DEBIT,$New_Principal_Amount,$InterestNote,$Counter[0]['CurrentCounter'] );
 				//echo "<BR>SetAssetRegister";
 				$regResult1 = $this->m_register->SetAssetRegister(getDBFormatDate($New_Deposit_Date), $NewLedgerID, $dataVoucher1, VOUCHER_JOURNAL, TRANSACTION_DEBIT, $New_Principal_Amount, 0);
 				
@@ -1405,7 +1438,7 @@ class FixedDeposit extends dbop
 				//Old fd JV credit 
 				//$MaturityAmt  = $res['Principal_Amount'] - ($res['accrued_interest_amt'] - $res['interest_amt']);
 				$dataVoucher2 = $this->m_voucher->SetVoucherDetails(getDBFormatDate($New_Deposit_Date), $FD_ID, TABLE_FD_MASTER,
-											$LatestVoucherNo,$SrNo,VOUCHER_JOURNAL,$LedgerID,TRANSACTION_CREDIT,$Principal_Amount,$InterestNote);
+											$LatestVoucherNo,$SrNo,VOUCHER_JOURNAL,$LedgerID,TRANSACTION_CREDIT,$Principal_Amount,$InterestNote,$Counter[0]['CurrentCounter']);
 				//echo "<BR>Test4";
 				$regResult2 = $this->m_register->SetAssetRegister(getDBFormatDate($New_Deposit_Date), $LedgerID, $dataVoucher2, VOUCHER_JOURNAL, TRANSACTION_CREDIT, $Principal_Amount, 0);	
 				
@@ -1414,12 +1447,12 @@ class FixedDeposit extends dbop
 				{
 				$SrNo++;
 				//echo "<BR>Test TDS";
-				$TDSReceivableLedgerID = $_SESSION['default_tds_receivable'];
+				$TDSReceivableLedgerID = $TDSLedger;//$_SESSION['default_tds_receivable'];
 				//echo "<BR>TDSReceivableLedgerID : " . $TDSReceivableLedgerID;
 
 				//TDS on FD JV debit
 				$dataVoucher_TDS = $this->m_voucher->SetVoucherDetails(getDBFormatDate($New_Deposit_Date),$FD_ID,TABLE_FD_MASTER,
-						$LatestVoucherNo,$SrNo,VOUCHER_JOURNAL,$TDSReceivableLedgerID,TRANSACTION_DEBIT,$TDSAmt,$InterestNote);
+						$LatestVoucherNo,$SrNo,VOUCHER_JOURNAL,$TDSReceivableLedgerID,TRANSACTION_DEBIT,$TDSAmt,$InterestNote,$Counter[0]['CurrentCounter']);
 				//echo "<BR>Test5-TDS";
 				$regResult_TDS = $this->m_register->SetRegister(getDBFormatDate($New_Deposit_Date), $TDSReceivableLedgerID, $dataVoucher_TDS,VOUCHER_JOURNAL, TRANSACTION_DEBIT, $TDSAmt, 0);	
 				}
@@ -1431,7 +1464,7 @@ class FixedDeposit extends dbop
 				//echo "<BR>Test5";
 				//Accrued Interest on FD JV credit
 				$dataVoucher3 = $this->m_voucher->SetVoucherDetails(getDBFormatDate($New_Deposit_Date),$FD_ID,TABLE_FD_MASTER,
-						$LatestVoucherNo,$SrNo,VOUCHER_JOURNAL,$AccruedInterestLedger,TRANSACTION_CREDIT,$AccruedInterestAmt,$InterestNote);
+						$LatestVoucherNo,$SrNo,VOUCHER_JOURNAL,$AccruedInterestLedger,TRANSACTION_CREDIT,$AccruedInterestAmt,$InterestNote,$Counter[0]['CurrentCounter']);
 				//echo "<BR>Test6";
 				//pending : to be tested. when this gets called?
 				$regResult3 = $this->m_register->SetRegister(getDBFormatDate($New_Deposit_Date), $AccruedInterestLedger, $dataVoucher3,VOUCHER_JOURNAL, TRANSACTION_CREDIT, $AccruedInterestAmt, 0);	
@@ -1443,7 +1476,7 @@ class FixedDeposit extends dbop
 					$SrNo++;
 					//echo "<BR>Test7";
 					//Interest on FD JV credit
-					$dataVoucher4 = $this->m_voucher->SetVoucherDetails(getDBFormatDate($New_Deposit_Date),$FD_ID,TABLE_FD_MASTER, $LatestVoucherNo,$SrNo,VOUCHER_JOURNAL,$InterestLedger,TRANSACTION_CREDIT,$InterestAmt,$InterestNote);
+					$dataVoucher4 = $this->m_voucher->SetVoucherDetails(getDBFormatDate($New_Deposit_Date),$FD_ID,TABLE_FD_MASTER, $LatestVoucherNo,$SrNo,VOUCHER_JOURNAL,$InterestLedger,TRANSACTION_CREDIT,$InterestAmt,$InterestNote,$Counter[0]['CurrentCounter']);
 					//echo "<BR>Test8";
 					$regResult4 = $this->m_register->SetRegister(getDBFormatDate($New_Deposit_Date), $InterestLedger, $dataVoucher4,VOUCHER_JOURNAL, TRANSACTION_CREDIT, $InterestAmt, 0);
 				}
@@ -1491,7 +1524,7 @@ class FixedDeposit extends dbop
 								  
 				$LogMsg  .="Previous Record Details: (".$data[0]['deposit_date'] ."|| ". $data[0]['maturity_date'] ."|| ". $data[0]['principal_amt'] ."|| ".$data[0]['maturity_amt'] ."||".$data[0]['Note'].")";
 				
-				echo "<BR>" . $LogMsg ;
+				//echo "<BR>" . $LogMsg ;
 				$this->m_objLog->setLog($LogMsg, $_SESSION['login_id'], TABLE_FD_MASTER,$FD_Master_ID);
 				//alert("FD Renewed successfully");
 				$this->m_dbConn->commit();
@@ -1499,11 +1532,13 @@ class FixedDeposit extends dbop
 			}
 			else
 			{
-				$Msg = "<BR>1.2 Principal amount 2 " . $New_Principal_Amount . " and Calculated Principal amount " . $FD_Calc_NewPrincipal . " are not same.<BR>"; //$FD_Calc_NewPrincipal = $New_Principal_Amount  + $AccruedInterestAmt + $InterestAmt;
-				echo $Msg;
+				$Msg =" New FD Principal amount : ". $New_Principal_Amount . " and Calculated Principal amount (Principal Amount + Accrued Interest Amount + Interest Amount - TDS Amount) : ".$FD_Calc_NewPrincipal." are not same.";
+				//$Msg = "<BR>1.2 Principal amount 2 " . $New_Principal_Amount . " and Calculated Principal amount " . $FD_Calc_NewPrincipal . " are not same.<BR>"; //$FD_Calc_NewPrincipal = $New_Principal_Amount  + $AccruedInterestAmt + $InterestAmt;
+				//echo $Msg;
 				//alert("Failed " . $Msg);
 				$this->m_dbConn->rollback();
-				return 'Failed';		
+				//return 'Failed';
+				return $Msg;		
 			}
 		
 			return 'Success';
@@ -1517,7 +1552,7 @@ class FixedDeposit extends dbop
 	}
 	
 	
-	public function fdCloseProcess($fd_id, $BankID ,$MaturityDate , $PrincipalAmount ,$MaturityAmount ,$AccruedInterestLegder ,$AccruedInterestAmt ,$InterestLedger,$InterestAmt,$Note, $ClosingDate, $TDSAmt)
+	public function fdCloseProcess($fd_id, $BankID ,$MaturityDate , $PrincipalAmount ,$MaturityAmount ,$AccruedInterestLegder ,$AccruedInterestAmt ,$InterestLedger,$InterestAmt,$Note, $ClosingDate, $TDSAmt,$TDSLedger,$IsCallUpdtCnt)
 	{
 		echo "<BR><BR>***************** Inside fdCloseProcess ********************<BR>";
 		try
@@ -1561,7 +1596,7 @@ class FixedDeposit extends dbop
 */
 			$sql = "select * from `fd_master` where `id` = '".$fd_id."'"; //where fd_close = 0 and fd_renew = 0";
 			$data = $this->m_dbConn->select($sql);
-			var_dump($data);
+			//var_dump($data);
 			//if($data[0]['id'] <> 0 && $InterestAmt <> 0)
 			if($data[0]['id'] <> 0)
 			{
@@ -1587,11 +1622,18 @@ class FixedDeposit extends dbop
 				$SrNo = 1;
 				$LatestVoucherNo = $this->m_latestcount->getLatestVoucherNo($_SESSION['society_id']);
 				$Voucher_Type = VOUCHER_RECEIPT;
-				
+				//$Counter = $obj_utility->GetCounter(VOUCHER_RECEIPT, $BankID);	
+				$Counter =  $this->m_objUtility->GetCounter(VOUCHER_RECEIPT,$BankID);
+				//var_dump($Counter);
+				$EXVoucherNumber = $Counter[0]['CurrentCounter'];
+				if($IsCallUpdtCnt == 1)
+				{
+					$this->m_objUtility->UpdateExVCounter(VOUCHER_RECEIPT,$EXVoucherNumber,$BankID);
+				}
 				//closing fd JV i.e Bank A/C   Dr    sd
 
 				$dataVoucher1 = $this->m_voucher->SetVoucherDetails(getDBFormatDate($ClosingDate),$data[0]['id'] ,TABLE_FD_MASTER,
-				$LatestVoucherNo,$SrNo,$Voucher_Type,$BankID,TRANSACTION_DEBIT,$AmountDepositedInBank, $Note);
+				$LatestVoucherNo,$SrNo,$Voucher_Type,$BankID,TRANSACTION_DEBIT,$AmountDepositedInBank, $Note,$Counter[0]['CurrentCounter']);
 				$depositGroup = -1;
 				$chequeDetailID = 0;
 				$this->m_register->SetBankRegister(getDBFormatDate($ClosingDate),$BankID, $dataVoucher1, $Voucher_Type, TRANSACTION_RECEIVED_AMOUNT, $AmountDepositedInBank, $depositGroup, $chequeDetailID, 0, getDBFormatDate($ClosingDate), 0, '00-00-0000', '0', '0', '0');
@@ -1600,14 +1642,14 @@ class FixedDeposit extends dbop
 				//Old fd JV To Fixed Deposit A/C Cr
 				//$MaturityAmt  = $res['Principal_Amount'] - ($res['accrued_interest_amt'] - $res['interest_amt']);
 				$dataVoucher2 = $this->m_voucher->SetVoucherDetails(getDBFormatDate($ClosingDate),$data[0]['id'],TABLE_FD_MASTER,
-				$LatestVoucherNo,$SrNo,$Voucher_Type,$LedgerID,TRANSACTION_CREDIT,$PrincipalAmount,"");
+				$LatestVoucherNo,$SrNo,$Voucher_Type,$LedgerID,TRANSACTION_CREDIT,$PrincipalAmount,"",$Counter[0]['CurrentCounter']);
 				$regResult2 = $this->m_register->SetAssetRegister(getDBFormatDate($ClosingDate), $LedgerID, $dataVoucher2,$Voucher_Type, TRANSACTION_CREDIT, $PrincipalAmount, 0);	
 				
 				//To Accrued Interest on FD JV credit
 				if($AccruedInterestAmt <> 0)
 				{
 					$SrNo++;
-					$dataVoucher3 = $this->m_voucher->SetVoucherDetails(getDBFormatDate($ClosingDate),$data[0]['id'],TABLE_FD_MASTER,$LatestVoucherNo,$SrNo,$Voucher_Type,$AccruedInterestLegder,TRANSACTION_CREDIT,$AccruedInterestAmt,"");
+					$dataVoucher3 = $this->m_voucher->SetVoucherDetails(getDBFormatDate($ClosingDate),$data[0]['id'],TABLE_FD_MASTER,$LatestVoucherNo,$SrNo,$Voucher_Type,$AccruedInterestLegder,TRANSACTION_CREDIT,$AccruedInterestAmt,"",$Counter[0]['CurrentCounter']);
 					$regResult3 = $this->m_register->SetRegister(getDBFormatDate($ClosingDate), $AccruedInterestLegder, $dataVoucher3,$Voucher_Type, TRANSACTION_CREDIT, $AccruedInterestAmt, 0);	
 					//echo "<BR>Accured Interest processed " . $AccruedInterestAmt;
 				}
@@ -1618,7 +1660,7 @@ class FixedDeposit extends dbop
 				if($InterestAmt <> 0)
 				{
 					$SrNo++;
-					$dataVoucher4 = $this->m_voucher->SetVoucherDetails(getDBFormatDate($ClosingDate),$data[0]['id'],TABLE_FD_MASTER,$LatestVoucherNo,$SrNo,$Voucher_Type,$InterestLedger,TRANSACTION_CREDIT,$InterestAmt,"");
+					$dataVoucher4 = $this->m_voucher->SetVoucherDetails(getDBFormatDate($ClosingDate),$data[0]['id'],TABLE_FD_MASTER,$LatestVoucherNo,$SrNo,$Voucher_Type,$InterestLedger,TRANSACTION_CREDIT,$InterestAmt,"",$Counter[0]['CurrentCounter']);
 					$regResult4 = $this->m_register->SetRegister(getDBFormatDate($ClosingDate), $InterestLedger, $dataVoucher4,$Voucher_Type, TRANSACTION_CREDIT, $InterestAmt, 0);
 					//echo "<BR>Interest processed " . $InterestAmt;
 				}
@@ -1628,12 +1670,12 @@ class FixedDeposit extends dbop
 				{
 					$SrNo++;
 					//echo "<BR>FD Close TDS ";
-					$TDSReceivableLedgerID = $_SESSION['default_tds_receivable'];
+					$TDSReceivableLedgerID = $TDSLedger; //$_SESSION['default_tds_receivable'];
 					//echo "<BR>TDSReceivableLedgerID : " . $TDSReceivableLedgerID;
 
 					//TDS on FD JV debit
 					$dataVoucher_TDS = $this->m_voucher->SetVoucherDetails(getDBFormatDate($ClosingDate),$data[0]['id'],TABLE_FD_MASTER,
-							$LatestVoucherNo,$SrNo,$Voucher_Type,$TDSReceivableLedgerID,TRANSACTION_DEBIT,$TDSAmt,$InterestNote);
+							$LatestVoucherNo,$SrNo,$Voucher_Type,$TDSReceivableLedgerID,TRANSACTION_DEBIT,$TDSAmt,$InterestNote,$Counter[0]['CurrentCounter']);
 					//echo "<BR>Test6 dataVoucher_TDS : " . $dataVoucher_TDS;
 					$regResult_TDS = $this->m_register-> SetRegister(getDBFormatDate($ClosingDate), $TDSReceivableLedgerID, $dataVoucher_TDS,$Voucher_Type, TRANSACTION_DEBIT, $TDSAmt, 0);	
 					//echo "<BR>TDS processed " . $TDSAmt;
@@ -2364,6 +2406,19 @@ public function comboboxForReport($status,$query,$id,$defaultText = 'All', $defa
 		}
 		return  $yearData;
 	} 
+	
+	// create new function for update fd date and principle and meturity amount 
+	public function UpdateFDData($fd_id,$FD_LedgerID,$DateOfDeposite,$DateOfMaturity,$FD_Period,$Intrest_Rate,$Principle_Amount,$Maturity_Amount)
+	{
+		 $updateFDMaster = "UPDATE `fd_master` SET `deposit_date` = '".getDBFormatDate($DateOfDeposite)."',`maturity_date` = '".getDBFormatDate($DateOfMaturity)."',`fd_period` = '".$FD_Period."',`int_rate` = '".$Intrest_Rate."',`principal_amt` = '".$Principle_Amount."' ,`maturity_amt` = '".$Maturity_Amount."'  WHERE `id` = '".$fd_id."' ";
+						
+		$dataFDMaster = $this->m_dbConn->update($updateFDMaster);
+		
+	$updateFDCloseRenew = "UPDATE `fd_close_renew` SET `StartDate`= '".getDBFormatDate($DateOfDeposite)."', `EndDate` = '".getDBFormatDate($DateOfMaturity)."', `MaturityAmount`= '".$Maturity_Amount."', `DepositAmount` = '".$Principle_Amount."' where LedgerID = '".$FD_LedgerID."'";
+		
+		return $dataFDCloseRenew = $this->m_dbConn->update($updateFDCloseRenew);
+		//return "update";
+	}
 }
 
 ?>

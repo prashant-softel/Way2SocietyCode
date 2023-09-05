@@ -146,7 +146,7 @@ class bank_statement
 	
 	function getRefTableName($voucherID)
 	{
-		$sql = "SELECT `RefTableID`, `VoucherNo`, `RefNo` FROM `voucher` where `id`='".$voucherID."' ";
+		$sql = "SELECT `RefTableID`, `VoucherNo`, `RefNo`,`ExternalCounter` FROM `voucher` where `id`='".$voucherID."' ";
 		$TableName = $this->m_dbConn->select($sql);
 		return $TableName;
 		//return $TableName[0]['RefTableID']; 	

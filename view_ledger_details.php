@@ -41,6 +41,16 @@ $to_date = getDBFormatDate($_SESSION['to_date']);
 if(isset($_POST['from']) && isset($_POST['to']))
 {
 	$from_date = getDBFormatDate($_POST['from']);
+	if($from_date < getDBFormatDate($minDate))
+	{
+		$from_date = getDBFormatDate($minDate);
+		?>
+			<script language="javascript" type="application/javascript">
+			var message = "Date can't be less than <?php echo json_encode($minDate); ?> !!";
+			alert(message);
+			</script>
+		<?php
+	}
 	$to_date = getDBFormatDate($_POST['to']);
 }
 
@@ -706,7 +716,8 @@ $(document).keyup(function(e) {
 });
 
 $(document).ready(function() {
-	
+var gid='<?php echo $_REQUEST['gid']?>'	;
+//alert(gid);
 printMessage = '<?php echo $sHeader?> ';
 printMessage += '<center><font style="font-size:14px;" id="ledger_name" class="PrintClass"><b><?php echo $data[0]['Particular']; if($data[1]['owner_name'] <> ""){echo ' - ' .$data[1]['owner_name'] ;}?></b></font></center>';
  $('#example').dataTable(
@@ -780,7 +791,10 @@ if(localStorage.getItem("client_id") != "" && localStorage.getItem("client_id") 
 								total = parseFloat(parseFloat(val1)+parseFloat(val2)).toFixed(2);
 								return  total;
 							});
-					$(column.footer()).html(format(sum,2));
+							if(gid == 1 || gid == 2)
+							{
+								$(column.footer()).html(format(sum,2));
+							}
 					});
 					
 					}

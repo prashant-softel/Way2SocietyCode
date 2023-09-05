@@ -28,3 +28,13 @@ if($_REQUEST['method'] == "link_voucher")
 	//print_r($linked_vouchers);
 	echo $linked_vouchers;
 }
+
+if($_REQUEST['method'] == "getReports")
+{
+	$voucherType = $_REQUEST['voucherTypeID'];
+	$fromDate    = $_REQUEST['fromDate'];
+	$toDate      = $_REQUEST['toDate'];
+	
+	echo $get_voucher_details = $obj_ledger_details->Reportdetails($voucherType, $fromDate, $toDate);
+	
+}

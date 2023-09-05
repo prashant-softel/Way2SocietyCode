@@ -535,8 +535,9 @@ var NewRowCounter=0;
 			<?php if($bApplyServiceTax == 1 && (isset($_REQUEST['add']) || isset($_REQUEST['edt']) || isset($_REQUEST['add_credit']) || isset($_REQUEST['add_debit'])))
 			{?>
 		    newRow += "<td style='border:1px solid black;text-align:center;'><input type='checkbox' name='invoicetaxable"+NewRowCounter+"' id='invoicetaxable"+NewRowCounter+"'  onclick='checktaxable("+NewRowCounter+")' ;></td>";
-			<?php if(!isset($_REQUEST['NoteType']))
-			{?>
+			
+			<?php //if(!isset($_REQUEST['NoteType']))
+			//{?>
 				newRow += "<td style='border:1px solid black;text-align:center;'>";
 				newRow += "<select style='width: 50px; display:none' id='taxrate"+NewRowCounter+"' name='taxrate"+NewRowCounter+"' value=''><?php for($i = 0; $i < sizeof($GSTTAXRATES); $i++){
 				$selected = $GSTTAXRATES[$i]["id"] == $DefaultGSTRate ? "selected" : ""; 
@@ -544,7 +545,7 @@ var NewRowCounter=0;
 				
 				newRow += "<span id='taxrateSet"+NewRowCounter+"' style='display:block'>0</spna>";
 				newRow +="</td>";
-		<?php }
+		<?php //}
 			}
 		?>
 		  newRow +="<td align=right style='border:1px solid black;border-right:none;text-align:right;width:15%;font-size:14px;'> <input type='text' id='HeaderAmount"+NewRowCounter+"' name='HeaderAmount"+ NewRowCounter+"' value='0.00' style='text-align:right;background-color:#FFFF00;'  onBlur = 'extractNumber(this,2,true);' onKeyUp='extractNumber(this,2,true);' onKeyPress='return blockNonNumbers(this, event, true, true);' /></td></tr>";

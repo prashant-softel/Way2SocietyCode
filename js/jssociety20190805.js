@@ -223,7 +223,7 @@ function loadchanges()
 		document.getElementById('apply_Outstanding_amount').checked = (response.apply_Outstanding_amount == 1) ? true : false;
 		document.getElementById('Authorised_Share_Capital_Text').value = response.Auth_Share_Capital_Text;
 		document.getElementById('Authorised_Share_Capital_Amount').value = response.Auth_Share_Capital_Amount;
-
+		document.getElementById('show_supp_reciept').checked = (response.show_reciept_on_supp == 1) ? true : false;
 		document.getElementById("insert").value="Update";
 		document.getElementById("insert1").value="Update";
 		
@@ -362,6 +362,7 @@ function loadchanges()
 			document.getElementById('qrcodeImg').innerHTML = 'QR Code Uploaded';
 			document.getElementById('qrcodebtn').style.display = 'none';
 		}
+		document.getElementById('show_supp_reciept').checked = (response.show_reciept_on_supp == 1) ? true : false;
 		var f = document.forms['society'];
 		for(var i=0,fLen=f.length;i<fLen;i++)
 		{
@@ -401,6 +402,7 @@ function loadchanges()
 			$('#apply_Outstanding_amount').attr('disabled', true);
 			$('#Authorised_Share_Capital_Text').attr('disabled', true);
 			$('#Authorised_Share_Capital_Amount').attr('disabled', true);
+			$('#show_supp_reciept').attr('disabled', true);
 			
 		  f.elements[i].readOnly = true;//As @oldergod noted, the "O" must be upper case
 		}

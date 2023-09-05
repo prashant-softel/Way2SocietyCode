@@ -78,7 +78,8 @@
  
 		if($_SESSION['role'] != 'Super Admin')//ROLE_SUPER_ADMIN)
 		{
-			if($profile != 'view_member_profile.php')
+			
+			if($profile != 'view_member_profile.php' && $profile != 'genbill.php')  // replace operator or into and 
 			{
 				if($aryProfiles <> '')
 				{

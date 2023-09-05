@@ -232,7 +232,7 @@ $CurrentMonthBeginingDate = $obj_Utility->getCurrentYearBeginingDate($_SESSION['
                         <tr id="ShowPreviousYearBalance">
                         <td><label for="chk_ShowPreviousYearBalanceSheet">Show Previous Year Amounts</label></td>
                         <td> : &nbsp; </td> 
-			<td><input type="checkbox" name="chk_ShowPreviousYearBalanceSheet" id="chk_ShowPreviousYearBalanceSheet" value="0" onChange="setValue();"></td>
+			<td><input type="checkbox" checked="checked" name="chk_ShowPreviousYearBalanceSheet" id="chk_ShowPreviousYearBalanceSheet" value="1" onChange="setValue();"></td>
 			</tr>
                         <tr> <td colspan="3"> <br /> </td> </tr>
                         <tr>
