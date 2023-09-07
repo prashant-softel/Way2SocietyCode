@@ -3406,7 +3406,34 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 				else if($PaymentDate_month >= $DueDate_month)
 				{
 					$NumberOfMonths = $PaymentDate_month - $DueDate_month + 1;
-					
+					//If due date is 31st  and if paid on the second of the next month then the intrest should not be charged for next month
+					if($BillCycle == 4) //Quaterly
+					{
+						if($NumberOfMonths > 3)
+						{
+							$this->strTrace .=  '<tr><td>Before Number of Months : ' . $NumberOfMonths. '</td></tr>';
+							$NumberOfMonths = 3;
+							$this->strTrace .=  '<tr><td>After Number of Months changed to  : ' . $NumberOfMonths. '</td></tr>';
+						}
+					}
+					else if($BillCycle == 5) //BiMonthly
+					{
+						if($NumberOfMonths > 2)
+						{
+							$this->strTrace .=  '<tr><td>Before Number of Months : ' . $NumberOfMonths. '</td></tr>';
+							$NumberOfMonths = 2;
+							$this->strTrace .=  '<tr><td>After Number of Months changed to  : ' . $NumberOfMonths. '</td></tr>';
+						}
+					}	
+					else if($BillCycle == 6) //Monthly
+					{
+						if($NumberOfMonths > 1)
+						{
+							$this->strTrace .=  '<tr><td>Before Number of Months : ' . $NumberOfMonths. '</td></tr>';
+							$NumberOfMonths = 1;
+							$this->strTrace .=  '<tr><td>After Number of Months changed to  : ' . $NumberOfMonths. '</td></tr>';
+						}
+					}						
 				}
 				$this->strTrace .=  '<tr><td>DueDate_month : ' . $DueDate_month . ' and PaymentDate_month : ' . $PaymentDate_month . ' and NumberOfMonths : ' . $NumberOfMonths . '</td></tr>';
 				$this->strTrace .=  '<tr><td>Monthly Interest Amt : ' . $InterestAmount. '</td></tr>';
