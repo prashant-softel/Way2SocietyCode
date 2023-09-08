@@ -6946,5 +6946,91 @@ public function GetBlockUnit($UnitID)
 	$result = $this->m_dbConn->select($sql);
 	return $result[0]['block_unit'];
 }
+
+
+public function getInvoiceCollectionOfData($society_id, $wing_id, $unit_id, $period_id,$isBillSummary = false, $SupplementaryBill)
+{
+	$sql = "SELECT `id`,`ledger_name` FROM `ledger`  WHERE `id` IN(SELECT vch.`To` from `voucher` as vch JOIN `sale_invoice` as sale on sale.ID = vch.`RefNo` where `To` <> '' and `RefTableID`=8) and `id` NOT IN(".INTEREST_ON_PRINCIPLE_DUE.",".ADJUSTMENT_CREDIT.",".IGST_SERVICE_TAX.",".CGST_SERVICE_TAX.",".SGST_SERVICE_TAX.",".CESS_SERVICE_TAX.", ".ROUND_OFF_LEDGER.") ";
+		$result = $this->m_dbConn->select($sql);
+		
+		
+		$sqlII = "SELECT  vch.`RefNo`, uni.`unit_id`, uni.`unit_no` as 'Unit No', mem.`owner_name` as 'Member Name', CONCAT('INV-', inv.`Inv_Number`) as 'Inv Number', ";
+		
+		for($m = 0; $m < sizeof($result); $m++)
+		{
+			$sqlII	.= " SUM( IF( vch.`To` =  '".$result[$m]['id']."', vch.`Credit` , 0.00 ) ) AS '".$result[$m]['ledger_name']."' ";
+			
+			if($m < sizeof($result))
+			{
+				$sqlII	.= " , ";
+			}
+		}
+
+		$societyInfo = $this->m_objUtility->GetSocietyInformation($_SESSION['society_id']);
+		$ApplyServiceTax = $societyInfo['apply_service_tax'];
+		if($ApplyServiceTax == 1)
+		{
+			$sqlII	.="	inv.`InvSubTotal`,
+							 inv.`CGST` as CGST , inv.`SGST` as SGCT , 
+							(inv.`InvSubTotal`+ inv.`CGST` + inv.`SGST` ) as Payable
+							FROM voucher AS vch JOIN sale_invoice AS inv ON vch.RefNo = inv.ID JOIN member_main AS mem ON inv.UnitID = mem.unit
+							JOIN unit AS uni ON uni.unit_id = inv.UnitID JOIN year as yr ON yr.YearID = '".$_SESSION['default_year']."'  WHERE  mem.ownership_status = 1";								
+		}
+		else
+		{
+			$sqlII	.="	inv.`InvSubTotal`, 
+							(inv.`InvSubTotal`) as Payable
+							FROM voucher AS vch JOIN sale_invoice AS inv ON vch.RefNo = inv.ID JOIN member_main AS mem ON inv.UnitID = mem.unit
+							JOIN unit AS uni ON uni.unit_id = inv.UnitID JOIN year as yr ON yr.YearID = '".$_SESSION['default_year']."'  WHERE  mem.ownership_status = 1";										
+		}
+		
+		if($unit_id == 0)
+		{
+			$memberIDS = $this->m_objUtility->getMemberIDs($resultPeriod[0]['Inv_Date']);
+			$sqlII	.="	and mem.member_id IN (".$memberIDS.") ";
+		}
+		else
+		{
+			$sqlII   .= "   and uni.unit_id = '" . $unit_id . "' AND vch.`Date` BETWEEN '".$_SESSION['default_year_start_date']."' and '".$_SESSION['default_year_end_date']."'";
+		}
+		
+		//$sqlII   .= "    and bill.BillType='".$SupplementaryBill."' ";
+		$sqlII	.="	GROUP BY vch.`RefNo`  ORDER BY uni.sort_order ASC";
+		//echo "sql ::=>".$sqlII;
+		$resData = $this->m_dbConn->select($sqlII);
+		
+		$sumArray = array();
+
+//var_dump($resData);
+		
+		foreach ($resData as $k=>$subArray) 
+		{
+			foreach ($subArray as $id=>$value) 
+			{
+    			$sumArray[$id]+=$value;
+  			}
+			
+		}
+		//var_dump($sumArray);
+		//$sumArray[''] = "";
+		$sumArray['Unit No'] = $resData[0]['Unit No'];
+		$sumArray['Member Name'] = "Total";
+		$sumArray['Inv Number'] = " ";
+		//$sumArray['Fin. Year'] = " ";
+		//$sumArray['Bill For'] = " ";
+		//$sumArray['Payable'] = " ";
+		//$sumArray['Paid'] = " ";
+		//$sumArray['Balance'] = " ";
+		
+		//$sumArray[];
+		array_push($resData,$sumArray);
+		
+		/********* REMOVE REFNO FROM ARRAY ******/
+		$this->recursiveRemoval($resData, 'RefNo');
+		$this->recursiveRemoval($resData, 'unit_id');
+		//$this->recursiveRemoval($resData, 'PeriodID');
+		//var_dump($resData);
+		return $resData;
+}
 }
 ?>
