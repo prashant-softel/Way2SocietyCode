@@ -2,6 +2,7 @@ function  FetchBillRegisterSummary(society_id)
 {
 	showLoader();
 	var ignore_zero = document.getElementById('ignore_zero').checked;
+	var billType =document.getElementById('billType').value;
 	
 	var checks = document.getElementsByClassName('checkBox');
 	var UnitArray = [];
@@ -55,7 +56,7 @@ function  FetchBillRegisterSummary(society_id)
 	$.ajax({
 			url : "ajax/ajaxContributionLedgerDetailed.php",
 			type : "POST",
-			data : {"method" : 'fetch',"societyID" : society_id,"unitIDArray" : JSON.stringify(UnitArray),"ignore_zero" : ignore_zero},
+			data : {"method" : 'fetch',"societyID" : society_id,"unitIDArray" : JSON.stringify(UnitArray),"ignore_zero" : ignore_zero,"billType":billType},
 			beforeSend: function()
 			{
 				document.getElementById('showTable').innerHTML = '<center><font color="blue">Fetching Records Please Wait...</font></center>';
