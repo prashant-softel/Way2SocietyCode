@@ -4712,5 +4712,92 @@ function getPaymentOption()
 		return $result[0]['gen_bill_template'];
 	}
 
-	
+	public function getendYearBalance($LedgerID)
+		{
+			//echo "Ledger ID: " .$LedgerID;
+			$from_date = $_SESSION['default_year_start_date'];
+			$to_date = $_SESSION['default_year_end_date'];
+			$endOfYearBalance = array("LedgerName" => "","Credit" => 0 ,"Debit" => 0 ,"Total" => 0,"OpeningDate" => $date);
+			
+			$arParentDetails = $this->getParentOfLedger($LedgerID);
+			if(!(empty($arParentDetails)))
+			{
+				$LedgerGroupID = $arParentDetails['group'];
+				$LedgerCategoryID = $arParentDetails['category'];
+				
+				if($LedgerGroupID == LIABILITY)
+				{
+					$sqlLiability = "SELECT SUM(Credit) as Credit,
+									SUM(Debit) as Debit,(SUM(Credit) - SUM(Debit)) as Total
+									FROM `liabilityregister` where LedgerID  = '".$LedgerID."' and  Date between '".$from_date."' and '".$to_date."' ";
+					$result = $this->m_dbConn->select($sqlLiability);
+					$endOfYearBalance['Credit'] = $result[0]['Credit'];
+					$endOfYearBalance['Debit'] = $result[0]['Debit'];
+					$endOfYearBalance['Total'] = $result[0]['Total'];
+					
+					$endOfYearBalance['Total'] = abs($endOfYearBalance['Total']);	
+				}
+				else if($LedgerGroupID == ASSET && ($LedgerCategoryID == BANK_ACCOUNT || $LedgerCategoryID == CASH_ACCOUNT))
+				{
+					 $sqlBank = "SELECT SUM(ReceivedAmount) as Credit,
+								SUM(PaidAmount) as Debit,(SUM(ReceivedAmount) - SUM(PaidAmount)) as Total 
+								FROM `bankregister` where LedgerID = '".$LedgerID."' and  Date between '".$from_date."' and '".$to_date."' ";								
+					$result = $this->m_dbConn->select($sqlBank);
+					$endOfYearBalance['Credit'] = $result[0]['Credit'];
+					$endOfYearBalance['Debit'] = $result[0]['Debit'];
+					$endOfYearBalance['Total'] = $result[0]['Total'];
+					
+					$endOfYearBalance['Total'] = abs($endOfYearBalance['Total']);	
+				}
+				else if($LedgerGroupID == ASSET)
+				{
+					$sqlAsset = "SELECT SUM(Credit) as Credit,
+								SUM(Debit) as Debit,(SUM(Credit) - SUM(Debit)) as Total 
+								FROM `assetregister` where LedgerID  = '".$LedgerID."' and  Date between '".$from_date."' and '".$to_date."' ";
+					$result = $this->m_dbConn->select($sqlAsset);
+					$endOfYearBalance['Credit'] = $result[0]['Credit'];
+					$endOfYearBalance['Debit'] = $result[0]['Debit'];
+					$endOfYearBalance['Total'] = $result[0]['Total'];
+					
+					$endOfYearBalance['Total'] = abs($endOfYearBalance['Total']);				
+				}
+				else if($LedgerGroupID == INCOME)
+				{
+					$sqlIncome = "SELECT SUM(Credit)-SUM(Debit) as Total 
+								FROM `incomeregister` where LedgerID  = '".$LedgerID."' and  Date between '".$from_date."' and '".$to_date."' ";
+					$result = $this->m_dbConn->select($sqlIncome);
+					$endOfYearBalance['Credit'] = $result[0]['Credit'];
+					$endOfYearBalance['Debit'] = $result[0]['Debit'];
+					$endOfYearBalance['Total'] = $result[0]['Total'];
+
+					$endOfYearBalance['Total'] = abs($endOfYearBalance['Total']);			
+				}
+				else if($LedgerGroupID == EXPENSE)
+				{
+					$sqlExpense = "SELECT SUM(Credit) as Credit,
+								SUM(Debit) as Debit,(SUM(Credit) - SUM(Debit)) as Total 
+								FROM `expenseregister` where LedgerID  = '".$LedgerID."' and  Date between '".$from_date."' and '".$to_date."' ";
+					$result = $this->m_dbConn->select($sqlExpense);
+					$endOfYearBalance['Credit'] = $result[0]['Credit'];
+					$endOfYearBalance['Debit'] = $result[0]['Debit'];
+					$endOfYearBalance['Total'] = $result[0]['Total'];
+					
+					$endOfYearBalance['Total'] = abs($endOfYearBalance['Total']);
+				}
+				
+			}
+			if($result <> "")
+			{
+				$sql = "select l.`ledger_name`, acc.category_name   from `ledger`  as l JOIN account_category as acc ON l.categoryid = acc.category_id where l.`id` = '".$LedgerID."'";
+				$res = $this->m_dbConn->select($sql);
+				if($res <> "")
+				{
+					$endOfYearBalance['LedgerName'] = $res[0]['ledger_name'];	
+					$endOfYearBalance['Ledger_Category'] = $res[0]['category_name'];		
+				}	
+			}
+				//print_r($closingBalance);		
+			return $endOfYearBalance;
+			
+		}
 }
