@@ -53,7 +53,7 @@ select.dropdown {
 			page-break-inside: avoid;
 		}
 </style>
-<script type="text/javascript" src="js/jsContributionLedgerDetailed.js?08092023"></script>
+<script type="text/javascript" src="js/jsContributionLedgerDetailed.js"></script>
 <script type="text/javascript" src="js/ajax.js"></script>
 <script type="text/javascript" src="js/ajax_new.js"></script>
     
@@ -121,15 +121,6 @@ function Expoort()
 <br />
 	<form name="accounting_report" id="accounting_report" method="post">
         <table>
-        <tr> <td valign="middle"></td>
-                <td><b>Bill Type</b></td>
-                <td>&nbsp; : &nbsp;</td>
-                <td>
-                <select id="billType" name="billType">
-                <option value="0">Maintenace</option>
-                <option value="1">Supplymentry</option>
-                <option value="2">Invoces</option>
-                </select></td> </tr>
             <tr> <td colspan="3"> <br /> </td> </tr>
             <tr align="left">
                 <td valign="middle"></td>

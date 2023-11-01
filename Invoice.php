@@ -21,7 +21,9 @@ include_once("classes/changelog.class.php");
 $currentUrl ="";
 $BillType ="2";
 $bTrace = 0;
-
+// echo "<pre>";
+// print_r($_SESSION);
+// echo "</pre>";
 //if($_SESSION['is_year_freeze'] <> 0)
 	//{
 	?>
@@ -457,7 +459,21 @@ if($sUnitID != "0")
                     }).datepicker("setDate", InvoiceDate)});
 </script>
 <script>
-	
+	function selectLandlord()
+	{
+		let landlord = document.getElementById('landlord').value;
+		console.log(landlord);
+		$.ajax({
+		url: "process/tenant.process.php",
+		type:"POST",
+		data: {'selLandlord':landlord},
+		success: function(data)
+		{
+			location.reload();
+		}
+	});
+	}
+
 	function showLoader()
 	{
 		$(".loader").fadeIn("slow");
@@ -863,15 +879,23 @@ var billdate="";
         <div id="bill_details" style="text-align:center;border-top:1px solid black;font-size:<?php echo $BillFont?>px;">
             <table style="width:100%;">
             	<tr>
-                	
+                	<tr>
                     <?php if(isset($_REQUEST['add'])  || isset($_REQUEST['edt']) || isset($_REQUEST['add_credit']) || isset($_REQUEST['add_debit']))
-					{?>
-                    
+					{
+						if($_SESSION['res_flag'] == 1){?>
+							<td style="width:13%;">Select LandLord :</td> 
+							<td style = "width:15%;">  
+								<select id = "landlord" name = "landlord" onChange = "selectLandlord(this.value);" style="width:250px; margin-top:5px;">
+								<?php  echo $combo_state = $obj_genbill->comboboxEx("select category_id, name from landlords ORDER BY name ASC"); ?>   
+                        		</select></td>   
+                           
+						<?php } ?>
+					</tr>
                     <input type="hidden" id = "IsOutSider" value="">
                     <td style="width:13%;">Bill To :</td>
-                      <td style="width:15%;/*display:table-row*/" id ='Unit'><select name="UnitID" id="UnitID"  style="width:250px;margin-top:5px;">
+                      <td style="width:15%;/*display:table-row*/" id ='Unit'>
+					  <select name="UnitID" id="UnitID"  style="width:250px;margin-top:5px;">
 						<?php
-						
 						//value of outsider is sent here to fetch different value in dropdown   
 						echo $combo_state = $obj_genbill->FetchUnitName($outsider = 0,$_REQUEST['uid']); ?>   
                            			
@@ -1320,62 +1344,6 @@ var billdate="";
                     <td style="width:20%;border:1px solid black;border-top:none;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">Sub Total <?php echo $bApplyServiceTax ? "(A + B)" : ""; ?></td>
                     <td id="sub_total" style="text-align:right;width:20%;border:1px solid black;border-right:none;border-top:none;font-size: <?php echo $BillFont?>px;"><?php echo number_format($SubTotal,2); ?></td>
                 </tr> 
-				<?php  
-
-				if($bApplyServiceTax == 1 || $SGST > 0)
-                    {?>
-	                <tr>
-                    <?php if(!isset($_REQUEST['NoteType']))
-					{?>
-	                	<td style="width:20%;border:1px solid black;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">SGST <?php //echo $getSocietyInfo['sgst_tax_rate'] ?> on (B<?php echo ($bApplyGSTOnInterest ? " +  C" : "") ?>)</td>
-                    <?php 
-					   }
-					   else
-					   {?>
-					   <td style="width:20%;border:1px solid black;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">SGST @<?php echo $getSocietyInfo['sgst_tax_rate'] ?> on (B<?php echo ($bApplyGSTOnInterest ? " +  C" : "") ?>)</td>
-					   <?php }?> 
-	                    <td id="sub_total" style="text-align:right;width:20%;border:1px solid black;border-right:none;font-size:<?php echo $BillFont?>px;"><?php echo number_format($SGST,2); ?></td>
-	                </tr>
-                    <?php }
-					if($bApplyServiceTax == 1 || $CGST > 0 )
-					{?>
-                   <tr>
-                    <?php if(!isset($_REQUEST['NoteType']))
-					{?>
-	                	<td style="width:20%;border:1px solid black;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">CGST <?php //echo $getSocietyInfo['cgst_tax_rate'] ?> on (B<?php echo ($bApplyGSTOnInterest ? " +  C" : "") ?>)</td>
-                     <?php 
-					 }
-					 else{?>
-                     <td style="width:20%;border:1px solid black;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">CGST @<?php echo $getSocietyInfo['cgst_tax_rate'] ?> on (B<?php echo ($bApplyGSTOnInterest ? " +  C" : "") ?>)</td>
-                     <?php }?>   
-	                    <td id="sub_total" style="text-align:right;width:20%;border:1px solid black;border-right:none;font-size:<?php echo $BillFont?>px;"><?php echo number_format($CGST,2); ?></td>
-	                </tr>
-                    <?php }
-					if($IGST > 0 )
-					{?>
-                   <tr>
-	                	<td style="width:20%;border:1px solid black;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">IGST @ <?php echo $getSocietyInfo['igst_tax_rate'] ?>% on (B<?php echo ($bApplyGSTOnInterest ? " +  C" : "") ?>)</td>
-	                    <td id="sub_total" style="text-align:right;width:20%;border:1px solid black;border-right:none;font-size:<?php echo $BillFont?>px;"><?php echo number_format($IGST,2); ?></td>
-	                </tr>
-                    <?php }
-					if($CESS > 0 )
-					{?>
-                   <tr>
-	                	<td style="width:30%;border:1px solid black;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">CESS @ <?php echo $getSocietyInfo['cess_tax_rate'] ?>% on (B<?php echo ($bApplyGSTOnInterest ? " +  C" : "") ?>)</td>
-	                    <td id="sub_total" style="text-align:right;width:20%;border:0.5px solid black;border-right:none;font-size:<?php echo $BillFont?>px;"><?php echo number_format($CESS,2); ?></td>
-	                </tr>
-                    <?php }
-
-
-					?>
-					<tr>
-	                	<td style="width:30%;border:1px solid black;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">Round-Off value of CGST & SGST</td>
-	                    <td id="roundOffAmt" style="text-align:right;width:20%;border:0.5px solid black;border-right:none;font-size:<?php echo $BillFont?>px;"><?php echo number_format($roundOffAmt,2); ?></td>
-	                </tr>
-					<?php
-				
-		        //}
-		        ?>
                 
                 <tr>
                 	<td style="width:30%;border:0.5px solid black;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">Total Outstanding Amount</td>

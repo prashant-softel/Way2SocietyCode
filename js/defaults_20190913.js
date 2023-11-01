@@ -367,6 +367,7 @@ function ApplyValues()
 		window.alert("Please select Dues From Members option");
 		return false;
 	}
+	
 	var contributionfrommember = document.getElementById('default_contribution_from_member').value;
 	if(contributionfrommember  == "0" || contributionfrommember  == "")
 	{
@@ -393,6 +394,7 @@ function ApplyValues()
 		window.alert("Please select Suspense A/C option");
 		return false;
 	}
+	var dueFromTenant = document.getElementById('default_due_from_tenant').value;
 	var defaultLedgerRoundOff = document.getElementById('default_ledger_round_off').value;
 	var igstServiceTax = document.getElementById('igst_service_tax').value;
 	var cgstServiceTax = document.getElementById('cgst_service_tax').value;
@@ -446,6 +448,7 @@ function ApplyValues()
 					'Sundrycreditor':Sundrycreditor, 
 					'defaultSinkingFund'    : defaultSinkingFund,
 					'defaultInvestmentRegister'    : defaultInvestmentRegister,
+					'dueFromTenant': dueFromTenant
 					};
 					
 		remoteCallNew(sURL, obj, 'defaultsApplied');

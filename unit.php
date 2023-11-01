@@ -20,6 +20,9 @@ $IsGST = $obj_utility->IsGST();
 
 $_SESSION['ssid'] = $_REQUEST['ssid'];
 $_SESSION['wwid'] = $_REQUEST['wwid'];
+// echo "<pre>";
+// print_r($_SESSION);
+// echo "</pre>";
 $bIsCurrentYearAndCreationYrMatch = $obj_utility->IsCurrentYearAndCreationYrMatch();
 
 if($_SESSION['role'] == ROLE_ADMIN_MEMBER && $_SESSION['profile'][PROFILE_EDIT_MEMBER] == 0)

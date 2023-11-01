@@ -1,5 +1,4 @@
 <?php if(!isset($_SESSION)){ session_start(); }
-
 include_once("../dbconst.class.php");
 
 class CBillRegister

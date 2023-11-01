@@ -1,7 +1,7 @@
 <?php
  	//Turn off all error reporting
 
-   	//error_reporting(1);
+   	error_reporting(0);
 	
 	include('DbConnection.class.php');
 	date_default_timezone_set('Asia/Kolkata');	
@@ -11,9 +11,9 @@
 		//public $obj_con;
 		private $m_bIsTransaction;
 		
-		function __construct($bAccessRoot = false , $dbName = "", $AccessSM = false, $AccessSMRoot = false)
+		function __construct($bAccessRoot = false , $dbName = "", $AccessSM = false, $AccessSMRoot = false, $landLordDB = false, $landLordDBRoot = false)
 		{
-			DbConnection::__construct($bAccessRoot , $dbName,$AccessSM, $AccessSMRoot);
+			DbConnection::__construct($bAccessRoot , $dbName, $AccessSM, $AccessSMRoot, $landLordDB, $landLordDBRoot);
 			$this->m_bIsTransaction = false;
 			mysqli_autocommit($this->mMysqli, true);
 			//$this->kill_processlist();	  

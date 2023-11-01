@@ -130,7 +130,7 @@ class initialize
 	
 	public function getMapDetails($mapid)
 	{
-		$sql = "Select maptbl.society_id, maptbl.unit_id, maptbl.role, maptbl.view, maptbl.profile, maptbl.code, maptbl.desc, maptbl.login_id, maptbl.status, dbtbl.dbname,societytbl.client_id,societytbl.security_dbname from dbname as dbtbl JOIN mapping as maptbl ON maptbl.society_id = dbtbl.society_id  JOIN `society` as societytbl ON dbtbl.society_id  = societytbl.society_id where maptbl.id = '" . $mapid . "'";
+		$sql = "Select maptbl.society_id, maptbl.unit_id, maptbl.role, maptbl.view, maptbl.profile, maptbl.code, maptbl.desc, maptbl.login_id, maptbl.status, dbtbl.dbname,societytbl.client_id,societytbl.security_dbname, societytbl.res_flag, societytbl.rental_flag from dbname as dbtbl JOIN mapping as maptbl ON maptbl.society_id = dbtbl.society_id  JOIN `society` as societytbl ON dbtbl.society_id  = societytbl.society_id where maptbl.id = '" . $mapid . "'";
 		//echo $sql;
 		$result = $this->m_dbConn->select($sql);
 		

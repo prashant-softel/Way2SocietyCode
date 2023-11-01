@@ -692,7 +692,7 @@
 				}
 				else 
 				{
-					//$mailSubject = $sBillTypeText . ' Bill For : ' . $obj_fetch->GetBillFor($periodID) . ' (Please Ignore the previous mail)' ;
+					//$mailSubject = $sBillTypeText . ' Bill For : ' . $obj_fetch->GetBillFor($periodID) . ' (corrected due date to 7 May 2023)' ;
 					$mailSubject = $sBillTypeText . ' Bill For : ' . $obj_fetch->GetBillFor($periodID);	
 				}//'Maintainance Bill For March';
 				$mailBody ="";

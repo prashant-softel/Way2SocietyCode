@@ -105,9 +105,10 @@ include_once("../classes/include/dbop.class.php");
 		$societyID = $_REQUEST['societyid'];
 		$defaultSinkingFund    = $_REQUEST['defaultSinkingFund'];
 		$defaultInvestmentRegister = $_REQUEST['defaultInvestmentRegister'];
+		$dueFromTenant = $_REQUEST['dueFromTenant'];
 		//$defaultEmailID = $_REQUEST['defaultEmailID'];
 		
-		$updateDefault = $obj_default->setDefault($societyID, $defaultYear, $defaultPeriod, $interestOnPrinciple, $penaltyToMember, $bankCharges,$tdsPayable, $currentAsset, $dueFromMember,$sundrydebetor, $bankAccount, $cashAccount,$defaultIncomeExpenditureAccount, $defaultAdjustmentCredit, $igstServiceTax, $cgstServiceTax, $sgstServiceTax, $cessServiceTax, $imposeFine, $InputCgst, $InputSgst, $fixedAsset, $contributionfrommember,$tdsReceivable,$defaultSuspenseAccount, $defaultLedgerRoundOff ,$Sundrycreditor,$InputIgst,$defaultSinkingFund,$defaultInvestmentRegister/*,$defaultEmailID*/);
+		$updateDefault = $obj_default->setDefault($societyID, $defaultYear, $defaultPeriod, $interestOnPrinciple, $penaltyToMember, $bankCharges,$tdsPayable, $currentAsset, $dueFromMember,$sundrydebetor, $bankAccount, $cashAccount,$defaultIncomeExpenditureAccount, $defaultAdjustmentCredit, $igstServiceTax, $cgstServiceTax, $sgstServiceTax, $cessServiceTax, $imposeFine, $InputCgst, $InputSgst, $fixedAsset, $contributionfrommember,$tdsReceivable,$defaultSuspenseAccount, $defaultLedgerRoundOff ,$Sundrycreditor,$InputIgst,$defaultSinkingFund,$defaultInvestmentRegister, $dueFromTenant/*,$defaultEmailID*/);
 		
 		/*$updateDefault = $updateDefault . $obj_default->setDefault(APP_DEFAULT_PERIOD, $defaultPeriod);
 		$updateDefault = $updateDefault . $obj_default->setDefault(APP_DEFAULT_INTEREST_ON_PRINCIPLE_DUE, $interestOnPrinciple);

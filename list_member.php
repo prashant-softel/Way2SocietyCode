@@ -10,8 +10,11 @@
 ?>
 <?php
 include_once("classes/list_member.class.php");
+include_once("classes/initialize.class.php");
 
 $obj_list_member = new list_member($m_dbConn);
+$obj_initialize = new initialize($m_dbConnRoot);
+
 ?>
 <link rel="stylesheet" type="text/css" href="css/pagination.css" >
 	<link href="css/messagebox.css" rel="stylesheet" type="text/css" />
@@ -246,7 +249,7 @@ if(localStorage.getItem("client_id") != "" && localStorage.getItem("client_id") 
 <!--<center><h2><font color="#43729F"><b><?php //echo $obj_list_member->display_society_name($_SESSION['society_id']);?></b></font></h2>-->
 <br><center>
 <div class="panel panel-info" id="panel" style="display:none">
-<div class="panel-heading" id="pageheader">List of Members</div>
+	<div class="panel-heading" id="pageheader">List of Members</div>
 <?php if(isset($_SESSION['role']) && $_SESSION['role']=='Super Admin'){?>
 
 <!--<a href="member_main_new.php?scm" style="color:#00F; text-decoration:none;"><b>Add New Member</b></a>
@@ -257,9 +260,11 @@ if(localStorage.getItem("client_id") != "" && localStorage.getItem("client_id") 
 <center>
 	<br>
 <!--<a href="unit.php?imp&ssid=<?php echo $_SESSION['society_id'];?>&idd=<?php echo time();?>"><input type="button" value="Add Unit"></a>-->
-<?php if($_SESSION['role']==ROLE_SUPER_ADMIN || $_SESSION['profile'][PROFILE_MANAGE_MASTER] == 1) { ?>
-<button type="button" class="btn btn-primary" onClick="window.location.href='unit.php?imp&ssid=<?php echo $_SESSION['society_id'];?>&idd=<?php echo time();?>'" style="float:center;margin-right:5%">Add New Unit</button>
-<?php } ?>
+<?php if($_SESSION['role']==ROLE_SUPER_ADMIN || $_SESSION['profile'][PROFILE_MANAGE_MASTER] == 1) 
+{ ?>
+		<button type="button" class="btn btn-primary" onClick="window.location.href='unit.php?imp&ssid=<?php echo $_SESSION['society_id'];?>&idd=<?php echo time();?>'" style="float:center;margin-right:2%">Add New Unit</button>
+		<?php 
+}?>
 <table align="center" border="0" style="width:100%">
 <tr>
 	<td valign="top" align="center"><font color="red"><?php if(isset($_GET['del'])){echo "<b id=error_del>Record deleted Successfully</b>";}else{echo '<b id=error_del></b>';} ?></font></td>

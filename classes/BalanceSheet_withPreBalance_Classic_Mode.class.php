@@ -2062,33 +2062,29 @@ class BalanceSheet
 	
 	public function ProfitandLoss($INCOMEcredit,$INCOMEdebit,$INCOMEOpeningcredit,$INCOMEOpeningdebit,$EXPENSEcredit,$EXPENSEdebit,$EXPENSEOpeningcredit,$EXPENSEOpeningdebit,$LIABILITYTotal)
 	{
-		// Abs section comment because amaunt not showing on sign so confusion commented line guide me prashant sir
 		$Result = array();
 		$INCOMEOpeningFinal = $INCOMEOpeningcredit - $INCOMEOpeningdebit;
-		//$incomeTotal = abs(($INCOMEcredit + $INCOMEOpeningcredit)- ($INCOMEdebit + $INCOMEOpeningdebit ));
-		$incomeTotal = ($INCOMEcredit + $INCOMEOpeningcredit)- ($INCOMEdebit + $INCOMEOpeningdebit );
+		$incomeTotal = abs(($INCOMEcredit + $INCOMEOpeningcredit)- ($INCOMEdebit + $INCOMEOpeningdebit ));
 		
 		$EXPENSEOpeningFinal = $EXPENSEOpeningdebit - $EXPENSEOpeningcredit;
-		//$expenseTotal = abs(($EXPENSEdebit + $EXPENSEOpeningdebit) - ($EXPENSEcredit + $EXPENSEOpeningcredit));
-		$expenseTotal = ($EXPENSEdebit + $EXPENSEOpeningdebit) - ($EXPENSEcredit + $EXPENSEOpeningcredit);
+		$expenseTotal = abs(($EXPENSEdebit + $EXPENSEOpeningdebit) - ($EXPENSEcredit + $EXPENSEOpeningcredit));
 		
 		$LastYearBalance =  $INCOMEOpeningFinal - $EXPENSEOpeningFinal;
-		//$CurrentYearBalance =  abs(($INCOMEcredit- $INCOMEdebit)- ($EXPENSEdebit - $EXPENSEcredit));
-		$CurrentYearBalance = ($INCOMEcredit- $INCOMEdebit)- ($EXPENSEdebit - $EXPENSEcredit);
-		/*if($incomeTotal > $expenseTotal)
-		{*/
+		$CurrentYearBalance =  abs(($INCOMEcredit- $INCOMEdebit)- ($EXPENSEdebit - $EXPENSEcredit));
+		if($incomeTotal > $expenseTotal)
+		{
 			
 			$netIncome = $incomeTotal - $expenseTotal;
 			$ProfitnLoss = $netIncome;
 			$LIABILITYTotal = $LIABILITYTotal +  $ProfitnLoss;
 			
-		/*}
+		}
 		else
 		{
 			$netLoss = $expenseTotal - $incomeTotal;
 			$ProfitnLoss = $netLoss;
 			$LIABILITYTotal = $LIABILITYTotal  - $ProfitnLoss;
-		}*/
+		}
 		$Result['LastYearBalance'] = $LastYearBalance;
 		$Result['CurrentYearBalance'] = $CurrentYearBalance;
 		$Result['ProfitnLoss'] = $ProfitnLoss;

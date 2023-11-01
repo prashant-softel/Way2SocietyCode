@@ -5,20 +5,31 @@ include_once("dbconst.class.php");
 include_once("utility.class.php");
 include_once("activate_user_email.class.php");
 
-class list_member extends dbop
+$dbConn = new dbop();
+$dbConnRoot = new dbop(true);
+$landLordDB = new dbop(false,false,false,false,true);
+class list_member
 {
 	public $actionPage = "../list_member.php";
 	public $m_dbConn;
+	public $m_dbConnRoot;
+	public $landLordDB;
 	public $obj_utility;
-	
-	function __construct($dbConn)
+	public $isLandLordDB;
+
+	function __construct($dbConn, $dbConnRoot, $landLordDB)
 	{
 		$this->m_dbConn = $dbConn;
+		$this->m_dbConnRoot = $dbConnRoot;
 		$dbopRoot = new dbop(true);
+		$this->landLordDB = $landLordDB;
 		$this->obj_utility = new utility($this->m_dbConn, $dbopRoot);
 		$this->display_pg = new display_table($this->m_dbConn);
 		$this->obj_activation = new activation_email($this->m_dbConn, $dbopRoot);
 		//dbop::__construct();
+		if($_SESSION['landLordDB']){
+			$this->isLandLordDB = true;
+		}
 	}
 	
 	public function combobox($query)
@@ -105,6 +116,7 @@ class list_member extends dbop
 		}
 		//print_r($arAppStatus);
 		//print_r($arUnitsWithAppInstalled);
+		$society_id = $_SESSION['society_id'];
 		$sql1 = "SELECT * FROM society as s,member_main as mm,unit as u,wing as w where mm.unit=u.unit_id and u.wing_id=w.wing_id and mm.society_id=s.society_id and mm.status='Y' and u.status='Y' and w.status='Y' and mm.ownership_status='1' ";
 
 		//echo $sql1;
@@ -698,50 +710,140 @@ class list_member extends dbop
 	public function pgnationNew()
 	{
 		
-	
+		$society_id = $_SESSION['society_id'];
 		$sql1 = "SELECT * FROM society as s,member_main as mm,unit as u,wing as w where mm.unit=u.unit_id and u.wing_id=w.wing_id and mm.society_id=s.society_id and mm.status='Y' and u.status='Y' and w.status='Y' and mm.ownership_status='1' ";
 
-		//echo $sql1;
-		if(isset($_SESSION['admin']) || isset($_SESSION['sadmin']))
-		{
-			$sql1 .= " and s.society_id = '".$_SESSION['society_id']."'";
-		}
-		
-		if($_REQUEST['society_id']<>"")
-		{
-			$sql1 .= " and s.society_id = '".$_REQUEST['society_id']."'";
-		}
-		if($_REQUEST['wing_id']<>"")
-		{
-			$sql1 .= " and w.wing_id = '".$_REQUEST['wing_id']."'";
-		}
-		
-		if($_REQUEST['unit_no'] <>"")
-		{
-			$sql1 .= " and u.unit_no = '".$_REQUEST['unit_no']."'";
-		}
-		if($_REQUEST['member_name']<>"")
-		{
-			$sql1 .= " and mm.owner_name like '%".addslashes($_REQUEST['member_name'])."%'";
-		}
-		
-		if($_REQUEST['mob_no'] <>"")
-		{
-			$sql1 .= " and mm.mob like '%".addslashes($_REQUEST['mob_no'])."%'";
-		}
-		
-		if($_REQUEST['email_id'] <>"")
-		{
-			$sql1 .= " and mm.email like '%".addslashes($_REQUEST['email_id'])."%'";
-		}
-		
-		
-		$sql1 .= " order by wing,u.sort_order";
-		
-		$result = $this->m_dbConn->select($sql1);
-		
-		$this->list_member_showNew($result);
+			//echo $sql1;
+			if(isset($_SESSION['admin']) || isset($_SESSION['sadmin']))
+			{
+				$sql1 .= " and s.society_id = '".$_SESSION['society_id']."'";
+			}
+			
+			if($_REQUEST['society_id']<>"")
+			{
+				$sql1 .= " and s.society_id = '".$_REQUEST['society_id']."'";
+			}
+			if($_REQUEST['wing_id']<>"")
+			{
+				$sql1 .= " and w.wing_id = '".$_REQUEST['wing_id']."'";
+			}
+			
+			if($_REQUEST['unit_no'] <>"")
+			{
+				$sql1 .= " and u.unit_no = '".$_REQUEST['unit_no']."'";
+			}
+			if($_REQUEST['member_name']<>"")
+			{
+				$sql1 .= " and mm.owner_name like '%".addslashes($_REQUEST['member_name'])."%'";
+			}
+			
+			if($_REQUEST['mob_no'] <>"")
+			{
+				$sql1 .= " and mm.mob like '%".addslashes($_REQUEST['mob_no'])."%'";
+			}
+			
+			if($_REQUEST['email_id'] <>"")
+			{
+				$sql1 .= " and mm.email like '%".addslashes($_REQUEST['email_id'])."%'";
+			}
+			$sql1 .= " order by wing,u.sort_order";
+			
+			$result = $this->m_dbConn->select($sql1);
+			
+			$this->list_member_showNew($result);
 	}
+
+	public function pgnationNew3()
+	{
+		
+		//$society_id = $_SESSION['landLordSocID'];
+		if($this->isLandLordDB){
+		$sql1 = "SELECT * FROM society as s,tenant_module as tm,unit as u,wing as w where tm.unit_id=u.unit_id and u.wing_id=w.wing_id and tm.status='Y' ";
+
+			//echo $sql1;
+			if(isset($_SESSION['admin']) || isset($_SESSION['sadmin']))
+			{
+				$sql1 .= " and s.society_id = '".$_SESSION['society_id']."'";
+			}
+			
+			if($_REQUEST['society_id']<>"")
+			{
+				$sql1 .= " and s.society_id = '".$_REQUEST['society_id']."'";
+			}
+			if($_REQUEST['wing_id']<>"")
+			{
+				$sql1 .= " and w.wing_id = '".$_REQUEST['wing_id']."'";
+			}
+			
+			if($_REQUEST['unit_no'] <>"")
+			{
+				$sql1 .= " and u.unit_no = '".$_REQUEST['unit_no']."'";
+			}
+			if($_REQUEST['tenant_name']<>"")
+			{
+				$sql1 .= " and tm.tenant_name like '%".addslashes($_REQUEST['tenant_name'])."%'";
+			}
+			
+			if($_REQUEST['mobile_no'] <>"")
+			{
+				$sql1 .= " and tm.mobile_no like '%".addslashes($_REQUEST['mobile_no'])."%'";
+			}
+			
+			if($_REQUEST['email'] <>"")
+			{
+				$sql1 .= " and tm.email like '%".addslashes($_REQUEST['email'])."%'";
+			}
+			$sql1 .= " order by wing,u.sort_order";
+			
+			$result = $this->landLordDB->select($sql1);
+			
+			$this->list_tenant_showNew($result);
+		}
+		else{
+			$sql1 = "SELECT * FROM society as s,tenant_module as tm,unit as u,wing as w where tm.unit_id=u.unit_id and u.wing_id=w.wing_id and tm.status='Y' ";
+
+			//echo $sql1;
+			if(isset($_SESSION['admin']) || isset($_SESSION['sadmin']))
+			{
+				$sql1 .= " and s.society_id = '".$_SESSION['society_id']."'";
+			}
+			
+			if($_REQUEST['society_id']<>"")
+			{
+				$sql1 .= " and s.society_id = '".$_REQUEST['society_id']."'";
+			}
+			if($_REQUEST['wing_id']<>"")
+			{
+				$sql1 .= " and w.wing_id = '".$_REQUEST['wing_id']."'";
+			}
+			
+			if($_REQUEST['unit_no'] <>"")
+			{
+				$sql1 .= " and u.unit_no = '".$_REQUEST['unit_no']."'";
+			}
+			if($_REQUEST['tenant_name']<>"")
+			{
+				$sql1 .= " and tm.tenant_name like '%".addslashes($_REQUEST['tenant_name'])."%'";
+			}
+			
+			if($_REQUEST['mobile_no'] <>"")
+			{
+				echo $sql1 .= " and tm.mobile_no like '%".($_REQUEST['mobile_no'])."%'";
+			}
+			
+			if($_REQUEST['email'] <>"")
+			{
+				$sql1 .= " and tm.email like '%".($_REQUEST['email'])."%'";
+			}
+			$sql1 .= " order by wing,u.sort_order";
+			
+			$result = $this->m_dbConn->select($sql1);
+			
+			$this->list_tenant_showNew($result);
+		}
+	}
+
+
 	public function list_member_showNew($res)
 	{
 		if($res<>"")
@@ -845,6 +947,114 @@ class list_member extends dbop
             <table align="center" border="0">
             <tr>
             	<td><font color="#FF0000" size="2"><b>No Records Found.</b></font></td>
+            </tr>
+            </table>
+            <?php	
+		}
+	}
+
+	public function list_tenant_showNew($res)
+	{
+		if($res<>"")
+		{
+			if(!isset($_REQUEST['page']))
+			{
+				$_REQUEST['page'] = 1;
+			}
+			$iCounter = 1 + (($_REQUEST['page'] - 1) * 50);
+			$UnitArray = $this->getAllUnits();
+			
+			$EncodeUnitArray;
+			$EncodeUrl;
+			if(sizeof($UnitArray) > 0)
+			{
+				$EncodeUnitArray = json_encode($UnitArray);
+				$EncodeUrl = urlencode($EncodeUnitArray);
+			}
+			?>
+        <table id="example" class="display" cellspacing="0" style="width:100%">
+		<thead>
+        <tr>
+        	<th width="50">Sr No.</th>
+        	<th width="70">Wing</th>
+            <th width="60">Unit No.</th>
+            <th width="60">Area</th>
+			<th width="50">Flat Configuration</th>
+        	<th width="250">Tenants Name</th>
+            <th width="20">Dues</th>
+            <th width="80">Mobile No.</th>
+            <th width="150">Email</th>
+			<?php if(IsReadonlyPage() == false && ($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN ||$_SESSION['role'] == ROLE_MANAGER || $_SESSION['role']==ROLE_ACCOUNTANT )){?>
+            <th width="50">Edit</th>
+           
+            <?php } ?>
+        </tr>
+		</thead>
+		<tbody>
+        <?php 
+		foreach($res as $k => $v)
+		{
+			if(sizeof($UnitArray) > 0)
+			{
+				$Url = "member_ledger_report.php?&uid=".$res[$k]['unit_id']."&Cluster=".$EncodeUrl;
+			}
+			else
+			{
+				$Url = "member_ledger_report.php?&uid=".$res[$k]['unit_id'];
+			}?>
+        <tr height="25" bgcolor="#BDD8F4" align="center">
+        	<td align="center"><?php echo $iCounter++;?></td>
+        	<td align="center"><?php echo $res[$k]['wing'];?></td>
+            <td align="center">
+			<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN || $_SESSION['role']==ROLE_ACCOUNTANT || $_SESSION['role'] == ROLE_MANAGER || ($_SESSION['role'] == ROLE_ADMIN_MEMBER && $_SESSION['profile'][PROFILE_EDIT_MEMBER] == 1))
+            {?>
+            <a href="view_tenant_profile.php?scm&id=<?php echo $res[$k]['tenant_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $res[$k]['unit_no']?></a>
+            <?php 
+			}
+			else
+			{
+				echo $res[$k]['unit_no'];
+			}?>
+            </td>
+            <td align="center"><?php echo $res[$k]['area'];?></td>
+			<td align="center"><?php echo str_replace("-", "" ,$res[$k]['flat_configuration']);?></td>
+        	<td align="center">
+			<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN || $_SESSION['role']==ROLE_ACCOUNTANT || $_SESSION['role'] == ROLE_MANAGER  || ($_SESSION['role'] == ROLE_ADMIN_MEMBER && $_SESSION['profile'][PROFILE_EDIT_MEMBER] == 1))
+            {?>
+            <a href="view_tenant_profile.php?scm&id=<?php echo $res[$k]['tenant_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $res[$k]['tenant_name']?></a>
+            <?php 
+			}
+			else
+			{
+				echo $res[$k]['tenant_name'];
+			}?>
+            </td>
+            <td align="center"><a href="#" onClick="window.open('<?php echo $Url; ?>','popup','type=fullWindow,fullscreen,scrollbars=yes');" style="color:#0000FF;"><?php echo $this->obj_utility->getDueAmount($res[$k]['unit_id']);;?></a></td>
+            <td align="center"><?php echo $res[$k]['mobile_no'];?></td>
+            <td align="center"><a href="mailto:<?php echo $res[$k]['email'];?>" style="color:#0000FF" target="_blank"><?php echo $res[$k]['email'];?></a></td>
+           <?php if(IsReadonlyPage() == false && ($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN || $_SESSION['role']==ROLE_ACCOUNTANT || $_SESSION['role'] == ROLE_MANAGER )){?>
+            <td align="center">
+            <a href="view_tenant_profile.php?edt&scm&id=<?php echo $res[$k]['tenant_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank">
+            <img src="images/edit.gif" />
+            </a>
+            </td>
+            
+            
+            <?php 
+			} 
+			?>
+        </tr>
+        <?php }?>
+		</tbody>
+        </table>
+        <?php	
+		}
+		else
+		{
+			?>
+            <table align="center" border="0">
+            <tr>
+            	<td><font color="#FF0000" size="2"><b>Please Select a Society.</b></font></td>
             </tr>
             </table>
             <?php	

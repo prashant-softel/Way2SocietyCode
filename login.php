@@ -1,8 +1,8 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<head>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><head>
 <title>W2S - Login </title>
 </head>
+
+
 
 
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -36,12 +36,15 @@ else if(isset($_REQUEST['c'])  && $_REQUEST['c'] <> "")
 
 if(isset($_REQUEST['url']))
 {
+	
 		if((isset($_REQUEST['c'])  && $_REQUEST['c'] <> "") ||  (isset($_REQUEST['mCode'])  && $_REQUEST['mCode'] <> ""))
 		{
+				
 			$FBCallBackURL .= '&url='.$_REQUEST['url'];
 		}
 		else
 		{
+			echo "call";
 			$FBCallBackURL .= '?url='.$_REQUEST['url'];
 		}
 }
@@ -268,8 +271,8 @@ body {
                                 <div class="form-group">
                                     <input class="form-control" placeholder="Password"  name="pass" id="pass" type="password" value="">
                                 </div>
-                             <div class="g-recaptcha" data-sitekey="6LfrWr4aAAAAAEQzxH3tOj6kfk_PTxVpP12klOm3" data-callback="verifyCaptcha"></div>
-                            <div id="g-recaptcha-error"></div>
+                            <!-- <div class="g-recaptcha" data-sitekey="6LfrWr4aAAAAAEQzxH3tOj6kfk_PTxVpP12klOm3" data-callback="verifyCaptcha"></div>
+                            <div id="g-recaptcha-error"></div>-->
                                 <br> 
                                 <!--<div class="checkbox">
                                     <label>

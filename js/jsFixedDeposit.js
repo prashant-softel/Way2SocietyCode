@@ -548,8 +548,8 @@ function update_mode(fd_id)
 				//document.getElementById('mode').value = "Update";
 				document.getElementById('FD_Renew').hidden = true;
 				//document.getElementById('on_close').style.display = "table-row";
-				//document.getElementById('Maturity_Amount_td').innerHTML = "<input type='text' id='Maturity_Amount' name='Maturity_Amount' value='" + document.getElementById('Maturity_Amount_td').innerHTML + "' />";
-				//document.getElementById('Maturity_Date_td').innerHTML = "<input type='text' id='Maturity_Date' name='Maturity_Date' value='" + document.getElementById('Maturity_Date_td').innerHTML + "' />";
+				document.getElementById('Maturity_Amount_td').innerHTML = "<input type='text' id='Maturity_Amount' name='Maturity_Amount' value='" + document.getElementById('Maturity_Amount_td').innerHTML + "' />";
+				document.getElementById('Maturity_Date_td').innerHTML = "<input type='text' id='Maturity_Date' name='Maturity_Date' value='" + document.getElementById('Maturity_Date_td').innerHTML + "' />";
 				if(document.getElementById('FD_Bank_Payout').checked == true)
 				{
 					document.getElementById('accrued_interest_tr').style.display = "table-row";

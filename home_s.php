@@ -11,9 +11,9 @@ $m_dbConn = new dbop();
 $obj_AdminPanel = new CAdminPanel($m_dbConn,$m_dbConnRoot);
 $obj_utility = new utility($m_dbConn);
 $obj_servicerequest = new servicerequest($m_dbConn);
-
-//print_r($_SESSION);
-
+// echo "<pre>";
+// print_r($_SESSION);
+// echo "</pre>";
 //$test = $obj_AdminPanel->TaskSummary();
 ///print_r($test);
 $obj_servicerequest->getRenovationId();

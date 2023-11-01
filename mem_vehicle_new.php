@@ -1,12 +1,16 @@
 <?php include_once("includes/head_s.php");
-
 include_once("classes/mem_car_parking.class.php");
-$obj_mem_car_parking = new mem_car_parking($m_dbConn);
 
-include_once("classes/mem_other_family.class.php");
-$obj_mem_other_family = new mem_other_family($m_dbConn);
+$m_dbConn = new dbop();
+$m_dbConnRoot = new dbop(true);
+$landLordDB = new dbop(false, false, false, false, true);
 
-$unit_details = $obj_mem_other_family->unit_details($_REQUEST['mem_id']);
+$obj_mem_car_parking = new mem_car_parking($m_dbConn, $landLordDB);
+
+include_once("classes/tenant_other_family.class.php");
+$obj_tenant_other_family = new tenant_other_family($m_dbConn, $landLordDB);
+
+$unit_details = $obj_tenant_other_family->unit_details($_REQUEST['ten_id']);
 
 if($_SESSION['role'] == ROLE_MEMBER || $_SESSION['role'] == ROLE_ADMIN_MEMBER)
 {
@@ -78,10 +82,10 @@ $UnitBlock = $_SESSION["unit_blocked"];
 <button type="button" class="btn btn-primary btn-circle" onClick="history.go(-1);" style="float:left;margin-left:10%" id="btnBack"><i class="fa  fa-arrow-left"></i></button>
 <center>
 <?php if(isset($_SESSION['role']) && $_SESSION['role']==ROLE_MEMBER){?>
-<input type="button" class="btn btn-primary" onClick="window.location.href='view_member_profile.php?prf&id=<?php echo $_GET['mem_id'];?>'"  style="float:left;" value="Go to profile view">
+<input type="button" class="btn btn-primary" onClick="window.location.href='view_tenant_profile.php?prf&id=<?php echo $_GET['ten_id'];?>'"  style="float:left;" value="Go to profile view">
 
 <?php }else{ ?>
-<input type="button" class="btn btn-primary" onClick="window.location.href='view_member_profile.php?scm&id=<?php echo $_GET['mem_id'];?>&tik_id=<?php echo time();?>&m'"  style="" value="Go to profile view">
+<input type="button" class="btn btn-primary" onClick="window.location.href='view_tenant_profile.php?scm&id=<?php echo $_GET['ten_id'];?>&tik_id=<?php echo time();?>&m'"  style="" value="Go to profile view">
 <?php } ?>
 </center>
 
@@ -188,16 +192,33 @@ $UnitBlock = $_SESSION["unit_blocked"];
 			}
 		?>
         <tr>
-        	<td valign="middle"></td>
-			<td>Parking Type:</td>
-            <td>&nbsp; : &nbsp;</td>
-			<td>
-            	<select id="parkingType" name="parkingType">
-                	<?php
-						echo $obj_mem_car_parking->combobox07("Select `Id`,`ParkingType` from `parking_type` where Status = 'Y' AND IsVisible = '1'", "0");
-                    ?>
-                </select>
-            </td>
+			<?php 
+			if($_SESSION['res_flag'] == 1){ ?>
+				<td valign="middle"></td>
+				<td>Parking Type:</td>
+				<td>&nbsp; : &nbsp;</td>
+				<td>
+					<select id="parkingType" name="parkingType">
+						<?php
+							echo $obj_mem_car_parking->combobox09("Select `Id`,`ParkingType` from `parking_type` where Status = 'Y' AND IsVisible = '1'", "0");
+						?>
+					</select>
+				</td>
+			<?php
+			}else{ ?>
+				<td valign="middle"></td>
+				<td>Parking Type:</td>
+				<td>&nbsp; : &nbsp;</td>
+				<td>
+					<select id="
+					" name="parkingType">
+						<?php
+							echo $obj_mem_car_parking->combobox07("Select `Id`,`ParkingType` from `parking_type` where Status = 'Y' AND IsVisible = '1'", "0");
+						?>
+					</select>
+				</td>
+			<?php
+			} ?>
 		</tr>
 		<tr>
         	<td valign="middle"><?php echo $star;?></td>
@@ -241,7 +262,7 @@ $UnitBlock = $_SESSION["unit_blocked"];
             <input type="hidden" name="id" id="id">
             <input type="hidden" name="mkm" id="mkm" value="<?php if(isset($_REQUEST['mkm'])){echo 'mkm';}?>">
             <input type="hidden" name="mrs" id="mrs" value="<?php if(isset($_REQUEST['mrs'])){echo 'mrs';}?>">
-            <input type="hidden" name="member_id" id="member_id" value="<?php echo $_GET['mem_id']; ?>">
+            <input type="hidden" name="member_id" id="member_id" value="<?php echo $_GET['ten_id']; ?>">
             <input type="hidden" name="unit_no" id="unit_no" value="<?php echo $unit_details['unit_no']; ?>">
             
             <?php if(isset($_SESSION['admin'])){?>

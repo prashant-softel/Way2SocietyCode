@@ -45,6 +45,8 @@ if(isset($_REQUEST['rq']))
 			{
 				$strSREMailIDs = implode(";", $SREmailIDs);
 			}
+			
+			$histortdetails = array_reverse($obj_request->getViewDetails1($_REQUEST['rq'],true));
 	}
 	}
 ?>
@@ -57,7 +59,7 @@ if(isset($_REQUEST['rq']))
 
 <div class="panel panel-info" id="panel" style="margin-top:4%;margin-left:1%; width:76%;">
 <div class="panel-heading" id="pageheader" style="font-size:20px">
-    Service Request Details
+    Legal Case Details
     </div>
     <br />
 <script type="text/javascript" src="lib/jquery-1.10.2.min.js"></script>
@@ -148,7 +150,17 @@ if(isset($_REQUEST['rq']))
 		});
 		});
 	</script>
-    
+    <script type="text/javascript">
+	$(function()
+	{
+		$.datepicker.setDefaults($.datepicker.regional['']);
+		$(".basics").datepicker({ 
+		dateFormat: "dd-mm-yy", 
+		showOn: "both", 
+		buttonImage: "images/calendar.gif", 
+		buttonImageOnly: true 
+	})});
+</script>
 	<style type="text/css">
 		.fancybox-custom .fancybox-skin 
 		{
@@ -197,14 +209,16 @@ if($details <> "")
    
 <table width="100%" style="font-size:12px;" id="PrintableTable">
 
-	<tr style="background-color:#bce8f1;font-size:14px;" height="25">
-        <th style="width:10%;"><center>Request ID</center></th>
-        <th style="width:10%;"><center>Unit No.</center></th>
-        <th style="width:20%;"><center>Raised Date</center></th>
+	<tr style="background-color:#bce8f1;font-size:12px;" height="30">
+        <th style="width:10%;"><center>Building No.</center></th>
+        <th style="width:10%;"><center>Flat No.</center></th>
+        <th style="width:20%;"><center>Tenant Name</center></th>
+        <th style="width:20%;"><center>Created Date</center></th>
         <th style="width:10%;"><center>Status</center></th>
-        <th style="width:10%;"><center>Priority</center></th>
         <th style="width:20%;"><center>Category</center></th>
-        <th style="width:20%;"><center>Supervised By</center></th>
+         <th style="width:20%;"><center>Outstanding Amount</center></th>
+        <th style="width:20%;"><center>Judgment Amount</center></th>
+
         <!--<th style="width:20%;">Photo</th>-->
     </tr>
     <tr>
@@ -218,9 +232,8 @@ if($details <> "")
 		
 		$UnitNo = $obj_request->GetUnitNoIfZero( $_REQUEST['rq']);
 		$GotUnitNo = $obj_request->GetUnitNoIfNZero( $_REQUEST['rq']);
-		
-		//echo $details[0]['category'];
-		
+		$MemName = $obj_request->getmemDetails($GotUnitNo[0]['unit_id']);
+		$latestStatus = $obj_request->getLatestStatus($_REQUEST['rq']);
 		if($UnitNo[0]['unit_id'] == 0)
 		{
 			$show = " - ";
@@ -229,18 +242,28 @@ if($details <> "")
 		{			
 			$show = $GotUnitNo[0]['unit_no'];
 		}
-
+		$totalAmt = 0;
+		if($latestStatus[0]['status'] == 'Case Closed')
+		{
+			$ExpenseAmountSum = $obj_request->getTotalExpense($_REQUEST['rq']);
+			$totalAmt = $details[0]['outstanding_rent']+$ExpenseAmountSum;
+		}
+		//else
+		//{
+			//$totalAmt = $details[0]['outstanding_rent'];
+		//}
 	?>
     	
     	<td align="center"><?php echo $_REQUEST['rq'];?></td>
         <td align="center"><?php echo $show;?></td>
+        <td align="center"><?php echo $MemName;?></td>
         <td align="center"><?php echo $details[0]['raisedDate'];?></td>
-        <td align="center"><?php echo $details[sizeof($details)-1]['status'];?></td>
-        <td align="center"><?php echo $details[0]['priority'];?></td>
-        <td align="center"><?php echo $CategoryDetails[0]['category'];?></td>
-        <td align="center"><?php echo $MemberName[0]['other_name'];?></td>
-      <!--  <td align="center"><a href="<?php// echo substr($details[0]['img'],3);?>" class="fancybox"><img src="<?php// echo substr($details[0]['img_thumb'],3);?>" height="100" width="100" /></a></td>-->
+        <td align="center"><?php echo $latestStatus[0]['status'];?></td>
         
+        <td align="center"><?php echo $CategoryDetails[0]['category'];?></td>
+        <td align="center"><?php echo $details[0]['outstanding_rent'];?></td>
+         <td align="center"><?php echo $totalAmt;?></td>
+  
     </tr> 
     <tr><td colspan="10"><br /></td></tr>   
     <tr style="background-color:#bce8f1;font-size:14px;"  height="25">
@@ -257,7 +280,7 @@ if($details <> "")
     <tr>
     	<td colspan="10" align="left"><span style="margin-left:10px; float: left; margin-top: 5px;">
         <?php 
-			if($details[0]['category'] == $_SESSION['RENOVATION_DOC_ID'])
+			/*if($details[0]['category'] == $_SESSION['RENOVATION_DOC_ID'])
 	  		{
 				echo $url = $details[0]['details']."<a href='document_maker.php?temp=".$details[0]['category']."&rId=".$details[0]['Id']."&action=view' target='_blank'> Click here to view.</a>";
 			}
@@ -270,9 +293,9 @@ if($details <> "")
 				echo $url = $details[0]['details']."<a href='document_maker.php?temp=".$details[0]['category']."&tId=".$details[0]['tenant_id']."' target='_blank'> Click here to view.</a>";
 			}
 			else
-			{
+			{*/
 				echo $details[0]['details'];
-			}
+			/*}*/
 		?>
         </span></td>
     </tr>
@@ -307,30 +330,36 @@ if($details <> "")
     </tr>
     <tr>
     
-    <table cellspacing="0px"> 
+    <table cellspacing="0px" style="width:100%"> 
      <tr style="background-color:#988e8e30;font-size:14px;" height="25">
-    	<th align="left" style="width: 65%;padding-left:10px" colspan="3">Details</th>
-        <th align="left" style="width: 20%;" colspan="2">Updated By</th>
-        <th align="left" style="width: 5%;">Status</th>
-        <th align="left" style="width: 10%;">Timestamp</th>
+    	<th align="left" style="padding-left: 9px; width: 35%;" >Details</th>
+        <th align="left">Case No.</th>
+        <th align="center" style="text-align:center" >Up. Hearing Date</th>
+        <th align="center"  style="text-align:center" >Expense Amount</th>
+        <th align="left">Status</th>
+        <!--<th align="left" style="width: 10%;">Timestamp</th>-->
     </tr>
    
     <?php
-	for($i = sizeof($details)-1; $i>=0;$i-- )
+	//echo "<pre>";
+	//print_r($histortdetails);
+	//echo "</pre>";
+	for($i = 0; $i < sizeof($histortdetails); $i++)
 		{
 			//echo $timestamp = strtotime($details[$i]['timestamp']);
-			$timestamp = date('d-m-Y (h:i:s A)',strtotime('+5 hour +30 minutes +1 seconds',strtotime($details[$i]['timestamp'])));
-		if($details[$i]['status']=="Reopen")
-		{
-			$cnt=$cnt+1;
-		}
+			//$timestamp = date('d-m-Y (h:i:s A)',strtotime('+5 hour +30 minutes +1 seconds',strtotime($details[$i]['timestamp'])));
+		//if($details[$i]['status']=="Reopen")
+		//{
+			//$cnt=$cnt+1;
+		//}
 	?>
    
     <tr>
-    	<td align="left" colspan="3" style = "width: 30%;border-bottom:1px solid #988e8e30;padding-left:10px;padding-top:10px"><?php echo $details[$i]['summery']; ?></td>
-        <td align="left" colspan="2" style="width: 20%;border-bottom:1px solid #988e8e30;padding-top:10px"><?php echo $details[$i]['reportedby']; ?></td>
-        <td align="left" style="width: 5%;border-bottom:1px solid #988e8e30;padding-top:10px" ><?php echo $details[$i]['status']; ?></td>
-        <td align="left" style="width: 10%;border-bottom:1px solid #988e8e30;padding-top:10px"><?php echo $timestamp  //echo date("d-m-Y (h:i:s A)", $timestamp ); ?></td>
+    	<td align="left"  style = "border-bottom:1px solid #988e8e30;padding-left:10px;padding-top:10px"><?php echo $histortdetails[$i]['comment']; ?></td>
+        <td align="left"  style="border-bottom:1px solid #988e8e30;padding-top:10px"><?php echo $histortdetails[$i]['case_no']; ?></td>
+        <td align="center" style="border-bottom:1px solid #988e8e30;padding-top:10px" ><?php echo getDisplayFormatDate($histortdetails[$i]['up_hearing_date']); ?></td>
+        <td align="center" style=" border-bottom:1px solid #988e8e30;padding-top:10px"><?php echo number_format($histortdetails[$i]['expense_amt'], 2); ?></td>
+        <td align="left" style="border-bottom:1px solid #988e8e30;padding-top:10px"><?php echo $histortdetails[$i]['status']; ?></td>
         </tr>
        
     <?php
@@ -350,68 +379,53 @@ if($details <> "")
 	if(isset($_POST["ShowData"]))
 		{
 ?>
-			<tr height="30"><td colspan="3" align="center"><font color="red" style="size:11px;"><b id="error"><?php echo $_POST["ShowData"]; ?></b></font></td></tr>
+			<tr height="30"><td colspan="6" align="center"><font color="red" style="size:11px;"><b id="error"><?php echo $_POST["ShowData"]; ?></b></font></td></tr>
 <?php   }
 		else
 		{?>
-			<tr height="30"><td colspan="3" align="center"><font color="red" style="size:11px;"><b id="error"></b></font></td></tr>
+			<tr height="30"><td colspan="6" align="center"><font color="red" style="size:11px;"><b id="error"></b></font></td></tr>
 <?php 	} ?>   
 	<tr>
-		<th style="width:20%;">&nbsp; Changed By</th>
-        <td style="width:10%;">&nbsp; : &nbsp;</td>
-        <td style="width:70%;"><?php echo $_SESSION['name'];?></td>
-    </tr>
-    <tr><td colspan="3"><input type="hidden" name="changedby" id="changedby" value="<?php echo $_SESSION['name'];?>" /></td></tr>
-     <?php if($_SESSION['role'] && $_SESSION['role']==ROLE_ADMIN){?>
-     <tr align="left">
-        <th>&nbsp; Priority</th>
+		<th>&nbsp; Changed By</th>
+        <td >&nbsp; : &nbsp;</td>
+        <td ><?php echo $_SESSION['name'];?></td>
+        
+        <th >&nbsp; Expense Amount</th>
         <td>&nbsp; : &nbsp;</td>
-        <td>
-        	<select id="priority" name="priority">
-            	<option value="0" <?php if($details[0]['priority']=='0'){?> selected <?php }?>> Please Select </option>
-                <option value="1 - Low" <?php if($details[0]['priority']=='1 - Low'){?> selected <?php }?>> 1 - Low </option>
-                <option value="2 - Medium" <?php if($details[0]['priority']=='2 - Medium'){?> selected <?php }?>> 2 - Medium </option>
-                <option value="3 - High" <?php if($details[0]['priority']=='3 - High'){?> selected <?php }?>> 3 - High </option>
-            </select>
-        </td>
-	</tr>
-    <tr><td colspan="3"><br /></td></tr>
-    <?php }?>
+        <td><input type="text" name="expense_amt" id="expense_amt" value="" onKeyPress="return blockNonNumbers(this, event, true, false);" /></td>
+    </tr>
+    <tr><td colspan="6"><input type="hidden" name="changedby" id="changedby" value="<?php echo $_SESSION['name'];?>" /></td></tr>
+     
+    <tr><td colspan="6"><br /></td></tr>
+    
     <tr>
-    	<th>&nbsp; Status</th>
+    	<th >&nbsp; Status</th>
         <td>&nbsp; : &nbsp;</td>
         <td>
         	<select id="status" name="status">
             	<option value="0"> Please Select </option>
-                <?php
-				
-				if($_SESSION['role'] && ($_SESSION['role']==ROLE_ADMIN || $_SESSION['role']==ROLE_ADMIN_MEMBER || $_SESSION['role']==ROLE_SUPER_ADMIN))
-	      		{?>
-<!--                <option value="Raised" <?php //if($details[sizeof($details)-1]['status']=='Raised'){?> selected <?php// }?>> Raised </option>
--->                <option value="Assigned" <?php if($details[sizeof($details)-1]['status']=='Assigned'){?> selected <?php }?>> Assigned </option>
-                <option value="In process" <?php if($details[sizeof($details)-1]['status']=='In process'){?> selected <?php }?>> In process </option>
-                <option value="Resolved" <?php if($details[sizeof($details)-1]['status']=='Resolved'){?> selected <?php }?>> Resolved </option>
-                <option value="Waiting for details" <?php if($details[sizeof($details)-1]['status']=='Waiting for details'){?> selected <?php }?>> Waiting for details </option>
-   				<?php } 
-				else
-				{
-                	$status=$details[sizeof($details)-1]['status'];
-					?>
-                	<option value="<?php echo $status;?>"  selected ><?php echo $status;?></option>
-          <?php }?>
-                
-                <option value="Reopen" <?php if($details[sizeof($details)-1]['status']=='Reopen'){?> selected <?php }?>> Re-Open </option>
-                <option value="Closed" <?php if($details[sizeof($details)-1]['status']=='Closed'){?> selected <?php }?>> Closed </option>                
-            </select>
+	            <option value="Legal State 1" > Legal State 1 </option>
+                <option value="Legal State 2"> Legal State 2 </option>
+                <option value="Legal State 3"> Legal State 3 </option>
+                <option value="Case Closed"> Case Closed </option>
+             </select>
         </td>
+        <th >&nbsp; Upcomming Hearing Date</th>
+        <td>&nbsp; : &nbsp;</td>
+        <td><input type="text" name="upcom_date" id="upcom_date" class="basics" readonly /></td>
     </tr>
-    <tr><td colspan="3"><br /></td></tr>
+    <tr><td colspan="6"><br /></td></tr>
+	<tr>
+        <th >&nbsp; Case No.</th>
+        <td>&nbsp; : &nbsp;</td>
+        <td><input type="text" name="case_no" id="case_no" value=""/></td>
+    </tr>
+    <tr><td colspan="6"><br /></td></tr>
     <tr>       
         <th>&nbsp; Comments</th>
         <td>&nbsp; : &nbsp;</td>
-        <td><textarea name="comments" id="comments" rows="6" cols="60" ></textarea>
-      
-        </td>
+        <td colspan="4"><textarea name="comments" id="comments" rows="6" cols="60" ></textarea>
+      </td>
 	</tr>
      	<script>
 			//CKEDITOR.config.height = 100;
@@ -430,14 +444,14 @@ if($details <> "")
 								 });
 		</script>
       
-    <tr><td colspan="3"><br /><input type="hidden" id="unit" name="unit" value="<?php echo $details[0]['unit_id'] ?>"></td></tr>
+   <tr><td colspan="6"><br /><input type="hidden" id="unit" name="unit" value="<?php echo $details[0]['unit_id'] ?>"></td></tr>
     <tr align="center">
-    	<td colspan="3"><input type="submit" name="submit" id="submit" value="Submit Comments"  class="btn btn-primary"/> </td>
+    	<td colspan="6"><input type="submit" name="submit" id="submit" value="Submit Comments"  class="btn btn-primary"/> </td>
     </tr>
-    <tr><td colspan="3"><input type="hidden" name="emailID" id="emailID" value="<?php echo $loginID[0]['member_id']; ?>" /></td></tr>
-        <tr><td colspan="3"><input type="hidden" name="SREmailIDs" id="SREmailIDs" value="<?php echo $strSREMailIDs; ?>" /></td></tr>
+    <tr><td colspan="6"><input type="hidden" name="emailID" id="emailID" value="<?php echo $loginID[0]['member_id']; ?>" /></td></tr>
+        <tr><td colspan="6"><input type="hidden" name="SREmailIDs" id="SREmailIDs" value="<?php echo $strSREMailIDs; ?>" /></td></tr>
      
-    <tr><td colspan="3"><br /></td></tr>      
+    <tr><td colspan="6"><br /></td></tr> 
 </table> 
 <br>
 </center> 

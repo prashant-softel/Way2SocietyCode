@@ -23,7 +23,8 @@ $obj_view_member_profile = new view_member_profile($m_dbConn);
 
 $show_member_main 		 = $obj_view_member_profile->show_member_main();
 //print_r($show_member_main[0]); 
-$TenantDetails= $obj_tenant->getTenantRecords($show_member_main[0]['unit']);
+$TenantDetails= $obj_tenant->getTenantRecords1($show_member_main[0]['unit']);
+
 //$show_sec_deposit=$obj_view_member_profile->showsecurity_deposit(VOUCHER_REFTABLEID,$_GET['id']);
 
 $hasAccess = true;
@@ -890,6 +891,7 @@ $(function()
                             <td  colspan="8"><table><tr>
                                 <th  width="180" style="text-align:left" >Name</th>
                         		<th width="110" style="text-align:left" >Relation</th>
+                                <th width="110" style="text-align:left" >Emirate No</th>
                                 <th width="100"style="text-align:left" >Date Of Birth</th>
                                 <th width="100"style="text-align:left" >Contact No</th>
                                 <th width="100"style="text-align:left" >Email Address</th>
@@ -907,10 +909,12 @@ $(function()
 							$MemberDob=getDisplayFormatDate($mem_List[$i]['mem_dob']);
 							$number=$mem_List[$i]['contact_no'];
 							$email=$mem_List[$i]['email'];
+							$emirate=$mem_List[$i]['emirate_no'];
 							?>
                             <tr align="left">
                              <td style="text-transform: capitalize;"><?php //echo $j?><?php echo $member?></td>
                             <td style="text-transform: capitalize;"><?php echo $Relation?></td>
+                             <td style=""><?php echo $emirate?></td>
                             <td><?php echo $MemberDob?></td>
                              <td><?php echo $number?></td>
                               <td><?php echo $email?></td>

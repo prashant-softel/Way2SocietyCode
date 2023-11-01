@@ -303,7 +303,7 @@
 <br><br>
 <div class="panel panel-info" id="panel" style="width:76%;display:block;margin-left: 1%;">
 <div class="panel-heading" style="font-size:20px;text-align:center;">
-     Create New Service Request
+     Create New Legal Case
 </div>
 <br />
 <?php if($_SESSION['role'] && ($_SESSION['role']==ROLE_ADMIN || $_SESSION['role']==ROLE_SUPER_ADMIN))
@@ -343,7 +343,7 @@
         <td>&nbsp; &nbsp; &nbsp;</td>
         
         <td valign="middle"><?php //echo $star;?></td>
-        <th><b>Created for Unit No. </b></th>
+        <th><b>Created for Tenant</b></th>
         <td>&nbsp; : &nbsp;</td>
         <td>
         <input type = "hidden" id = "unit_no" name = "unit_no" value = "0"/> 
@@ -417,23 +417,45 @@
         <th><b>Category</b></th>
         <td>&nbsp; : &nbsp;</td>
         <td>
-        	<select id="category" name="category" onChange="goToRenovationRequest(this.value)"> 
+        	<select id="category" name="category"> 
             	<?php echo $combo_category = $obj_servicerequest->combobox("SELECT `id`, `category` FROM `servicerequest_category` WHERE `status` = 'Y'", 0); ?>
             </select>
         </td>
 	</tr>
     <tr><td><br></td></tr>
-  	<!--<tr align="left">
-        <td valign="middle"><?php echo $star;?></td>
-        <th><b>Category</b></th>
+     <tr align="left">
+        <td valign="middle"><?php //echo $star;?></td>
+        <th><b>Case Number</b></th>
         <td>&nbsp; : &nbsp;</td>
         <td>
-        	<select id="category" name="category" onChange="getEmailID(this.value);"> 
-            	<?php echo $combo_category = $obj_servicerequest->combobox("SELECT `id`, `category` FROM `servicerequest_category` WHERE `status` = 'Y'", 0); ?>
-                
-            </select>
+        	<input type="text" name="case_no" id="case_no" value="">
         </td>
-	</tr>-->
+        <td>&nbsp; &nbsp; &nbsp;</td>
+        <td valign="middle"><?php echo $star;?></td>
+        <th><b>Outstanding Rent</b></th>
+        <td>&nbsp; : &nbsp;</td>
+        <td>
+        	<input type="text" name="outstanding_amt" id="outstanding_amt" onKeyPress="return blockNonNumbers(this, event, true, false);" value=""/>
+        </td>
+	</tr>
+    <tr><td><br></td></tr>
+     <tr align="left">
+        <td valign="middle"><?php //echo $star;?></td>
+        <th><b>Open On</b></th>
+        <td>&nbsp; : &nbsp;</td>
+        <td>
+        	<input type="text" name="open_on" id="open_on" class="basics" value="<?php echo date('d-m-Y');?>" readonly />
+        </td>
+        <td>&nbsp; &nbsp; &nbsp;</td>
+        <td valign="middle"><?php //echo $star;?></td>
+        <th><b>Case Opening Date</b></th>
+        <td>&nbsp; : &nbsp;</td>
+        <td>
+        	<input type="text" name="open_date" id="open_date" class="basics" readonly />
+        </td>
+	</tr>
+    <tr><td><br></td></tr>
+  
     <tr id="upload"> 
         <td valign="top"><?php echo $star;?></td>
         <td><b>Title</b></td>   

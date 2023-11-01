@@ -30,6 +30,7 @@
 	
 	define ('APP_DEFAULT_CURRENT_ASSET', 'APP_DEFAULT_CURRENT_ASSET');
 	define ('APP_DEFAULT_DUE_FROM_MEMBERS', 'APP_DEFAULT_DUE_FROM_MEMBERS');
+	define ('APP_DEFAULT_DUE_FROM_TENANTS', 'APP_DEFAULT_DUE_FROM_TENANTS');
 	define ('APP_DEFAULT_CONTRIBUTION_FROM_MEMBERS', 'APP_DEFAULT_CONTRIBUTION_FROM_MEMBERS');
 	define ('APP_DEFAULT_BANK_ACCOUNT', 'APP_DEFAULT_BANK_ACCOUNT');
 	define ('APP_DEFAULT_CASH_ACCOUNT', 'APP_DEFAULT_CASH_ACCOUNT');	
@@ -121,6 +122,7 @@ class defaults
 			$_SESSION['default_bank_account'] = 0;
 			$_SESSION['default_cash_account'] = 0;
 			$_SESSION['default_due_from_member'] = 0;
+			$_SESSION['default_due_from_tenant'] = 0;
 			$_SESSION['default_contribution_from_member'] = 0;
 			$_SESSION['APP_DEFAULT_SUNDRY_DEBETOR'] = 0;
 			$_SESSION['default_income_expenditure_account'] = 0;
@@ -163,6 +165,7 @@ class defaults
 				$_SESSION['default_bank_account'] = $resDefault[0][APP_DEFAULT_BANK_ACCOUNT];
 				$_SESSION['default_cash_account'] = $resDefault[0][APP_DEFAULT_CASH_ACCOUNT];
 				$_SESSION['default_due_from_member'] = $resDefault[0][APP_DEFAULT_DUE_FROM_MEMBERS];
+				$_SESSION['default_due_from_tenant'] = $resDefault[0][APP_DEFAULT_DUE_FROM_TENANTS];
 				$_SESSION['default_contribution_from_member'] = $resDefault[0][APP_DEFAULT_CONTRIBUTION_FROM_MEMBERS];
 				$_SESSION['default_Sundry_debetor'] = $resDefault[0][APP_DEFAULT_SUNDRY_DEBETOR];
 				$_SESSION['default_income_expenditure_account'] = $resDefault[0][APP_DEFAULT_INCOME_EXPENDITURE_ACCOUNT];
@@ -301,6 +304,7 @@ class defaults
 		$_SESSION['default_bank_account'] = 0;
 		$_SESSION['default_cash_account'] = 0;
 		$_SESSION['default_due_from_member'] = 0;
+		$_SESSION['default_due_from_tenant'] = 0;
 		$_SESSION['default_Sundry_debetor'] = 0;
 		$_SESSION['default_income_expenditure_account'] = 0;
 		$_SESSION['default_adjustment_credit'] = 0;
@@ -346,15 +350,16 @@ class defaults
 				$_SESSION['APP_DEFAULT_SINGLE_COUNTER'] = $IsbankCounterChk;
 	}        
 		
-	public function setDefault($Society, $Year, $Period, $Interest, $penalty, $bankCharges,$tdsPayable, $CurrentAsset, $MemberDue, $SundryDebetor,  $BankAcc, $CashAcc,$defaultIncomeExpenditureAccount, $defaultAdjustmentCredit,$igstServiceTax,$cgstSertviceTax,$sgstServiceTax,$cessServiceTax,$ImposeFine,$InputCgst,$InputSgst, $fixedAsset ,$contributionfrommember,$tdsReceivable,$defaultSuspenseAccount, $defaultLedgerRoundOff, $SundaryCreditor, $InputIgst,$defaultSinkingFund, $defaultInvestmentRegister /*$defaultServiceTax ,$defaultEmailID*/)
+	public function setDefault($Society, $Year, $Period, $Interest, $penalty, $bankCharges,$tdsPayable, $CurrentAsset, $MemberDue, $SundryDebetor,  $BankAcc, $CashAcc,$defaultIncomeExpenditureAccount, $defaultAdjustmentCredit,$igstServiceTax,$cgstSertviceTax,$sgstServiceTax,$cessServiceTax,$ImposeFine,$InputCgst,$InputSgst, $fixedAsset ,$contributionfrommember,$tdsReceivable,$defaultSuspenseAccount, $defaultLedgerRoundOff, $SundaryCreditor, $InputIgst,$defaultSinkingFund, $defaultInvestmentRegister, $TenantDue/*$defaultServiceTax ,$defaultEmailID*/)
 	{
+		echo "inside set";
 		//echo "bank : ". $bankCharges;
 		//$sqlUpdate = "UPDATE `appdefault` SET `Value`= '" . $value . "' WHERE ID = '" . $id . "'";
 		$sqlFetch = "SELECT * from `society` where `society_id` = '" . $Society . "' ";
 		$res00 = $this->m_dbConn->select($sqlFetch);
 		//$EmailChnage = "Prev EmailID: <". $res00[0]['email']."> Current EmailID: <". $defaultEmailID.">";
-		 $sqlUpdate = "UPDATE `appdefault` SET `APP_DEFAULT_YEAR`='" . $Year . "', `APP_DEFAULT_PERIOD`='" . $Period . "', `APP_DEFAULT_INTEREST_ON_PRINCIPLE_DUE`= '" . $Interest . "', `APP_DEFAULT_PENALTY_TO_MEMBER`= '" . $penalty . "', `APP_DEFAULT_BANK_CHARGES`= '" . $bankCharges . "',`APP_DEFAULT_TDS_PAYABLE`= '" . $tdsPayable . "', `APP_DEFAULT_TDS_RECEIVABLE`= '" . $tdsReceivable . "',`APP_DEFAULT_CURRENT_ASSET`= '" . $CurrentAsset . "', `APP_DEFAULT_DUE_FROM_MEMBERS`= '" . $MemberDue . "', `APP_DEFAULT_CONTRIBUTION_FROM_MEMBERS`= '" . $contributionfrommember . "',`APP_DEFAULT_SUNDRY_DEBETOR`= '" . $SundryDebetor . "', `APP_DEFAULT_INCOME_EXPENDITURE_ACCOUNT`= '" . $defaultIncomeExpenditureAccount . "', `APP_DEFAULT_BANK_ACCOUNT`= '" . $BankAcc . "', `APP_DEFAULT_CASH_ACCOUNT`= '" . $CashAcc . "', `APP_DEFAULT_ADJUSTMENT_CREDIT`= '" . $defaultAdjustmentCredit .  "', `APP_DEFAULT_SUSPENSE_ACCOUNT`= '" . $defaultSuspenseAccount .  "', `APP_DEFAULT_LEDGER_ROUND_OFF`= '" . $defaultLedgerRoundOff .  "', `APP_DEFAULT_IGST`= '" . $igstServiceTax .  "', `APP_DEFAULT_CGST`= '" . $cgstSertviceTax .  "', `APP_DEFAULT_SGST`= '" . $sgstServiceTax .  "', `APP_DEFAULT_CESS`= '" . $cessServiceTax .  "',`APP_DEFAULT_IMPOSE_FINE`= '" . $ImposeFine .  "', `APP_DEFAULT_INPUT_CGST`= '".$InputCgst."', `APP_DEFAULT_INPUT_SGST`='".$InputSgst."', `APP_DEFAULT_FIXED_ASSET` = '".$fixedAsset."', `changed_by`= '" . $_SESSION['login_id'] . "', `APP_DEFAULT_SINGLE_COUNTER` = '".$IsbankCounterChk."',
-		 `APP_DEFAULT_SUNDRY_CREDITOR` = '". $SundaryCreditor ."',`APP_DEFAULT_INPUT_IGST`='".$InputIgst."',`APP_DEFAULT_SINKING_FUND`= '" . $defaultSinkingFund .  "',`APP_DEFAULT_INVESTMENT_REGISTER`= '" . $defaultInvestmentRegister .  "'  WHERE APP_DEFAULT_SOCIETY = '" . $Society . "'";
+		 echo $sqlUpdate = "UPDATE `appdefault` SET `APP_DEFAULT_YEAR`='" . $Year . "', `APP_DEFAULT_PERIOD`='" . $Period . "', `APP_DEFAULT_INTEREST_ON_PRINCIPLE_DUE`= '" . $Interest . "', `APP_DEFAULT_PENALTY_TO_MEMBER`= '" . $penalty . "', `APP_DEFAULT_BANK_CHARGES`= '" . $bankCharges . "',`APP_DEFAULT_TDS_PAYABLE`= '" . $tdsPayable . "', `APP_DEFAULT_TDS_RECEIVABLE`= '" . $tdsReceivable . "',`APP_DEFAULT_CURRENT_ASSET`= '" . $CurrentAsset . "', `APP_DEFAULT_DUE_FROM_MEMBERS`= '" . $MemberDue . "', `APP_DEFAULT_CONTRIBUTION_FROM_MEMBERS`= '" . $contributionfrommember . "',`APP_DEFAULT_SUNDRY_DEBETOR`= '" . $SundryDebetor . "', `APP_DEFAULT_INCOME_EXPENDITURE_ACCOUNT`= '" . $defaultIncomeExpenditureAccount . "', `APP_DEFAULT_BANK_ACCOUNT`= '" . $BankAcc . "', `APP_DEFAULT_CASH_ACCOUNT`= '" . $CashAcc . "', `APP_DEFAULT_ADJUSTMENT_CREDIT`= '" . $defaultAdjustmentCredit .  "', `APP_DEFAULT_SUSPENSE_ACCOUNT`= '" . $defaultSuspenseAccount .  "', `APP_DEFAULT_LEDGER_ROUND_OFF`= '" . $defaultLedgerRoundOff .  "', `APP_DEFAULT_IGST`= '" . $igstServiceTax .  "', `APP_DEFAULT_CGST`= '" . $cgstSertviceTax .  "', `APP_DEFAULT_SGST`= '" . $sgstServiceTax .  "', `APP_DEFAULT_CESS`= '" . $cessServiceTax .  "',`APP_DEFAULT_IMPOSE_FINE`= '" . $ImposeFine .  "', `APP_DEFAULT_INPUT_CGST`= '".$InputCgst."', `APP_DEFAULT_INPUT_SGST`='".$InputSgst."', `APP_DEFAULT_FIXED_ASSET` = '".$fixedAsset."', `changed_by`= '" . $_SESSION['login_id'] . "', `APP_DEFAULT_SINGLE_COUNTER` = '".$IsbankCounterChk."',
+		 `APP_DEFAULT_SUNDRY_CREDITOR` = '". $SundaryCreditor ."',`APP_DEFAULT_INPUT_IGST`='".$InputIgst."',`APP_DEFAULT_SINKING_FUND`= '" . $defaultSinkingFund .  "',`APP_DEFAULT_INVESTMENT_REGISTER`= '" . $defaultInvestmentRegister .  "',`APP_DEFAULT_DUE_FROM_TENANTS`= '" . $TenantDue . "'   WHERE APP_DEFAULT_SOCIETY = '" . $Society . "'";
 			
 		//$sqlUpdate = "UPDATE `appdefault` SET `APP_DEFAULT_PERIOD`='" . $Period . "', `APP_DEFAULT_INTEREST_ON_PRINCIPLE_DUE`= '" . $Interest . "', `APP_DEFAULT_PENALTY_TO_MEMBER`= '" . $penalty . "', `APP_DEFAULT_BANK_CHARGES`= '" . $bankCharges . "',`APP_DEFAULT_TDS_PAYABLE`= '" . $tdsPayable . "', `APP_DEFAULT_CURRENT_ASSET`= '" . $CurrentAsset . "', `APP_DEFAULT_DUE_FROM_MEMBERS`= '" . $MemberDue . "', `APP_DEFAULT_INCOME_EXPENDITURE_ACCOUNT`= '" . $defaultIncomeExpenditureAccount . "', `APP_DEFAULT_BANK_ACCOUNT`= '" . $BankAcc . "', `APP_DEFAULT_CASH_ACCOUNT`= '" . $CashAcc . "', `APP_DEFAULT_ADJUSTMENT_CREDIT`= '" . $defaultAdjustmentCredit .  "', `APP_DEFAULT_SERVICE_TAX`= '" . $defaultServiceTax .  "', `changed_by`= '" . $_SESSION['login_id'] . "' WHERE APP_DEFAULT_SOCIETY = '" . $Society . "'";
 		

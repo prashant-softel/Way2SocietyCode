@@ -10,8 +10,10 @@
 	//$m_dbConnRoot = new dbop(true);
 	$obj_initialize = new initialize($m_dbConnRoot);
 	
-	//print_r($_SESSION);
-	
+	//var_dump($_SESSION);
+	// echo "<pre>";
+	// print_r($_SESSION);
+	// echo "</pre>";
 	if(!isset($_SESSION['login_id']) || $_SESSION['login_id'] == '' || $_SESSION['login_id'] == 0)
 	{
 		?>
@@ -53,7 +55,16 @@
 			
 			$unit_id = $mapDetails[0]['unit_id'];
 			$_SESSION["unit_id"] = $unit_id;
-			
+
+			$res_flag = $mapDetails[0]['res_flag'];
+			$_SESSION['res_flag'] = $res_flag;
+
+			$rental_flag = $mapDetails[0]['rental_flag'];
+			$_SESSION['rental_flag'] = $rental_flag;
+
+			// $landLordDB = $mapDetails[0]['landLordDB'];
+			// $_SESSION['landLordDB'] = $landLordDB;
+
 			$_SESSION['desc'] = $mapDetails[0]['desc'];
 			$_SESSION['society_client_id'] = $mapDetails[0]['client_id'];
 			

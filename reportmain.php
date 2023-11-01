@@ -148,6 +148,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
          <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('ledger_voucher_report.php','_blank')"> All Vouchers Reports</button>
         <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('reverse_charges.php?&uid=0', '_blank')"> Reversal Charges Report</button>
          <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('TDS_Challans.php', '_blank')"> TDS Challan Report</button>
+		 <?php if($_SESSION['rental_flag'] == 1){?>
+			<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('tenant_ledger_report.php?uid=0', '_blank')"> Tenant Ledger Report</button>
+		<?php
+	}?>
      
      <?php if($result[0]['security_dbname'] <> '')
 	 {?>

@@ -15,17 +15,11 @@ class ContributionLedgerDetailed
 		$this->obj_genbill = new genbill($this->m_dbConn);
 	}
 
-	public function getCollection($societyID,$unitID,$billType)
+	public function getCollection($societyID,$unitID)
 	{	
-		return  $this->obj_genbill->getCollectionOfDataForContributionLedger_optimize($societyID,'',$unitID,0,true, $billType);
+		return  $this->obj_genbill->getCollectionOfDataForContributionLedger_optimize($societyID,'',$unitID,0,true, 0);
 	}
 	
-	public function getInvoiceCollection($societyID,$unitID)
-	{ 
-	
-	return  $this->obj_genbill->getInvoiceCollectionOfData($societyID,'',$unitID,0,true, 0);
-		
-	}
 	public function startProcess($societyID,$unitID)
 	{
 		$sqlBillcycle = "select `bill_cycle`,`society_name` from `society` where `society_id` = '".$societyID."' " ;
@@ -182,6 +176,5 @@ class ContributionLedgerDetailed
 		}
 		echo '</table></div>';
 	}
-
 }
 ?>

@@ -1247,8 +1247,9 @@
 		
 		public function GetMemberIDNew($unitID)
 		{
-			$result=$this->m_dbConn->select("SELECT member_id from member_main where ownership_status='1' and unit='".$unitID."'");
-			return $result[0]['member_id'];	
+			$result=$this->m_dbConn->select("SELECT member_id,owner_name from member_main where ownership_status='1' and unit='".$unitID."'");
+			//return $result[0]['member_id'];	
+			return $result;	
 		}
 		public function ExistsMemberID()
 		{
@@ -2659,6 +2660,7 @@ echo "<BR>";
 
 		public  function getMemberIDs($date)
 		{
+			//echo "Date: " .$date;
 			$keys = array(0);
 			
 			//$sql = "SELECT member_id, owner_name, ownership_date FROM ( SELECT member_id, unit, owner_name, ownership_date FROM member_main where ownership_date <= '".$date."' ORDER BY ownership_date DESC ) AS t1 GROUP BY unit";
@@ -2674,6 +2676,30 @@ echo "<BR>";
 				foreach($res as  $k => $v)
 				{
 					array_push($keys,$res[$k]['member_id']);		
+				}
+			}
+			$strKeys = implode(',', $keys);
+			return $strKeys;
+		}
+
+		public  function getTenantIDs($date)
+		{
+			//echo "Date: " .$date;
+			$keys = array(0);
+			
+			//$sql = "SELECT member_id, owner_name, ownership_date FROM ( SELECT member_id, unit, owner_name, ownership_date FROM member_main where ownership_date <= '".$date."' ORDER BY ownership_date DESC ) AS t1 GROUP BY unit";
+			//$res = $this->m_dbConn->select($sql);	
+			
+			$res = $this->getUnitData2(0,$date);
+			if(sizeof($res) > 0)
+			{
+				/*for($i = 0;$i < sizeof($res);$i++)
+				{
+					array_push($keys,$res[$i]['member_id']);	
+				}	*/
+				foreach($res as  $k => $v)
+				{
+					array_push($keys,$res[$k]['tenant_id']);		
 				}
 			}
 			$strKeys = implode(',', $keys);
@@ -2699,7 +2725,6 @@ echo "<BR>";
 			$sql .= "  GROUP BY unit";
 			$res = $this->m_dbConn->select($sql);	
 			
-			
 			if(sizeof($res) > 0)
 			{
 				for($i = 0;$i < sizeof($res);$i++)
@@ -2707,6 +2732,38 @@ echo "<BR>";
 					$data[$res[$i]['unit']]['member_id'] =$res[$i]['member_id'] ;
 					$data[$res[$i]['unit']]['owner_name'] =$res[$i]['owner_name'] ;
 					$data[$res[$i]['unit']]['ownership_date'] =$res[$i]['ownership_date'] ;
+				}
+			}
+			return $data;
+		}
+
+		public  function getUnitData2($uid = 0,$date)
+		{
+			//echo "Date: " .$date;
+			$data = array();
+			
+			$sqlII = "SELECT tenant_id, unit_id, tenant_name, create_date FROM tenant_module where create_date <= '".$date."' ";
+			if($uid > 0)
+			{
+				$sqlII .= " and   unit_id = '".$uid."'  ";	
+			}
+			$sqlII .= "  ORDER BY create_date DESC";
+			
+			$sql = "SELECT tenant_id, tenant_name, create_date,unit_id FROM (".$sqlII.") AS t1 ";
+			if($uid > 0)
+			{
+				$sql .= "where  unit_id = '".$uid."'  ";	
+			}
+			$sql .= "  GROUP BY unit_id";
+			$res = $this->m_dbConn->select($sql);	
+			
+			if(sizeof($res) > 0)
+			{
+				for($i = 0;$i < sizeof($res);$i++)
+				{
+					$data[$res[$i]['unit_id']]['tenant_id'] =$res[$i]['tenant_id'] ;
+					$data[$res[$i]['unit_id']]['tenant_name'] =$res[$i]['tenant_name'] ;
+					$data[$res[$i]['unit_id']]['create_date'] =$res[$i]['create_date'] ;
 				}
 			}
 			return $data;
@@ -3943,6 +4000,7 @@ echo "<BR>";
 			//echo "<script>alert('test')<//script>";
 			return $str;
 		}
+		
 		public function GetListMobileAppUsers()
 		{
 			$sql = "select m.unit_id,m.desc from device_details as dd JOIN login as lg on  dd.login_id = lg.login_id JOIN mapping as m on lg.login_id = m.login_id where m.society_id = '".$_SESSION['society_id']."'  and dd.device_id !='' group by m.`unit_id` order by m.`society_id`";
@@ -4712,92 +4770,12 @@ function getPaymentOption()
 		return $result[0]['gen_bill_template'];
 	}
 
-	public function getendYearBalance($LedgerID)
-		{
-			//echo "Ledger ID: " .$LedgerID;
-			$from_date = $_SESSION['default_year_start_date'];
-			$to_date = $_SESSION['default_year_end_date'];
-			$endOfYearBalance = array("LedgerName" => "","Credit" => 0 ,"Debit" => 0 ,"Total" => 0,"OpeningDate" => $date);
-			
-			$arParentDetails = $this->getParentOfLedger($LedgerID);
-			if(!(empty($arParentDetails)))
-			{
-				$LedgerGroupID = $arParentDetails['group'];
-				$LedgerCategoryID = $arParentDetails['category'];
-				
-				if($LedgerGroupID == LIABILITY)
-				{
-					$sqlLiability = "SELECT SUM(Credit) as Credit,
-									SUM(Debit) as Debit,(SUM(Credit) - SUM(Debit)) as Total
-									FROM `liabilityregister` where LedgerID  = '".$LedgerID."' and  Date between '".$from_date."' and '".$to_date."' ";
-					$result = $this->m_dbConn->select($sqlLiability);
-					$endOfYearBalance['Credit'] = $result[0]['Credit'];
-					$endOfYearBalance['Debit'] = $result[0]['Debit'];
-					$endOfYearBalance['Total'] = $result[0]['Total'];
-					
-					$endOfYearBalance['Total'] = abs($endOfYearBalance['Total']);	
-				}
-				else if($LedgerGroupID == ASSET && ($LedgerCategoryID == BANK_ACCOUNT || $LedgerCategoryID == CASH_ACCOUNT))
-				{
-					 $sqlBank = "SELECT SUM(ReceivedAmount) as Credit,
-								SUM(PaidAmount) as Debit,(SUM(ReceivedAmount) - SUM(PaidAmount)) as Total 
-								FROM `bankregister` where LedgerID = '".$LedgerID."' and  Date between '".$from_date."' and '".$to_date."' ";								
-					$result = $this->m_dbConn->select($sqlBank);
-					$endOfYearBalance['Credit'] = $result[0]['Credit'];
-					$endOfYearBalance['Debit'] = $result[0]['Debit'];
-					$endOfYearBalance['Total'] = $result[0]['Total'];
-					
-					$endOfYearBalance['Total'] = abs($endOfYearBalance['Total']);	
-				}
-				else if($LedgerGroupID == ASSET)
-				{
-					$sqlAsset = "SELECT SUM(Credit) as Credit,
-								SUM(Debit) as Debit,(SUM(Credit) - SUM(Debit)) as Total 
-								FROM `assetregister` where LedgerID  = '".$LedgerID."' and  Date between '".$from_date."' and '".$to_date."' ";
-					$result = $this->m_dbConn->select($sqlAsset);
-					$endOfYearBalance['Credit'] = $result[0]['Credit'];
-					$endOfYearBalance['Debit'] = $result[0]['Debit'];
-					$endOfYearBalance['Total'] = $result[0]['Total'];
-					
-					$endOfYearBalance['Total'] = abs($endOfYearBalance['Total']);				
-				}
-				else if($LedgerGroupID == INCOME)
-				{
-					$sqlIncome = "SELECT SUM(Credit)-SUM(Debit) as Total 
-								FROM `incomeregister` where LedgerID  = '".$LedgerID."' and  Date between '".$from_date."' and '".$to_date."' ";
-					$result = $this->m_dbConn->select($sqlIncome);
-					$endOfYearBalance['Credit'] = $result[0]['Credit'];
-					$endOfYearBalance['Debit'] = $result[0]['Debit'];
-					$endOfYearBalance['Total'] = $result[0]['Total'];
+	public function getDBName($society_id){
+		//echo "Id: " .$society_id;
+		$sql = "SELECT `dbname` FROM `society` WHERE `society_id` = '".$society_id."'";
+		$res = $this->m_dbConnRoot->select($sql);
+		return $res[0]['dbname'];
+		//echo $res[0]['dbname'];
+	}
 
-					$endOfYearBalance['Total'] = abs($endOfYearBalance['Total']);			
-				}
-				else if($LedgerGroupID == EXPENSE)
-				{
-					$sqlExpense = "SELECT SUM(Credit) as Credit,
-								SUM(Debit) as Debit,(SUM(Credit) - SUM(Debit)) as Total 
-								FROM `expenseregister` where LedgerID  = '".$LedgerID."' and  Date between '".$from_date."' and '".$to_date."' ";
-					$result = $this->m_dbConn->select($sqlExpense);
-					$endOfYearBalance['Credit'] = $result[0]['Credit'];
-					$endOfYearBalance['Debit'] = $result[0]['Debit'];
-					$endOfYearBalance['Total'] = $result[0]['Total'];
-					
-					$endOfYearBalance['Total'] = abs($endOfYearBalance['Total']);
-				}
-				
-			}
-			if($result <> "")
-			{
-				$sql = "select l.`ledger_name`, acc.category_name   from `ledger`  as l JOIN account_category as acc ON l.categoryid = acc.category_id where l.`id` = '".$LedgerID."'";
-				$res = $this->m_dbConn->select($sql);
-				if($res <> "")
-				{
-					$endOfYearBalance['LedgerName'] = $res[0]['ledger_name'];	
-					$endOfYearBalance['Ledger_Category'] = $res[0]['category_name'];		
-				}	
-			}
-				//print_r($closingBalance);		
-			return $endOfYearBalance;
-			
-		}
 }

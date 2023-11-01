@@ -11,7 +11,7 @@ $obj_events = new events($m_dbConn, $m_dbConnRoot);
 $events = $obj_events->view_events();
 $EventsCounter = count($events);
 include_once("classes/servicerequest.class.php");
-$obj_request = new servicerequest($m_dbConn, $m_dbConnRoot);
+$obj_request = new servicerequest($m_dbConn, $m_dbConnRoot, $landLordDB);
 $requests = $obj_request->getRecords($_REQUEST['cm']);
 $RequestsCounter = count($requests);
 include_once("classes/tenant.class.php");
@@ -794,9 +794,9 @@ $msgCounter = 0;
                                     <li>
                                         <a href="list_member2.php?scm">View Members</a>
                                     </li>
-                                   <!-- <li>
-                                        <a href="list_member.php?scm">Members List</a>
-                                    </li>-->
+                                   <li>
+                                        <a href="list_member3.php?scm">View Tenant</a>
+                                    </li>
                                     <?php if($_SESSION['role'] == "Super Admin" || $_SESSION['role'] == "Admin" || $_SESSION['role'] == "Accountant" || $_SESSION['role'] == "Manager")
                                     { ?>
                                     	<li>

@@ -507,7 +507,8 @@ else
 				{
 					$paidAmount = 0;										
 				}
-				if($receivedAmount != 0 || $isReceipt == 1)
+				
+				if($receivedAmount > 0 || $isReceipt == 1)
 				{				
 					$balance += $receivedAmount;	
 					$totalDeposits += $receivedAmount;

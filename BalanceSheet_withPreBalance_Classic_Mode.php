@@ -354,23 +354,12 @@ $(function () {
 					echo $objLIABILITY->generateBalanceSheetTable_withPreviousYear($LIABILITYData,0,1);
 				?>
             	<tr>
-                	<td style="border-right:1px solid black;"><b><?php echo number_format($PreviousYearProfitnLoss,2);?></b></td>
-                	<td style="border-right:1px solid black;"><b>Profit & Loss A/c (Rs.)</b></td>
-                    <td style="border-right:1px solid black;"><b><?php echo number_format($ProfitnLoss,2);?></b></td>
-                    <td style="border-right:1px solid black;"></td>
-                 </tr>
-                 <tr>
-                	<td style="border-right:1px solid black;"><?php echo number_format($PreviousYearOpeningBalance,2);?></td>
-                	<td style="border-right:1px solid black;">Opening Balance</td>
-                    <td style="border-right:1px solid black;"><?php echo number_format($OpeningBalance,2);?></td>
-                    <td style="border-right:1px solid black;"></td>
-                 </tr>
-                  <tr>
-                	<td style="border-right:1px solid black; border-bottom: 1px solid black;"><?php echo number_format($PreviousYearCurrentBalance,2);?></td>
-                	<td style="border-right:1px solid black; border-bottom: 1px solid black;">Current Year</td>
-                    <td style="border-right:1px solid black; border-bottom: 1px solid black;"><?php echo number_format($CurrentBalance,2);?></td>
-                    <td style="border-right:1px solid black;border-bottom: 1px solid black;"></td>
-                 </tr>
+                	<td style="border:1px solid black;"><b><?php echo number_format($PreviousYearProfitnLoss,2);?></b></td>
+                	<td style="border:1px solid black;"><b>Profit & Loss A/c (Rs.)</b></td>
+                    <td style="border:1px solid black;"><b><?php echo number_format($ProfitnLoss,2);?></b></td>
+                    <td style="border:1px solid black;"></td>
+                   
+                </tr>
              </table>
         </td>
        <td colspan="4">
@@ -404,20 +393,10 @@ $(function () {
 					echo $objLIABILITY->generateBalanceSheetTable($LIABILITYData,0,1);
 				?>
             	<tr>
-                	<td style="border-right:1px solid black;"><b>Profit & Loss A/c (Rs.)</b></td>
-                    <td style="border-right:1px solid black;"><b><?php echo number_format($ProfitnLoss,2);?></b></td>
-                    <td style="border-right:1px solid black;"></td>
+                	<td style="border:1px solid black;"><b>Profit & Loss A/c (Rs.)</b></td>
+                    <td style="border:1px solid black;"><b><?php echo number_format($ProfitnLoss,2);?></b></td>
+                    <td style="border:1px solid black;"></td>
                 </tr>
-                <tr>
-                	<td style="border-right:1px solid black;">Opening Balance</td>
-                    <td style="border-right:1px solid black;"><?php echo number_format($OpeningBalance,2);?></td>
-                    <td style="border-right:1px solid black;"></td>
-                 </tr>
-                  <tr>
-                	<td style="border-right:1px solid black;border-bottom: 1px solid black;">Current Year</td>
-                    <td style="border-right:1px solid black;border-bottom: 1px solid black;"><?php echo number_format($CurrentBalance,2);?></td>
-                    <td style="border-right:1px solid black;border-bottom: 1px solid black;"></td>
-                 </tr>
              </table>
         </td>
        <td colspan="3">

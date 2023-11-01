@@ -1,11 +1,11 @@
 <?php //include_once "ses_set_ma.php"; ?>
 <?php
 
-	include_once("includes/head_s.php");
-
-
+include_once("includes/head_s.php");
 include_once("classes/mem_bike_parking.class.php");
-$obj_mem_bike_parking=new mem_bike_parking($m_dbConn);
+$m_dbConn = new dbop();
+$landLordDB = new dbop(false, false, false, false, true);
+$obj_mem_bike_parking = new mem_bike_parking($m_dbConn, $landLordDB);
 ?>
  
 
@@ -119,7 +119,7 @@ $obj_mem_bike_parking=new mem_bike_parking($m_dbConn);
 					{
 						echo $_SESSION['owner_name'];
 					?>
-                    	<input type="hidden" name="member_id" value="<?php echo $_REQUEST['mem_id'];?>">
+                    	<input type="hidden" name="member_id" value="<?php echo $_REQUEST['ten_id'];?>">
                     <?php	
 					}
 				}

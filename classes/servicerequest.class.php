@@ -107,26 +107,32 @@ class servicerequest
 		}
 		//$request_no = $request_no + 1;
 		// change to  $_POST['unit_no'] to $_POST['unit_no2']; in insert statment
-		  $sql = "INSERT INTO `service_request` (`request_no`, `society_id`, `reportedby`, `dateofrequest`, `email`, `phone`, `priority`, `category`, `summery`,`img`, `details`, `status`, `unit_id`) VALUES ('".$request_no."', '".$_SESSION['society_id']."', '".$_POST['reported_by']."', '".getDBFormatDate(date('d-m-Y'))."', '".$_POST['email']."', '".$_POST['phone']."', '".$_POST['priority']."', '".$_POST['category']."', '".$_POST['summery']."','$image_collection', '".$details."', 'Raised', '".$_POST['unit_no2']."')";					
+		  $sql = "INSERT INTO `service_request` (`request_no`, `society_id`, `reportedby`, `dateofrequest`, `email`, `phone`, `priority`, `category`, `summery`,`img`, `details`, `status`, `unit_id`,`case_no`,`outstanding_rent`,`open_on`,`case_open_date`) VALUES ('".$request_no."', '".$_SESSION['society_id']."', '".$_POST['reported_by']."', '".getDBFormatDate(date('d-m-Y'))."', '".$_POST['email']."', '".$_POST['phone']."', '".$_POST['priority']."', '".$_POST['category']."', '".$_POST['summery']."','$image_collection', '".$details."', 'Created', '".$_POST['unit_no2']."','".$_POST['case_no']."','".$_POST['outstanding_amt']."','".getDBFormatDate($_POST['open_on'])."','".getDBFormatDate($_POST['open_date'])."')";					
 		//echo "query:".$sql;  	
 		$result = $this->m_dbConn->insert($sql);
-		if($_POST['category'] == $_SESSION['RENOVATION_DOC_ID'] || $_POST['category'] == $_SESSION['ADDRESS_PROOF_ID'])
+		
+		$sql1 = "INSERT INTO `legal_case_history` (`sr_request_id`, `updated_by`, `comment`, `expense_amt`, `status`, `up_hearing_date`, `case_no`) VALUES ('".$result."', '".$_POST['reported_by']."', '".$_POST['summery']."',0,'Created','".getDBFormatDate($_POST['open_date'])."', '".$_POST['case_no']."')";					
+		//echo "query:".$sql;  	
+		$result1 = $this->m_dbConn->insert($sql1);
+		
+		
+		/*if($_POST['category'] == $_SESSION['RENOVATION_DOC_ID'] || $_POST['category'] == $_SESSION['ADDRESS_PROOF_ID'])
 		{
 			$_SESSION['renovation_service_request_id'] = $result;
-		}
+		}*/
 		$sqlSR = $this->GetCategoryDetails( $_POST['category']);
 		$EmailIDOfCategory = ""; 
-		if(isset($sqlSR) && sizeof($sqlSR) > 0)
+		/*if(isset($sqlSR) && sizeof($sqlSR) > 0)
 		{
 			$EmailIDOfCategory = $sqlSR[0]['email'];
 			$CCEmailIDOfCategory = $sqlSR[0]['email_cc'];
-		}
+		}*/
 		//echo $EmailIDOfCategory;
-		$this->sendEmail($request_no, $_POST['reportedby'], 'Raised', $_POST['details'], $_POST['email'], $EmailIDOfCategory, $CCEmailIDOfCategory,$_POST['unit_no2']);
+		//$this->sendEmail($request_no, $_POST['reportedby'], 'Raised', $_POST['details'], $_POST['email'], $EmailIDOfCategory, $CCEmailIDOfCategory,$_POST['unit_no2']);
 		
-		$this->ServiceRequestMobileNotification($request_no, $_POST['category'], $_POST['priority'], $_POST['summery'], $EmailIDOfCategory, $CCEmailIDOfCategory,$sqlSR[0]['unitID'],$sqlSR[0]['co_unitID'], $_POST['unit_no'], true);
+	//	$this->ServiceRequestMobileNotification($request_no, $_POST['category'], $_POST['priority'], $_POST['summery'], $EmailIDOfCategory, $CCEmailIDOfCategory,$sqlSR[0]['unitID'],$sqlSR[0]['co_unitID'], $_POST['unit_no'], true);
 		
-		$this->ServiceRequestSMS($_POST['summery'],$sqlSR[0]['unitID'],$sqlSR[0]['co_unitID'],$_POST['unit_no']);
+		//$this->ServiceRequestSMS($_POST['summery'],$sqlSR[0]['unitID'],$sqlSR[0]['co_unitID'],$_POST['unit_no']);
 		header("Location: ../servicerequest.php?type=open");
 	}
 	}
@@ -219,18 +225,23 @@ class servicerequest
 		
 		
 }
-	public function insertComments($request_no,$email, $ccEmails)
+	public function insertComments($request_id,$email, $ccEmails)
 	{
-		if($_SESSION['role'] && $_SESSION['role']==ROLE_ADMIN)
+		
+		$sql1 = "INSERT INTO `legal_case_history` (`sr_request_id`, `updated_by`, `comment`, `expense_amt`, `status`, `up_hearing_date`, `case_no`) VALUES ('".$request_id."', '".$_POST['changedby']."', '".$_POST['comments']."','".$_POST['expense_amt']."','".$_POST['status']."','".getDBFormatDate($_POST['upcom_date'])."', '".$_POST['case_no']."')";					
+		//echo "query:".$sql;  	
+		$result1 = $this->m_dbConn->insert($sql1);
+		/*if($_SESSION['role'] && $_SESSION['role']==ROLE_ADMIN)
 		{
 			$updateReqPriority="update `service_request` set `priority`='".$_POST['priority']."' where  `request_no`=".$request_no." and `society_id`=".$_SESSION['society_id']." ";
 			$priority = $this->m_dbConn->update($updateReqPriority);
 		}
 		
-		$sql = "INSERT INTO `service_request` (`request_no`, `society_id`, `reportedby` , `summery`, `status`, `unit_id`,`email`) VALUES ('".$request_no."', '".$_SESSION['society_id']."', '".$_POST['changedby']."', '".$_POST['comments']."', '".$_POST['status']."', '".$_POST['unit']."', '".$_POST['emailID']."')";						
+		echo $sql = "INSERT INTO `service_request` (`request_no`, `society_id`, `reportedby` , `summery`, `status`, `unit_id`,`email`) VALUES ('".$request_no."', '".$_SESSION['society_id']."', '".$_POST['changedby']."', '".$_POST['comments']."', '".$_POST['status']."', '".$_POST['unit']."', '".$_POST['emailID']."')";						
 		//echo $sql;		
 		$result = $this->m_dbConn->insert($sql);
-		$this->sendEmail($request_no, $_POST['changedby'], $_POST['status'], $_POST['comments'], $email, $ccEmails, $_POST['unit']);
+		die();
+		//$this->sendEmail($request_no, $_POST['changedby'], $_POST['status'], $_POST['comments'], $email, $ccEmails, $_POST['unit']);*/
 		return;		
 	}
 	
@@ -265,7 +276,13 @@ class servicerequest
 		
 		return $res_req;
 	}
-		
+	
+	public function getmemDetails($unitId)
+	{
+		$sql = "SELECT `owner_name` FROM `member_main` WHERE `unit` = '".$unitId."' AND `society_id` = '".$_SESSION['society_id']."'";
+		$result = $this->m_dbConn->select($sql);
+		return $result[0]['owner_name'];	
+	}	
 	public function getDetails()
 	{
 		$sql = "SELECT * FROM `member_main` WHERE `unit` = '".$_SESSION['unit_id']."' AND `society_id` = '".$_SESSION['society_id']."'";
@@ -379,6 +396,31 @@ class servicerequest
 		return $result;
 	//}
 	}
+	
+	
+	public function getRecords1($id)
+	{
+		
+		
+			
+	
+			$sql="select * from service_request order by timestamp DESC";
+			$result = $this->m_dbConn->select($sql);
+			
+			
+			/*$result[$i]['status']=$res1[0]['status'];
+			$result[$i]['dateofrequest'] = $res1[(sizeof($res1)-1)]['dateofrequest']; 
+			$result[$i]['priority'] = $res1[(sizeof($res1)-1)]['priority']; 
+			$result[$i]['category'] = $res1[(sizeof($res1)-1)]['category']; 
+			$result[$i]['summery'] = $res1[(sizeof($res1)-1)]['summery']; 
+			$result[$i]['unit_id'] = $res1[(sizeof($res1)-1)]['unit_id']; 
+			$result[$i]['reportedby'] = $res1[(sizeof($res1)-1)]['reportedby']; 
+			*/	
+			
+		return $result;
+	//}
+	}
+	
 /*	public function getRecords($id, $type="")
 	{
 		
@@ -520,12 +562,32 @@ class servicerequest
 		return $result;
 	}
 	
+	public function getViewDetails1($request_id,$isview=false)
+	{
+		 $sql= "Select * from legal_case_history where sr_request_id = '".$request_id."'";
+		 $result = $this->m_dbConn->select($sql);
+		 return $result;
+	}
+	public function getLatestStatus($request_id)
+	{
+		$sql="SELECT  `status`,`up_hearing_date` FROM `legal_case_history` where sr_request_id = '".$request_id."' order by id desc limit 1";
+		$result = $this->m_dbConn->select($sql);
+	     return $result;
+    }
+	public function getTotalExpense($request_id)
+	{
+		$sql="SELECT  SUM(expense_amt) as expenseAmt FROM `legal_case_history` where sr_request_id = '".$request_id."'";
+		$result = $this->m_dbConn->select($sql);
+	    return $result[0]['expenseAmt'];
+	}
 	public function getUpdatedStatus($requestNo)
 	{
 		$sql = "SELECT `status` FROM `service_request` WHERE `visibility`='1' and `request_no` = '".$requestNo."'  ";
 		$result = $this->m_dbConn->select($sql);
 		return $result[sizeof($result) - 1]['status'];	
 	}
+		
+		
 		
 	public function comboboxEx($query,$id)
 	{ //$str.="<option value=''>All</option>";

@@ -3,6 +3,7 @@ if(!isset($_SESSION)){ session_start(); }
 //include_once("classes/include/dbop.class.php");
 include_once("classes/include/check_session.php");
 include_once("classes/head_s.class.php");
+include_once("../datatable_script.php");
 include_once("header.php");
 include_once("classes/tips.class.php");
 $obj_tips=new tips($m_dbConnRoot,$m_dbConn);
@@ -207,7 +208,7 @@ else
 
 	<?php $societylogo = $m_objHead_S->GetSocietyLogo($_SESSION['society_id']);
 	?>
-    <div style="width: 15%;height: 75px;float:left"><img src="<?php echo $societylogo ;?> " style="margin-top: 16px;margin-left: 5px;width: 40%; height: auto;" onerror="this.src='images/no-imgae.png';"> </div>
+    <div style="width: 15%;height: 75px;float:left"><img src="<?php echo $societylogo ;?> " style="margin-top: 16px;margin-left: 5px;width: 90%; height: auto;" onerror="this.src='images/no-imgae.png';"> </div>
                
 <?php }
 ?>

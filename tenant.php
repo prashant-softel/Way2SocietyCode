@@ -6,23 +6,32 @@
 <?php
 include_once("includes/head_s.php");
 include_once ("classes/dbconst.class.php");
+include_once("classes/initialize.class.php");
 include_once("classes/include/dbop.class.php");
 include_once("classes/tenant.class.php");
 include_once("classes/mem_other_family.class.php");
 include_once("classes/unit.class.php");
 $dbConn = new dbop();
 $dbConnRoot = new dbop(true);
-//nclude_once("classes/mem_other_family.class.php");
-//$obj_mem_other_family = new mem_other_family($m_dbConn);
-$obj_tenant = new tenant($dbConn);
+
+$obj_tenant = new tenant($m_dbConn, $m_dbConnRoot, $landLordDB);
+$obj_initialize = new initialize($m_dbConnRoot);
 $obj_mem_other_family = new mem_other_family($dbConn);
+// echo "<pre>";
+// print_r($_SESSION);
+// echo "</pre>";
+// echo "DbName: " .$_SESSION['landLordDB'];
+// echo " ID: " .$_SESSION['landLordSocID'];
+
 
 
 $unit_details = $obj_mem_other_family->unit_details($_REQUEST['mem_id']);
 $society_dets = $obj_mem_other_family->get_society_details($_SESSION['society_id']);
 $UnitBlock = $_SESSION["unit_blocked"];
 $obj_unit = new unit($dbConn,$dbConnRoot);
+//$obj_unitno = new unit($dbConn,$dbConnRoot,$tempConn);
 //print_r($unit_details);
+$show_wings=$obj_unit->getallwing();
 $verifyStatus = $obj_unit->checkVerificationAccess();
 $approveStatus = $obj_unit->checkApprovalAccess();
 if(isset($_REQUEST['edit']))
@@ -140,6 +149,65 @@ else
 			document.getElementById("vehiclecount").value = 1;
 			//document.getElementById("addVehicle_button").style.display = "table-cell";
 		}
+
+function get_wing(society_id)
+{
+	document.getElementById('error').style.display = '';	
+	document.getElementById('error').innerHTML = 'Wait... Fetching wing under this society';	
+	remoteCall("ajax/get_wing.php","society_id="+society_id,"res_get_wing");		
+}
+
+function res_get_wing()
+{
+	var res = sResponse;//alert(res)
+	
+	document.getElementById('error').style.display = 'none';	
+	
+	var count = res.split('****');
+	var pp = count[0].split('###');
+	
+	document.getElementById('wing_id').options.length = 0;
+	var that = document.getElementById('society_id').value;
+
+	for(var i=0;i<count[1];i++) 
+	{		
+		var kk = pp[i].split('#');
+		var wing_id = kk[0];
+		var wing = kk[1];
+		document.getElementById('wing_id').options[i] = new Option(wing,wing_id);
+	}
+	document.getElementById('wing_id').options[i] = new Option('All','');
+	document.getElementById('wing_id').value = '';
+}
+
+$(document).ready(function(){
+	var socID = '<?php echo $_SESSION['landLordSocID']; ?>' ;
+	if(socID) {
+		document.getElementById('mapid').value = socID;
+	}
+});
+
+	function selectDB(){
+		let dbname = document.getElementById('mapid').value;
+		console.log(dbname);
+		$.ajax({
+		url: "process/tenant.process.php",
+		type:"POST",
+		data: {'selSocID':dbname},
+		success: function(data)
+		{
+			location.reload();
+		}
+	});
+	}
+
+	function clear_unit(wing)
+	{
+		if(wing=='')
+		{
+			document.getElementById('unit_no').value = '';	
+		}
+	}
 	function go_error()
     {
 		$(document).ready(function()
@@ -258,12 +326,36 @@ else
 				remoteCall("ajax/tenant.ajax.php","&method="+iden[0]+"&TenantId="+iden[1],"loadchanges");			
 			}
 		}
+
+var ChequeCount=1;
+var MaxChequeInputs=12;
+function addNewCheque()
+{
+	var nocheq = document.getElementById('nochq').value;
+
+	for( var i =1 ; i<= nocheq;i++)
+	{
+		ChequeCount = ChequeCount + 1; 
+		var sChequeContent = '<tr><td id="bankName_td_'+ChequeCount+'"><input name = "bankName_'+ChequeCount+'" id = "bankName_'+ChequeCount+'" type="text" value = ""   style="width:140px;" /></td>&nbsp;<td id="branch_td_'+ChequeCount+'"><input name = "branch_'+ChequeCount+'" id = "branch_'+ChequeCount+'" type="text" value = ""  style="width:100px;"  /></td>&nbsp;<td id="cheqno_td_'+ChequeCount+'"><input name = "cheqno_'+ChequeCount+'" id = "cheqno_'+ChequeCount+'" type="text" value = ""  style="width:100px;"  /></td>&nbsp;&nbsp;'+'<td id="cheqdate_td_'+ChequeCount+'"><input name = "cheqdate_'+ChequeCount+'" id = "cheqdate_'+ChequeCount+'"  class="basics_Dob" type="text" value = "" size="10"   style="width:100px;" /></td><td id="amount_td_'+ChequeCount+'">&nbsp;&nbsp;&nbsp;&nbsp;<input name = "amount_'+ChequeCount+'" id = "amount_'+ChequeCount+'" type="text" value = ""  style="width:100px;"  /></td><td id="remark_td_'+ChequeCount+'"><input name = "remark_'+ChequeCount+'" id = "remark_'+ChequeCount+'" type="text" value = ""  style="width:100px;"  />&nbsp;</td><td></td><td></td></tr>';
+		if(ChequeCount <= MaxChequeInputs) //max file box allowed
+		{
+			$("#cheq_table").append(sChequeContent);
+			$(".basics_Dob").datepicker(datePickerOptions);
+			document.getElementById('cheqcount').value=ChequeCount;
+		}
+		else
+		{
+			alert ("Can't add more than 12 Cheque Details.")
+		}
+	}
+}
+
 var FieldCount=1;
 var MaxInputs=10;
 function addNewMember()
 {
 	FieldCount = FieldCount + 1; 
-	var sMemberContent = '<tr><td id="members_td_'+FieldCount+'"><input name = "members_'+FieldCount+'" id = "members_'+FieldCount+'" type="text" value = ""   style="width:140px;" /></td>&nbsp;<td id="relation_td_'+FieldCount+'"><input name = "relation_'+FieldCount+'" id = "relation_'+FieldCount+'" type="text" value = ""  style="width:80px;"  /></td>&nbsp;&nbsp;'+'<td id="mem_dob_td_'+FieldCount+'"><input name = "mem_dob_'+FieldCount+'" id = "mem_dob_'+FieldCount+'"  class="basics_Dob" type="text" value = "" size="10"   style="width:80px;" /></td><td id="contact_td_'+FieldCount+'">&nbsp;&nbsp;&nbsp;&nbsp;<input name = "contact_'+FieldCount+'" id = "contact_'+FieldCount+'" type="text" value = ""  style="width:80px;"  /></td><td id="email_td_'+FieldCount+'"><input name = "email_'+FieldCount+'" id = "email_'+FieldCount+'" type="text" value = ""  style="width:140px;"  />&nbsp;</td><td></td><td></td></tr>';
+	var sMemberContent = '<tr><td id="members_td_'+FieldCount+'"><input name = "members_'+FieldCount+'" id = "members_'+FieldCount+'" type="text" value = ""   style="width:140px;" /></td>&nbsp;<td id="relation_td_'+FieldCount+'"><input name = "relation_'+FieldCount+'" id = "relation_'+FieldCount+'" type="text" value = ""  style="width:100px;"  /></td>&nbsp;<td id="emirate_td_'+FieldCount+'"><input name = "emirate_'+FieldCount+'" id = "emirate_'+FieldCount+'" type="text" value = ""  style="width:100px;"  /></td>&nbsp;&nbsp;'+'<td id="mem_dob_td_'+FieldCount+'"><input name = "mem_dob_'+FieldCount+'" id = "mem_dob_'+FieldCount+'"  class="basics_Dob" type="text" value = "" size="10"   style="width:100px;" /></td><td id="contact_td_'+FieldCount+'">&nbsp;&nbsp;&nbsp;&nbsp;<input name = "contact_'+FieldCount+'" id = "contact_'+FieldCount+'" type="text" value = ""  style="width:100px;"  /></td><td id="email_td_'+FieldCount+'"><input name = "email_'+FieldCount+'" id = "email_'+FieldCount+'" type="text" value = ""  style="width:140px;"  />&nbsp;</td><td></td><td></td></tr>';
 	if(FieldCount <= MaxInputs) //max file box allowed
     {
 		
@@ -429,6 +521,32 @@ function loadchanges()
 			document.getElementById('mem_dob_'+(iCnt+1)).value = memberAry[iCnt]['mem_dob'];
 			document.getElementById('contact_'+(iCnt+1)).value = memberAry[iCnt]['contact_no'];
 			document.getElementById('email_'+(iCnt+1)).value = memberAry[iCnt]['email'];
+		}
+
+		//--------------------------Post Dated Cheque------------------------------------//
+		var chequeAry = new Array();
+		chequeAry = tenant_details[0]['cheques'];
+		//alert( memberAry.length);
+		for(var iCnt = 1; iCnt <= chequeAry.length-1; iCnt++)
+		{			
+				//alert("add");
+				//$("#btnAdd").trigger('click');
+				addNewCheque();
+		}
+		document.getElementById('bankName_1').value = tenant_details[0]['bank_name'];
+		document.getElementById('branch_1').value = tenant_details[0]['branch'];
+		document.getElementById('cheqno_1').value = tenant_details[0]['cheqno'];
+		document.getElementById('cheqdate_1').value = tenant_details[0]['cheqdate'];
+		document.getElementById('amount_1').value = tenant_details[0]['amount'];
+		document.getElementById('remark_1').value = tenant_details[0]['remark'];
+		for(var iCnt = 0; iCnt < chequeAry.length; iCnt++)
+		{
+			document.getElementById('bankName_'+(iCnt+1)).value = chequeAry[iCnt]['bank_name'];
+			document.getElementById('branch_'+(iCnt+1)).value = chequeAry[iCnt]['branch'];
+			document.getElementById('cheqno_'+(iCnt+1)).value = chequeAry[iCnt]['cheqno'];
+			document.getElementById('cheqdate_'+(iCnt+1)).value = chequeAry[iCnt]['cheqdate'];
+			document.getElementById('amount_'+(iCnt+1)).value = chequeAry[iCnt]['amount'];
+			document.getElementById('remark_'+(iCnt+1)).value = chequeAry[iCnt]['remark'];
 		}
 		/*if(memberAry[0]['send_act_email']  == "1")
 		{
@@ -648,6 +766,33 @@ function loadchanges()
 		
 		document.getElementById('create_login').style.display = "none";
 		document.getElementById('send_emails').style.display = "none";
+
+
+		//-----------------------------------Post Dated Cheque------------------------------------------------------//
+
+		var chequeAry = new Array();
+		chequeAry = tenant_details[0]['cheques'];
+		//alert( memberAry.length);
+		for(var iCnt = 1; iCnt <= chequeAry.length-1; iCnt++)
+		{			
+			addNewCheque();
+		}
+		
+		document.getElementById('bankName_td_1').innerHTML = tenant_details[0]['bank_name'];
+		document.getElementById('branch_td_1').innerHTML = tenant_details[0]['branch'];
+		document.getElementById('cheqno_td_1').innerHTML = tenant_details[0]['cheqno'];
+		document.getElementById('cheqdate_td_1').innerHTML = tenant_details[0]['cheqdate'];
+		document.getElementById('amount_td_1').innerHTML = tenant_details[0]['amount'];
+		document.getElementById('remark_td_1').innerHTML = tenant_details[0]['remark'];
+		for(var iCnt = 1; iCnt < chequeAry.length; iCnt++)
+		{
+			document.getElementById('bankName_td_'+(iCnt+1)).innerHTML = chequeAry[iCnt]['bank_name'];
+			document.getElementById('branch_td_'+(iCnt+1)).innerHTML = chequeAry[iCnt]['branch'];
+			document.getElementById('cheqno_td_'+(iCnt+1)).innerHTML = chequeAry[iCnt]['cheqno'];
+			document.getElementById('cheqdate_td_'+(iCnt+1)).innerHTML = chequeAry[iCnt]['cheqdate'];
+			document.getElementById('amount_td_'+(iCnt+1)).innerHTML = chequeAry[iCnt]['amount'];	
+			document.getElementById('remark_td_'+(iCnt+1)).innerHTML = chequeAry[iCnt]['remark'];			
+		}
 		/*if(memberAry[0]['send_act_email']  == "1")
 		{
 			document.getElementById('chkCreateLogin').checked = true;
@@ -844,7 +989,7 @@ function loadchanges()
 	<div class="panel panel-info" id="panel" style="display:block; margin-top:6%;width:<?php echo $width;?>;">
     	<?php 
 		$tenantAction = "";
-		$actionPage2 = "memberProfile";
+		$actionPage2 = "memberProfile";			
 		if(isset($_REQUEST['edit']))
 	  	{
 		?>
@@ -880,7 +1025,7 @@ function loadchanges()
 	  	else
 		{
 		?>
-        	<div class="panel-heading" id="pageheader">Add Leave & License</div>
+        	<div class="panel-heading" id="pageheader">Add Tenant</div>
         <?php
 			$tenantAction = "add";
 			if(isset($_REQUEST['sr']))
@@ -956,6 +1101,9 @@ function loadchanges()
 		}
 		?>
 		<form name="tenant" id="tenant" method="post" action="process/tenant.process.php" enctype="multipart/form-data"  onSubmit="return val();">
+		<input type="hidden" name="form_error"  id="form_error" value="<?php echo $_REQUEST["form_error"]; ?>" />
+		<input type="hidden" name="ssid" value="<?php echo $_GET['ssid'];?>">
+		<input type="hidden" name="wwid" value="<?php echo $_GET['wwid'];?>">
 		<center>
 		<br/>
 		<br/>
@@ -1014,13 +1162,45 @@ function loadchanges()
                 </td>
                 <td colspan="2" width="70%">
                 	<table width="100%">
+					<tr>
+        				<td style="text-align:right"></td>
+						<td style = "text-align:right"><?php echo $star;?>&nbsp;<b>Landlords</b></td>
+						<td>&nbsp;&nbsp; : &nbsp;&nbsp;</td>
+						<td>
+						<select id="mapid" name="mapid" style="width:142px;" onChange= "selectDB(this.value);" value="<?php echo $_REQUEST['mapid']; ?>"<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN && $_SESSION['res_flag'] == 1) { }else{echo 'disabled';} ?>>
+                     		 <?php echo $mapList = $obj_initialize->combobox("Select societytbl.society_id, concat_ws(' - ', societytbl.society_id,societytbl.society_name) from mapping as maptbl JOIN society as societytbl ON maptbl.society_id = societytbl.society_id JOIN dbname as db ON db.society_id = societytbl.society_id WHERE maptbl.login_id = '" . $_SESSION['login_id'] . "' and societytbl.rental_flag = 1 and societytbl.status = 'Y' and maptbl.status = '2' ORDER BY societytbl.society_name ASC ", $_SESSION['current_mapping']);?>		
+							 <input type="hidden" name="mode" value="set" />
+						</select>
+            			</td>
+					</tr>
                 	<tr>
         				<td style="text-align:right"></td>
-						<td style="text-align:right"><?php echo $star;?>&nbsp;<b>First Name of Lessee</b></td>
+						<td style = "text-align:right"><?php echo $star;?>&nbsp;<b>Building</b></td>
+						<td>&nbsp;&nbsp; : &nbsp;&nbsp;</td>
+						<td>
+                			<select name="wing_id" id="wing_id" style="width:142px;" onChange="clear_unit(this.value);" value="<?php echo $_REQUEST['wing_id'];?>"<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN) { }else{echo 'disabled';} ?> >
+							<?php echo $combo_wing =  $obj_tenant->getTenantWing( $_SESSION['unit_id']); ?>
+							</select>
+            			</td>
+					</tr>
+					<tr>
+						<td style="text-align:right"></td>
+						<td style="text-align:right"><?php echo $star;?>&nbsp;<b>Unit No. ( Flat No )</b></td>
+            			<td>&nbsp; : &nbsp;</td>
+						<td>
+                			<select name="unit_no" id="unit_no" style="width:142px;" onChange="clear_unit(this.value);" value="<?php echo $_REQUEST['unit_no'];?>"<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN) { }else{echo 'disabled';} ?> >
+							<?php $dbName = $_SESSION['rentalDb']?>
+							<?php echo $combo_unit = $obj_tenant->getTenantUnit( $_SESSION['unit_id']); ?>
+							</select>
+            			</td>
+					</tr>
+					<tr>
+						<td style="text-align:right"></td>
+						<td style="text-align:right"><?php echo $star;?>&nbsp;<b> Name of the Tenant</b></td>
             			<td style="text-align:left">&nbsp; : &nbsp;</td>
 						<td style="text-align:left" id="td_1"><input type="text" name="t_name" id="t_name"  /></td>
 					</tr>
-        			<tr>
+        			<!--<tr>
         				<td style="text-align:right"></td>
 						<td style="text-align:right"><b>Middle Name of Lessee</b></td>
             			<td style="text-align:left">&nbsp; : &nbsp;</td>
@@ -1031,7 +1211,7 @@ function loadchanges()
 						<td style="text-align:right"><?php echo $star;?>&nbsp;<b>Last Name of Lessee</b></td>
             			<td style="text-align:left">&nbsp; : &nbsp;</td>
 						<td style="text-align:left" id="td_n3"><input type="text" name="t_lname" id="t_lname" onBlur="getFirstMemberName()"/></td>
-					</tr>
+					</tr>-->
       	  			<tr>
         				<td style="text-align:right"></td>
 						<td style="text-align:right"><?php echo $star;?>&nbsp;<b>Lease Start Date</b></td>
@@ -1044,12 +1224,12 @@ function loadchanges()
             			<td style="text-align:left">&nbsp; : &nbsp;</td>
 						<td style="text-align:left" id="td_3"><input type="text" name="end_date" id="end_date" class="basics" onChange="getTotalMonth();" size="10" readonly  style="width:80px;" /></td>
 					</tr>
-                    <tr>
+                    <!--<tr>
         				<td style="text-align:right"></td>
         				<td style="text-align:right"><?php //echo $star;?>&nbsp;<b>Number of Month</b></td>
             			<td style="text-align:left">&nbsp; : &nbsp;</td>
 						<td style="text-align:left" id="td_10"><input type="text" name="Lease_Period" id="Lease_Period" onChange="updateEndDate();" size="10"   style="width:80px;" /></td>
-					</tr>
+					</tr>-->
         			<tr  align="right">
         				<td style="text-align:right"><?php //echo $star;?></td>
 						<td style="text-align:right"><b>Agent Name</b></td>
@@ -1068,11 +1248,11 @@ function loadchanges()
 					?>
         			<tr  align="left" id = "verifyTr">
                     	<td style="text-align:right"><?php //echo $star;?></td>
-						<td style="text-align:right"><b>Verified by society</b></td>
+						<td style="text-align:right"><b>Verified by manager</b></td>
              			<td style="text-align:left">&nbsp; : &nbsp;</td>
 						<td style="text-align:left" id="td_6"><input type="checkbox" name="verified" id="verified" value="1" ></td>
 					</tr>
-                    <tr  align="left" id = "pVerifyTr">
+                    <!--<tr  align="left" id = "pVerifyTr">
                     	<td style="text-align:right"><?php //echo $star;?></td>
 						<td style="text-align:right"><b>Police Verification Submitted</b></td>
              			<td style="text-align:left">&nbsp; : &nbsp;</td>
@@ -1083,7 +1263,7 @@ function loadchanges()
 						<td style="text-align:right"><b>Leave and License Agreement Submitted</b></td>
              			<td style="text-align:left">&nbsp; : &nbsp;</td>
 						<td style="text-align:left" id="td_8"><input type="checkbox" name="leaveAndLicenseAgreement" id="leaveAndLicenseAgreement" value="1"></td>
-					</tr>
+					</tr>-->
 					<?php 
 					}
 					
@@ -1092,11 +1272,11 @@ function loadchanges()
 					
                     	<tr  align="left" id = "verifyTr">
                     	<td style="text-align:right"><?php //echo $star;?></td>
-						<td style="text-align:right"><b>Verified by society</b></td>
+						<td style="text-align:right"><b>Verified by manager</b></td>
              			<td style="text-align:left">&nbsp; : &nbsp;</td>
 						<td style="text-align:left" id="td_6"><label name="verified" id="verified"></label></td>
 					</tr>
-                    <tr  align="left" id = "pVerifyTr">
+                    <!--<tr  align="left" id = "pVerifyTr">
                     	<td style="text-align:right"><?php //echo $star;?></td>
 						<td style="text-align:right"><b>Police Verification Submitted</b></td>
              			<td style="text-align:left">&nbsp; : &nbsp;</td>
@@ -1107,7 +1287,7 @@ function loadchanges()
 						<td style="text-align:right"><b>Leave and License Agreement Submitted</b></td>
              			<td style="text-align:left">&nbsp; : &nbsp;</td>
 						<td style="text-align:left" id="td_8"><label name="leaveAndLicenseAgreement" id="leaveAndLicenseAgreement"></label></td>
-					</tr>
+					</tr>-->
                     <?php }
 					
 					if($approveStatus && $_REQUEST['action'] == "approve")
@@ -1115,7 +1295,7 @@ function loadchanges()
 					?>
         			<tr  align="left" id = "approveTr">
                     	<td style="text-align:right"><?php //echo $star;?></td>
-						<td style="text-align:right"><b>Approved by society</b></td>
+						<td style="text-align:right"><b>Approved by manager</b></td>
              			<td style="text-align:left">&nbsp; : &nbsp;</td>
 						<td style="text-align:left" id="td_7"><input type="checkbox" name="approved" id="approved" value="1" ></td>
 					</tr>
@@ -1143,13 +1323,13 @@ function loadchanges()
             <?php if(!isset($_REQUEST['edit']))
 			{?>
             <tr align="left">
-            <td><input type="text" id="doc_name_1" name="doc_name_1" placeholder="Police Verification Document"></td>
+            <td><input type="text" id="doc_name_1" name="doc_name_1" placeholder="Emirate ID"></td>
             <td align="left"><input type="file" name="userfile1" id="userfile1"/></td>
             </tr>
             <tr align="left">
-            <td><input type="text" id="doc_name_2" name="doc_name_2" placeholder="Lease Aadhar ID" ></td>
+            <td><input type="text" id="doc_name_2" name="doc_name_2" placeholder="Ejari Document" ></td>
             <td align="left"><input type="file" name="userfile2" id="userfile2"/></td>
-             <td><input id="btnAddDoc" type="button" value="Add More" /></td><!--<td><div id="doc" style="margin-left: 73px;font-weight: bold;text-transform: capitalize;"></div></td>-->
+             <!--<td><input id="btnAddDoc" type="button" value="Add More" /></td>--><!--<td><div id="doc" style="margin-left: 73px;font-weight: bold;text-transform: capitalize;"></div></td>-->
             </tr>
             <!--<tr><td   valign="middle"><div id="FileContainer" >-->
             <input type="hidden" name="doc_count" id="doc_count" value="2">
@@ -1179,31 +1359,71 @@ function loadchanges()
             <tr align="left" >
 			<td colspan="8">
             <table id="mem_table" style="margin-top:-10px;" width="100%"><tr align="left" id="mem_table_tr"><td width="20%"><b>&nbsp;&nbsp;Name</b></td>
-            <td width="20%"><b>Relation</b></td><td width="20%"><b>Date Of Birth<br/>(DD-MM-YYYY)</b></td>
+            <td width="20%"><b>Relation</b></td><td width="20%"><b>Emirate Id</b></td><td width="20%"><b>Date Of Birth<br/>(DD-MM-YYYY)</b></td>
           	<td width="20%">&nbsp;&nbsp;&nbsp;&nbsp;<b><?php //echo $star;?>&nbsp;&nbsp;Contact No.</b></td>
             <td width="20%"><b><?php //echo $star;?>&nbsp;&nbsp;Email Address</b></td>
-            <td id="create_login">Create Login</td>
-            <td id="send_emails">Send E-Mails ?</td>
+           <!-- <td id="create_login">Create Login</td>
+            <td id="send_emails">Send E-Mails ?</td>-->
             </tr>
             <tr align="left">
             <td align="left" id="members_td_1"><input type="text" name="members_1" id="members_1" style="width:140px;" /></td>
-            <td id="relation_td_1"><input type="text" name="relation_1" id="relation_1"  style="width:80px;" value = "Self" /></td>
-            <td id="mem_dob_td_1"><input type="text" name="mem_dob_1" id="mem_dob_1"   class="basics_Dob" size="10" style="width:80px;" /></td>
-            <td id="contact_td_1">&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="contact_1" id="contact_1"  style="width:80px;"  onBlur="extractNumber(this,0,true);" onKeyUp="extractNumber(this,0,true);" onKeyPress="return blockNonNumbers(this, event, true, true)" size="30" /></td>
+            <td id="relation_td_1"><input type="text" name="relation_1" id="relation_1"  style="width:100px;" value = "Self" /></td>
+            <td id="emirate_td_1"><input type="text" name="emirate_1" id="emirate_1"  style="width:100px;" value = "" /></td>
+            <td id="mem_dob_td_1"><input type="text" name="mem_dob_1" id="mem_dob_1"   class="basics_Dob" size="10" style="width:100px;" /></td>
+            <td id="contact_td_1">&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="contact_1" id="contact_1"  style="width:100px;"  onBlur="extractNumber(this,0,true);" onKeyUp="extractNumber(this,0,true);" onKeyPress="return blockNonNumbers(this, event, true, true)" size="30" /></td>
             <td id="email_td_1"><input type="text" name="email_1" id="email_1" style="width:140px;" /></td>            
-			<td><input type="checkbox"  name="chkCreateLogin" id="chkCreateLogin" value="1" /></td>
-			<td><input type="checkbox" name="other_send_commu_emails" id="other_send_commu_emails" value="1" /></td>
+			<!--<td><input type="checkbox"  name="chkCreateLogin" id="chkCreateLogin" value="1" /></td>
+			<td><input type="checkbox" name="other_send_commu_emails" id="other_send_commu_emails" value="1" /></td>-->
 		</tr>
-            <td id="add_button"><input id="btnAdd" type="button" value="Add" onClick="addNewMember()"/></td>
+            <td id="add_button"><input id="btnAdd" type="button" value="Add" onclick="addNewMember()"/></td>
             </tr>
             <!--<tr><td   valign="left"><div id="TextBoxContainer" >-->
     <!--Textboxes will be added here -->
     <input type="hidden" name="count" id="count" value="1">
 <!--</div></td></tr>-->
 <br />
-            
-            </table>
-            
+<br />
+</table>
+
+<tr><td colspan="6"><hr></td></tr>
+    <tr align="left">
+        <td valign="left"><b>Number Of Cheque</b></td>
+			<td>
+			<select id = "nochq" name="nochq" style= "width: 55px">
+			<option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+			</select>
+			</td>
+            <td></td></tr>
+            <tr align="left" >
+			<td colspan="8">
+			<input type="hidden" name="chequecount" id="chequecount" value="">
+            <table id="cheq_table" style="margin-top:-10px;" width="100%"><tr align="left" id="mem_table_tr"><td width="20%"><b>&nbsp;&nbsp;Bank Name</b></td>
+            <td width="20%"><b>Branch Name</b></td><td width="20%"><b>Cheque No</b></td><td width="20%"><b>Cheque Date<br/>(DD-MM-YYYY)</b></td>
+          	<td width="20%">&nbsp;&nbsp;&nbsp;&nbsp;<b><?php //echo $star;?>&nbsp;&nbsp;Amount</b></td>
+            <td width="20%"><b><?php //echo $star;?>&nbsp;&nbsp;Remark</b></td>
+           <!-- <td id="create_login">Create Login</td>
+            <td id="send_emails">Send E-Mails ?</td>-->
+            </tr>
+            <tr align="left">
+            <td align="left" id="bankName_td_1"><input type="text" name="bankName_1" id="bankName_1" style="width:140px;" /></td>
+            <td id="branch_td_1"><input type="text" name="branch_1" id="branch_1"  style="width:100px;" value = "" /></td>
+            <td id="cheqno_td_1"><input type="text" name="cheqno_1" id="cheqno_1"  style="width:100px;" value = "" /></td>
+            <td id="cheqdate_td_1"><input type="text" name="cheqdate_1" id="cheqdate_1" class="basics_Dob" size="10" style="width:100px;" /></td>
+            <td id="amount_td_1">&nbsp;&nbsp;&nbsp;<input type="text" name="amount_1" id="amount_1"  style="width:100px;"  onBlur="extractNumber(this,0,true);" onKeyUp="extractNumber(this,0,true);" onKeyPress="return blockNonNumbers(this, event, true, true)" size="30" /></td>
+            <td id="remark_td_1"><input type="text" name="remark_1" id="remark_1" style="width:100px;" /></td>            
+			<!--<td><input type="checkbox"  name="chkCreateLogin" id="chkCreateLogin" value="1" /></td>
+			<td><input type="checkbox" name="other_send_commu_emails" id="other_send_commu_emails" value="1" /></td>-->
+		</tr>
+            <td id="add_button"><input id="btnAdd" type="button" value="Add" onclick="addNewCheque()"/></td>
+            </tr>
+			<input type="hidden" name="cheqcount" id="cheqcount" value="1">
+            <!--<tr><td   valign="left"><div id="TextBoxContainer" >-->
+    <!--Textboxes will be added here -->
+<!--</div></td></tr>-->
+<br />
+<br />
+</table>
+
         </td></tr>
   		<tr><td colspan="6"><hr></td></tr>
  		<tr  align="left" id = "vehicle_main_tr">
@@ -1213,7 +1433,7 @@ function loadchanges()
         </tr>
       	<tr align="left" >
 			<td colspan="8">
-             <input type="hidden" name="vehiclecount" id="vehiclecount" value="1">
+            <input type="hidden" name="vehiclecount" id="vehiclecount" value="1">
             <table id="vehicle_table" style="margin-top:-10px;" width="100%" >
             	<tr align="center" id="vehicle_table_tr">
                 	<td width="15%"><b>&nbsp;&nbsp;Vehicle Type</b></td>
@@ -1311,6 +1531,79 @@ function loadchanges()
             </table>
             
         </td></tr>
+		<table hidden = "hidden" align="center" style="width:100%">
+		<tr class="UnitFields"><td colspan="4"><br /><br /></td></tr>
+		<tr height="50" align="center"  class="UnitFields"><td>&nbsp;</td><th colspan="3" align="center"><table align="center"><tr height="25"><th bgcolor="#CCCCCC"  style="padding-top: 6px;"width="180">Particulars For Bill </th></tr></table></th></tr>
+        <tr align="left" class="UnitFields">    
+			
+		<?php if($IsGST == 1){?>
+        <tr align="left" class="UnitFields">
+        	<td valign="middle"><?php //echo $star;?></td>
+			<td>GST No Exemption</td>
+            <td>&nbsp; : &nbsp;</td>
+			<td><input type="checkbox" value="1" id="GSTNoExp" name="GSTNoExp" <?php if(/*$_SESSION['role'] != ROLE_SUPER_ADMIN*/$_SESSION['profile'][PROFILE_EDIT_MEMBER] == 1 && $_SESSION['profile'][PROFILE_MANAGE_MASTER] == 1) { }else{echo 'disabled';} ?>></td>
+            <td></td>
+		</tr>
+        <?php }?>
+		<tr align="left" class="UnitFields">
+        	<td valign="middle"><?php //echo $star;?></td>
+			<td>Bill type</td>
+            <td>&nbsp; : &nbsp;</td>
+			<td>Maintenance Bill</td>
+			<td>Supplimentary Bill</td>
+		</tr>
+		
+		<tr align="left" class="UnitFields">
+        	<td valign="middle"><?php //echo $star;?></td>
+			<td>Opening Principle Balance</td>
+            <td>&nbsp; : &nbsp;</td>
+			<td><input   type="text"   <?php  echo $bIsCurrentYearAndCreationYrMatch == false ?  'readonly  style="background-color:#CCC;"' : ''; ?>  name="bill_subtotal" id="bill_subtotal"  value="<?php echo $_REQUEST['bill_subtotal'];?>" <?php if(/*$_SESSION['role'] != ROLE_SUPER_ADMIN*/$_SESSION['profile'][PROFILE_EDIT_MEMBER] == 1 && $_SESSION['profile'][PROFILE_MANAGE_MASTER] == 1) { }else{echo 'disabled';} ?> /></td>
+			<td><input   type="text"   <?php  echo $bIsCurrentYearAndCreationYrMatch == false ?  'readonly  style="background-color:#CCC;"' : ''; ?>  name="supp_bill_subtotal" id="supp_bill_subtotal"  value="<?php echo $_REQUEST['supp_bill_subtotal'];?>" <?php if(/*$_SESSION['role'] != ROLE_SUPER_ADMIN*/$_SESSION['profile'][PROFILE_EDIT_MEMBER] == 1 && $_SESSION['profile'][PROFILE_MANAGE_MASTER] == 1) { }else{echo 'disabled';} ?> /></td>
+		</tr>
+        
+        <tr align="left" class="UnitFields">
+        	<td valign="middle"><?php //echo $star;?></td>
+			<td>Opening Interest Balance</td>
+            <td>&nbsp; : &nbsp;</td>
+			<td><input type="text" <?php  echo $bIsCurrentYearAndCreationYrMatch == false ?   'readonly  style="background-color:#CCC;"' : ''; ?>  name="bill_interest" id="bill_interest" value="<?php echo $_REQUEST['bill_tax'];?>" <?php if(/*$_SESSION['role'] != ROLE_SUPER_ADMIN*/$_SESSION['profile'][PROFILE_EDIT_MEMBER] == 1 && $_SESSION['profile'][PROFILE_MANAGE_MASTER] == 1) { }else{echo 'disabled';} ?>/></td>
+			<td><input type="text" <?php  echo $bIsCurrentYearAndCreationYrMatch == false ?   'readonly  style="background-color:#CCC;"' : ''; ?>  name="supp_bill_interest" id="supp_bill_interest" value="<?php echo $_REQUEST['supp_bill_tax'];?>" <?php if(/*$_SESSION['role'] != ROLE_SUPER_ADMIN*/$_SESSION['profile'][PROFILE_EDIT_MEMBER] == 1 && $_SESSION['profile'][PROFILE_MANAGE_MASTER] == 1) { }else{echo 'disabled';} ?>/></td>
+		</tr>
+        
+        <tr align="left" class="UnitFields">
+        	<td valign="middle"><?php //echo $star;?></td>
+			<td>Previous Principle Balance</td>
+            <td>&nbsp; : &nbsp;</td>
+			<td><input type="text" <?php  echo $bIsCurrentYearAndCreationYrMatch == false ?  'readonly  style="background-color:#CCC;"': ''; ?>  name="principle_balance" id="principle_balance" value="<?php echo $_REQUEST['principle_balance'];?>" <?php if(/*$_SESSION['role'] != ROLE_SUPER_ADMIN*/$_SESSION['profile'][PROFILE_EDIT_MEMBER] == 1 && $_SESSION['profile'][PROFILE_MANAGE_MASTER] == 1) { }else{echo 'disabled';} ?>/></td>
+			<td><input type="text" <?php  echo $bIsCurrentYearAndCreationYrMatch == false ?  'readonly  style="background-color:#CCC;"': ''; ?>  name="supp_principle_balance" id="supp_principle_balance" value="<?php echo $_REQUEST['supp_principle_balance'];?>" <?php if(/*$_SESSION['role'] != ROLE_SUPER_ADMIN*/$_SESSION['profile'][PROFILE_EDIT_MEMBER] == 1 && $_SESSION['profile'][PROFILE_MANAGE_MASTER] == 1) { }else{echo 'disabled';} ?>/></td>
+		</tr>
+        
+        <tr align="left" class="UnitFields">
+        	<td valign="middle"><?php //echo $star;?></td>
+			<td>Previous Interest Balance</td>
+            <td>&nbsp; : &nbsp;</td>
+			<td><input type="text" <?php  echo $bIsCurrentYearAndCreationYrMatch == false ?  'readonly  style="background-color:#CCC;"' : ''; ?> name="interest_balance" id="interest_balance" value="<?php echo $_REQUEST['interest_balance'];?>" <?php if(/*$_SESSION['role'] != ROLE_SUPER_ADMIN*/$_SESSION['profile'][PROFILE_EDIT_MEMBER] == 1 && $_SESSION['profile'][PROFILE_MANAGE_MASTER] == 1) { }else{echo 'disabled';} ?>/></td>
+			<td><input type="text" <?php  echo $bIsCurrentYearAndCreationYrMatch == false ?  'readonly  style="background-color:#CCC;"' : ''; ?> name="supp_interest_balance" id="supp_interest_balance" value="<?php echo $_REQUEST['supp_interest_balance'];?>" <?php if(/*$_SESSION['role'] != ROLE_SUPER_ADMIN*/$_SESSION['profile'][PROFILE_EDIT_MEMBER] == 1 && $_SESSION['profile'][PROFILE_MANAGE_MASTER] == 1) { }else{echo 'disabled';} ?>/></td>
+		</tr>
+        
+       <?php if(isset($_GET['ssid'])){?>
+        <!--<tr align="left" height="40" valign="bottom"><td></td><td colspan="3"><font style="font-size:11px; color:#F00;"><u>Note</u> : You can add multiple unit no.(Flat No.) with comma (,) separated.<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Eg. 1001,1002,1003,1004</font></td></tr>-->
+        
+        <?php }?>
+    
+        <tr><td colspan="4">&nbsp;</td></tr>
+		
+        <tr>
+			<td colspan="4" align="center">
+           		<input type="hidden" name="id" id="id">
+				<input type="hidden" name="uid" id="uid" value="<?php echo $_REQUEST['uid'];?>">
+                 <input type="hidden" name="mode" id="mode"   value="<?php echo $_REQUEST['mode'];?>" />
+                 <input type="hidden" name="member_id" id="member_id" value="<?php echo $_REQUEST['member_id'];?>" />
+              
+            </td> 
+		</tr>
+        <tr>
+	</table>
  	<tr><td><br/></td></tr> 
 <tr align="left">
     	<td valign="middle"><b>Note &nbsp;:&nbsp;</b></td>

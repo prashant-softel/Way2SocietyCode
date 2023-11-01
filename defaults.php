@@ -54,6 +54,7 @@
 	$default_bank_account = 0;
 	$default_cash_account = 0;
 	$default_due_from_member = 0;
+	$default_due_from_tenant = 0;
 	$default_income_expenditure_account = 0;
 	$default_adjustment_credit = 0;
    	$default_suspense_account = 0;
@@ -87,6 +88,7 @@
 		$default_bank_account = $defaultValues[0][APP_DEFAULT_BANK_ACCOUNT];
 		$default_cash_account = $defaultValues[0][APP_DEFAULT_CASH_ACCOUNT];
 		$default_due_from_member = $defaultValues[0][APP_DEFAULT_DUE_FROM_MEMBERS];
+		$default_due_from_tenant = $defaultValues[0][APP_DEFAULT_DUE_FROM_TENANTS];
 		$default_contribution_from_member = $defaultValues[0][APP_DEFAULT_CONTRIBUTION_FROM_MEMBERS];
 		$default_Sundry_debetor = $defaultValues[0][APP_DEFAULT_SUNDRY_DEBETOR];
 		$default_income_expenditure_account = $defaultValues[0][APP_DEFAULT_INCOME_EXPENDITURE_ACCOUNT];
@@ -424,6 +426,16 @@
        <td><select name="default_due_from_member" id="default_due_from_member" <?php echo $attrDisplay;?>>
                 	<?php 
 						echo $combo_period = $obj_defaults->combobox("select category_id,category_name from account_category where group_id=".ASSET." ORDER BY category_name ASC", $default_due_from_member, "Please Select"); 
+					?>
+           </select>
+       </td>
+    </tr>
+
+	<tr>
+       <td><?php ?>Dues From Tenants : &nbsp;</td>
+       <td><select name="default_due_from_tenant" id="default_due_from_tenant" <?php echo $attrDisplay;?>>
+                	<?php 
+						echo $combo_period = $obj_defaults->combobox("select category_id,category_name from account_category where group_id=".ASSET." ORDER BY category_name ASC", $default_due_from_tenant, "Please Select"); 
 					?>
            </select>
        </td>

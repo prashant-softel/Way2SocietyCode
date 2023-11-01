@@ -14,16 +14,18 @@ class unit
 	public $actionPage= "../unit.php";//"../unit_search.php";
 	public $m_dbConn;
 	public $m_dbConnRoot;
+	public $tempConn;
 	public $obj_utility;
 	public $m_objLog;
 	public $obj_fetch;
 	public $obj_genbill;
 	public $debug_trace;
 	
-	function __construct($dbConn, $dbConnRoot = '')
+	function __construct($dbConn, $dbConnRoot = '', $tempConn)
 	{
 		$this->m_dbConn = $dbConn;
 		$this->m_dbConnRoot = $dbConnRoot;
+		$this->tempConn = $tempConn;
 		$this->obj_utility = new utility($this->m_dbConn);
 		$this->display_pg=new display_table($this->m_dbConn);
 		$this->m_objLog = new changeLog($this->m_dbConn);
@@ -601,6 +603,7 @@ class unit
 		}
 		return $str;
 	}
+
 	
 	public function combobox00($query,$id)
 	{
