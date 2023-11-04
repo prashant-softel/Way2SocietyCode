@@ -11,7 +11,7 @@ $obj_events = new events($m_dbConn, $m_dbConnRoot);
 $events = $obj_events->view_events();
 $EventsCounter = count($events);
 include_once("classes/servicerequest.class.php");
-$obj_request = new servicerequest($m_dbConn, $m_dbConnRoot, $landLordDB);
+$obj_request = new servicerequest($m_dbConn, $m_dbConnRoot);
 $requests = $obj_request->getRecords($_REQUEST['cm']);
 $RequestsCounter = count($requests);
 include_once("classes/tenant.class.php");
@@ -631,6 +631,23 @@ $msgCounter = 0;
 								<?php
 							}
 							?>
+                            <?php if($_SESSION['module']['service_request'] == "1")
+							{
+								?>
+                            	<li class="active">
+                               <?php 
+							    if($_SESSION['role'] && ($_SESSION['role']==ROLE_ADMIN || $_SESSION['role']==ROLE_SUPER_ADMIN || $_SESSION['role']==ROLE_ADMIN_MEMBER || $_SESSION['role'] == ROLE_ACCOUNTANT || $_SESSION['role'] == ROLE_MANAGER))
+								{?>
+                                	<a href="legalcase.php?type=open"><i class="fa  fa-edit  fa-fw"></i>Legal Cases</a>
+                                 <?php }
+								 else {?>
+                                    <a href="legalcase.php?type=createdme"><i class="fa  fa-edit  fa-fw"></i>Legal Cases</a>
+                                    <?php } ?>
+                                	<!-- /.nav-second-level -->
+                            	</li>
+								<?php
+							}
+							?>
                             <?php if($_SESSION['security_dbname'] <> '')
 							{?>
                             	<li class="active">
@@ -794,9 +811,9 @@ $msgCounter = 0;
                                     <li>
                                         <a href="list_member2.php?scm">View Members</a>
                                     </li>
-                                   <li>
-                                        <a href="list_member3.php?scm">View Tenant</a>
-                                    </li>
+                                   <!-- <li>
+                                        <a href="list_member.php?scm">Members List</a>
+                                    </li>-->
                                     <?php if($_SESSION['role'] == "Super Admin" || $_SESSION['role'] == "Admin" || $_SESSION['role'] == "Accountant" || $_SESSION['role'] == "Manager")
                                     { ?>
                                     	<li>
