@@ -1,4 +1,5 @@
 <?php 
+//comment
 include_once "classes/include/dbop.class.php";
 $dbConn = new dbop();
 include "classes/bankReco.class.php";
