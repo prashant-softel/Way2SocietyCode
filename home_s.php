@@ -8,12 +8,10 @@ include_once("classes/servicerequest.class.php");
 //include_once("classes/include/dbop.class.php");
 $m_dbConnRoot =new dbop(true);
 $m_dbConn = new dbop();
-$obj_AdminPanel = new CAdminPanel($m_dbConn,$m_dbConnRoot);
+$obj_AdminPanel = new CAdminPanel($m_dbConn,$m_dbConnRoot,$m_landLordDB);
 $obj_utility = new utility($m_dbConn);
 $obj_servicerequest = new servicerequest($m_dbConn);
-// echo "<pre>";
-// print_r($_SESSION);
-// echo "</pre>";
+
 //$test = $obj_AdminPanel->TaskSummary();
 ///print_r($test);
 $obj_servicerequest->getRenovationId();
@@ -84,6 +82,11 @@ $obj_servicerequest->getRenovationId();
 	 .canvasjs-chart-credit
 	 {
 		position: unset !important; 
+	 }
+
+	 .panel:hover
+	 {
+		box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
 	 }
 
 
@@ -324,139 +327,91 @@ $obj_servicerequest->getRenovationId();
 
 <table style="width:100%;display:none;width:75vw" id="table1">
 	<tr>
-    <!-- First card -->
-    	<td style="width:33%">
-        	<div class="col-lg-3 col-md-6" style="width:100%">
+   		<!-- First card -->
+		<td>
+			<div class="col-lg-3 col-md-6" style="width:100%">
 				<div class="panel panel-primary">
 					<div class="panel-heading">
 						<div class="row">
-                            <table style="width:100%">
+							<a href="servicerequest.php?type=open&View=MEMBER" style="color: white;text-decoration: none;">
+							<table style="width:100%">
 							<tr>
-                                <td><i class="fa fa-exclamation-circle fa-5x" style="font-size:10px;font-size:3.75vw"></i></td>
-                                <td style="text-align:right;font-size:150%;vertical-align:middle;font-size:1.25vw">
-                               WAITING FOR APPROVAL  &nbsp;&nbsp;&nbsp;
-                                </td>
+								<td><i class="fa fa-edit  fa-5x" style="font-size:10px;font-size:3.75vw;padding: 5px;"></i></td>
+								<td style="text-align:right;font-size:150%;vertical-align:middle;font-size:1.25vw">
+                    MAYANK PATEL SERVICE REQUEST&nbsp;&nbsp;
+								</td>
 							</tr>
 							</table>
-							<div class="col-xs-9 text-right" style="width:100%">   
-                            <marquee HEIGHT=82px  behavior=scroll  direction=up scrollamount=1 scrolldelay=60 onmouseover='this.stop()' onmouseout='this.start()'>                                 
+							</a>
 							<?php
-								$PendindProvider =$obj_AdminPanel->getCountPendingPovider();
-								$PendingTenant = $obj_AdminPanel->getCountPendingTenant();
-								$PendingClassified = $obj_AdminPanel->getCountPendingTClassified();
-								$pendingRenovationRequest = $obj_AdminPanel->getCountOfPendingRenovationRequest();
-								$pendingAddressProofRequest = $obj_AdminPanel->getCountOfPendingAddressProofRequest();
-								$TotalPending =$PendindProvider[0]['PendingProviders'] + $PendingTenant[0]['TenantCount'] + $PendingClassified[0]['ClassifiedCount'] + $pendingRenovationRequest+$pendingAddressProofRequest+0;
+								$resultserviceRequestCount =$obj_AdminPanel->getServiceRequestCount(461);
+								$dataPoint2 = array(
+												array("label"=> "Raised", "y"=> $resultserviceRequestCount['Raised']),
+												array("label"=> "Process", "y"=> $resultserviceRequestCount['Process']),
+												array("label"=> "Resolve/Closed", "y"=> $resultserviceRequestCount['Closed'])
+													);
 							?>
-                                <table style="width:100%;">
-									<div  class="huge" style="font-size:30px">
-                                    
-                                       <tr>
-											<td style="width:60%;text-align:left;font-size:1.00vw;"><a href="service_prd_reg_view.php?srm&View=MEMBER" style="color: white;text-decoration: none;">Service Provider</a></td>
-											<td style="width:5%;">:</td>
-											<td style="font-weight:bold; width:35%; text-align:right;;font-size:1.00vw"><a href="service_prd_reg_view.php?srm&View=MEMBER" style="color: white;text-decoration: none;"><?php echo $PendindProvider[0]['PendingProviders'];?></a></td>
-										</tr>
-                                       
-										<tr>
-											<td style="width:60%;text-align:left;font-size:1.00vw;"><a href="show_tenant.php?TenantList=4" style="color: white;text-decoration: none;">Lease</a></td>
-											<td style="width:5%;">:</td>
-											<td style="font-weight:bold; width:35%; text-align:right;;font-size:1.00vw"><a href="show_tenant.php?TenantList=4" style="color: white;text-decoration: none;"><?php echo $PendingTenant[0]['TenantCount'];?></a></td>
-										</tr>
-                                        <tr>
-											<td style="width:60%;text-align:left;font-size:1.00vw;"><a href="my_listing_classified.php?View=MEMBER" style="color: white;text-decoration: none;">Classified</a></td>
-											<td style="width:5%;">:</td><td style="font-weight:bold; width:35%; text-align:right;;font-size:1.00vw"><a href="classified.php?View=MEMBER" style="color: white;text-decoration: none;"><?php echo $PendingClassified[0]['ClassifiedCount'];?></a></td>
-										</tr>
-                                        <tr>
-											<td style="width:60%;text-align:left;font-size:1.00vw;"><a href="renovationRequest.php?type=pending&View=ADMIN" style="color: white;text-decoration: none;">Renovation Request</a></td>
-											<td style="width:5%;">:</td><td style="font-weight:bold; width:35%; text-align:right;;font-size:1.00vw"><a href="renovationRequest.php?type=pending&View=ADMIN" style="color: white;text-decoration: none;"><?php echo $pendingRenovationRequest;?></a></td>
-										</tr>
-                                        <tr>
-											<td style="width:60%;text-align:left;font-size:1.00vw;"><a href="addressproofApproval.php?type=pending&View=ADMIN" style="color: white;text-decoration: none;">Address Proof Request</a></td>
-											<td style="width:5%;">:</td><td style="font-weight:bold; width:35%; text-align:right;;font-size:1.00vw"><a href="renovationRequest.php?type=pending&View=ADMIN" style="color: white;text-decoration: none;"><?php echo $pendingAddressProofRequest;?></a></td>
-										</tr>
-
-										<tr>
-										<td colspan="3"><br></td>
-										</tr>
-                                       <!--<tr><td style="width:60%;text-align:left;font-size:1.00vw;">Album</td><td style="width:5%;">:</td><td style="font-weight:bold; width:35%; text-align:right;;font-size:1.00vw">0</td></tr>-->
-                                    </div>
-                                      
-								</table>
-								
-                                 </marquee>
-                            </div>
-                        </div>
-                	</div>
-					<div class="panel-footer">
-                        <span class="pull-left" style="font-size:15x;font-size:1.00vw;font-weight: bold;"">Total Pending List : </span>
-						<span class="pull-right" style="font-size: 15px;font-weight: bold;"><?php echo $TotalPending;?></span>
-						<div class="clearfix"></div>
+								<div class="col-xs-9 text-right" style="width:100%"> 
+									<table style="width:100%;">
+									<tr>
+										<td style="width:60%;text-align:left;font-size:1.00vw">
+											<div class="panel panel-default"> 
+												<a href="#" id="myBtn2"><div id="chartContainer2" style="height: 105px; width: 100%;"></div></a>
+                               
+											</div>
+										</td>
+									</tr>
+									</table>
+								</div>
+						</div>
 					</div>
-                      
 				</div>
-			</div>
-        </td>
+			</div> 
+		</td> 
         
-        
-        
-         <!-- Second  card in row 1 -->
-       <td style="width:33%">
+        <!-- Second  card in row 1 -->
+		<td>
 			<div class="col-lg-3 col-md-6" style="width:100%">
 				<div class="panel panel-green">
 					<div class="panel-heading">
 						<div class="row">
-                            <table style="width:100%">
+							<a href="servicerequest.php?type=open&View=MEMBER" style="color: white;text-decoration: none;">
+							<table style="width:100%">
 							<tr>
-                                <td><i class="fa  fa-tasks fa-5x" style="font-size:10px;font-size:3.75vw"></i> </td>
-                                <td style="text-align:right;font-size:150%;vertical-align:middle;font-size:1.25vw">
-                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TASKS&nbsp;&nbsp
-                                </td>
+								<td><i class="fa fa-edit  fa-5x" style="font-size:10px;font-size:3.75vw;padding: 5px;"></i></td>
+								<td style="text-align:right;font-size:150%;vertical-align:middle;font-size:1.25vw">
+                    JUMMA SUHAIL SERVICE REQUEST&nbsp;&nbsp;
+								</td>
 							</tr>
 							</table>
-                            
-							<div class="col-xs-9 text-right" style="width:100%">                                    
-								<table style="width:100%;">
-								<tr>
-									<td height="" style="text-align:left;font-size:1.00vw">
-									<marquee HEIGHT=78px  behavior=scroll  direction=up scrollamount=1 scrolldelay=60 onmouseover='this.stop()' onmouseout='this.start()'>
-									<?php
-										$TaskList =$obj_AdminPanel->TaskSummary();
-				 
-										for($i=0 ; $i < sizeof($TaskList);$i++ )
-										{ ?>
-					
-                                            <div style="width:50%; float:left;"><?php echo substr($TaskList[$i]['Title'], 0,20);?></div>
-                                            <div style="width:5%; float:left;"> : </div>
-                                            <div style="width:10%; float:left;text-align: left;"><?php echo $TaskList[$i]['PercentCompleted']; ?>%</div><div style="float: right;text-align: right;">[ <?php echo getDisplayFormatDate($TaskList[$i]['DueDate']);?> ]</div>
-                                          <br>
-										<?php 
-                       
-										}?>
-									</marquee>
-									</td>
-                                    <?php if(sizeof($TaskList) == 0)
-									{?>
-										<td style="width:60%;text-align:left;color:#ffffff;font-size:1.8vw; float: left;
-    margin-left: 34%;">No Data</td>
-										<?php }?>
-								</tr>
-								</table>
-                                   
-							</div>
-                        </div>
-                	</div>
-                    <a href="tasks.php?type=raised_by&View=MEMBER">
-                        <div class="panel-footer">
-                            <span class="pull-left" style="font-size:10x;font-size:1.00vw">View Details</span>
-                            <span class="pull-right"><i class="fa fa-2x fa-arrow-circle-right"></i></span>
-                             <div class="clearfix"></div>
-                        </div>
-                    </a>
+							</a>
+							<?php
+								$resultserviceRequestCount =$obj_AdminPanel->getServiceRequestCount(460);
+								$dataPoint6 = array(
+												array("label"=> "Raised", "y"=> $resultserviceRequestCount['Raised']),
+												array("label"=> "Process", "y"=> $resultserviceRequestCount['Process']),
+												array("label"=> "Resolve/Closed", "y"=> $resultserviceRequestCount['Closed'])
+													);
+							?>
+								<div class="col-xs-9 text-right" style="width:100%"> 
+									<table style="width:100%;">
+									<tr>
+										<td style="width:60%;text-align:left;font-size:1.00vw">
+											<div class="panel panel-default"> 
+												<a href="#" id="myBtn2"><div id="chartContainer6" style="height: 105px; width: 100%;"></div></a>
+                               
+											</div>
+										</td>
+									</tr>
+									</table>
+								</div>
+						</div>
+					</div>
 				</div>
-			</div>
-		</td>
+			</div> 
+		</td> 
         
-         <!-- Third  card row 1-->
+        <!-- Third  card row 1-->
         <td style="width:33%">
 			<div class="col-lg-3 col-md-6" style="width:100%">
 				<div class="panel panel-red" style="border-color:#D9524F">
@@ -464,9 +419,9 @@ $obj_servicerequest->getRenovationId();
 						<div class="row">
 							<table style="width:100%">
 							<tr>
-								<td><i class="fa fa  fa-edit fa-5x" style="font-size:10px;font-size:3.75vw"></i></td>
+								<td><i class="fa fa  fa-edit fa-5x" style="font-size:10px;font-size:3.75vw;padding: 5px;"></i></td>
 								<td style="text-align:right;font-size:150%;vertical-align:middle;font-size:1.25vw">
-                    &nbsp;&nbsp;&nbsp;SERVICE REQUEST &nbsp;&nbsp;&nbsp;</td>
+                    &nbsp;&nbsp;&nbsp;LEGAL CASES &nbsp;&nbsp;&nbsp;</td>
 							</tr>
 							</table>
                     
@@ -491,8 +446,7 @@ $obj_servicerequest->getRenovationId();
 									</td>
                                      <?php if(sizeof($ServiceRequestList) == 0)
 									{?>
-										<td style="width:60%;text-align:left;color:#ffffff;font-size:1.8vw; float: left;
-    margin-left: 34%;">No Data</td>
+										<td style="width:60%;text-align:left;color:#ffffff;font-size:1.8vw; float: left;margin-left: 34%;">No Data</td>
 										<?php }?>
 								</tr>
 								</table>
@@ -512,9 +466,9 @@ $obj_servicerequest->getRenovationId();
   <tr></tr>
 </table>
 
- <!-- First card  Second Row-->
 <table style="width:100%;display:none;width:75vw" id="table2">
 	<tr>
+		<!-- First card  Second Row-->
         <td style="width:33%">
 			<div class="col-lg-3 col-md-6" style="width:100%">
 				<div class="panel panel-primary">
@@ -534,7 +488,7 @@ $obj_servicerequest->getRenovationId();
 							<a href="ExpenseDetails.php" style="color: white;text-decoration: none;">
 							<table style="width:100%">
 							<tr>
-								<td><i class="fa fa fa-inr fa-5x" style="font-size:10px;font-size:3.75vw"></i></td>
+								<td><i class="fa fa fa-inr fa-5x" style="font-size:10px;font-size:3.75vw;padding: 5px;"></i></td>
 								<td style="text-align:right;font-size:150%;vertical-align:middle;font-size:1.25vw">
 						 EXPENDITURE&nbsp;&nbsp;
 								</td>
@@ -569,6 +523,55 @@ $obj_servicerequest->getRenovationId();
 					<div class="panel-heading">
 						<div class="row">
 							<?php 
+							$arBankDetails = $obj_AdminPanel->GetIncomeSummaryDetailedDashboard();
+							//print_r($arBankDetails);
+							$dataPoint7  = array();
+							for($i=0;$i< sizeof($arBankDetails);$i++)
+							{
+								$arTemp = array("label"=> $arBankDetails[$i]['LedgerName'], "y"=> $arBankDetails[$i]['DebitAmount']);
+								array_push($dataPoint7, $arTemp);
+							}
+							?>
+						
+							<a href="ExpenseDetails.php" style="color: white;text-decoration: none;">
+							<table style="width:100%">
+							<tr>
+								<td><i class="fa fa fa-inr fa-5x" style="font-size:10px;font-size:3.75vw;padding: 5px;"></i></td>
+								<td style="text-align:right;font-size:150%;vertical-align:middle;font-size:1.25vw">
+						 INCOME&nbsp;&nbsp;
+								</td>
+							</tr>
+							</table>
+							</a>
+							<div class="col-xs-9 text-right" style="width:100%"> 
+								<table style="width:100%;">
+								<tr>
+									<td style="width:60%;text-align:left;font-size:1.00vw" >
+										<div class="panel panel-default"> 
+											<a href="#" id="myBtn"><div id="chartContainer7" style="height: 105px; width: 100%;" class="zoom"></div></a> 
+								   
+								
+										</div>
+									</td>
+								</tr>
+							   </table>
+						  
+							</div>
+						</div>
+					</div>
+                
+				</div>
+			</div>
+        </td>
+		
+        
+        <!-- Third card  Second Row-->
+		<td style="width:33%">
+			<div class="col-lg-3 col-md-6" style="width:100%">
+				<div class="panel panel-red">
+					<div class="panel-heading">
+						<div class="row">
+							<?php 
 					
 							//$_POST['wing_id'],$_POST['year_id'],$period_id,$bill_type
 							$PaymentDetails =$obj_AdminPanel->getRecieptReportCurrentPeriod();
@@ -583,7 +586,7 @@ $obj_servicerequest->getRenovationId();
 							<a href="bill_receipt_report.php?Dashboard=1&period_id=<?php echo $PaymentDetails[0]['PeriodID']?>" style="color: white;text-decoration: none;">
 							<table style="width:100%">
 							<tr>
-								<td><i class="fa fa-bank fa-5x" style="font-size:10px;font-size:3.75vw"></i> </td>
+								<td><i class="fa fa-bank fa-5x" style="font-size:10px;font-size:3.75vw;padding: 5px;"></i> </td>
 								<td style="text-align:right;font-size:150%;vertical-align:middle;font-size:1.25vw">
                     BILL COLLECTION &nbsp;&nbsp;
 								</td>
@@ -607,48 +610,7 @@ $obj_servicerequest->getRenovationId();
 				</div>
 			</div>
         </td>
-        
-        <!-- Third card  Second Row-->
-		<td>
-			<div class="col-lg-3 col-md-6" style="width:100%">
-				<div class="panel panel-red">
-					<div class="panel-heading">
-						<div class="row">
-							<a href="servicerequest.php?type=open&View=MEMBER" style="color: white;text-decoration: none;">
-							<table style="width:100%">
-							<tr>
-								<td><i class="fa fa-edit  fa-5x" style="font-size:10px;font-size:3.75vw"></i></td>
-								<td style="text-align:right;font-size:150%;vertical-align:middle;font-size:1.25vw">
-                    SERVICE REQUEST&nbsp;&nbsp;
-								</td>
-							</tr>
-							</table>
-							</a>
-							<?php
-								$resultserviceRequestCount =$obj_AdminPanel->getServiceRequestCount();
-								$dataPoint2 = array(
-												array("label"=> "Raised", "y"=> $resultserviceRequestCount['Raised']),
-												array("label"=> "Process", "y"=> $resultserviceRequestCount['Process']),
-												array("label"=> "Resolve/Closed", "y"=> $resultserviceRequestCount['Closed'])
-													);
-							?>
-								<div class="col-xs-9 text-right" style="width:100%"> 
-									<table style="width:100%;">
-									<tr>
-										<td style="width:60%;text-align:left;font-size:1.00vw">
-											<div class="panel panel-default"> 
-												<a href="#" id="myBtn2"><div id="chartContainer2" style="height: 105px; width: 100%;"></div></a>
-                               
-											</div>
-										</td>
-									</tr>
-									</table>
-								</div>
-						</div>
-					</div>
-				</div>
-			</div> 
-		</td>   
+		  
 	</tr>
 </table>
  <!-- First card  Third Row-->
@@ -661,7 +623,7 @@ $obj_servicerequest->getRenovationId();
 						<div class="row">
                             <table style="width:100%">
 							<tr>
-                                <td><i class="fa fa-inr fa-5x" style="font-size:10px;font-size:3.75vw"></i></td>
+                                <td><i class="fa fa-inr fa-5x" style="font-size:10px;font-size:3.75vw;padding: 5px;"></i></td>
                                 <td style="text-align:right;font-size:150%;vertical-align:middle;font-size:1.25vw">
                                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CASH&nbsp;&&nbsp;BANK&nbsp;&nbsp
                                 </td>
@@ -744,9 +706,9 @@ $obj_servicerequest->getRenovationId();
 						<div class="row">
 							<table style="width:100%">
 							<tr>
-								<td> <i class="fa fa-arrow-up fa-5x" style="font-size:10px;font-size:3.75vw"></i> </td>
+								<td> <i class="fa fa-arrow-up fa-5x" style="font-size:10px;font-size:3.75vw;padding: 5px;"></i> </td>
 								<td style="text-align:right;font-size:150%;vertical-align:middle;font-size:1.25vw">
-                    MEMBER'S&nbsp;DUES&nbsp;&nbsp;
+                    TENANTS'S&nbsp;DUES&nbsp;&nbsp;
 								</td>
 							</tr>
 							</table>
@@ -794,17 +756,17 @@ $obj_servicerequest->getRenovationId();
 				</div>
 			</div>
         </td>    
-    <!-- Third card  Third Row-->
-    <td style="width:33%">
+    	<!-- Third card  Third Row-->
+		<td style="width:33%;">
 			<div class="col-lg-3 col-md-6" style="width:100%">
 				<div class="panel panel-red" style="border-color:#5CB85C">
 					<div class="panel-heading">
 						<div class="row">
 							<table style="width:100%">
 							<tr>
-								<td><i class="fa fa-bell fa-5x" style="font-size:10px;font-size:3.75vw"></i></td>
+								<td><i class="fa fa-bell fa-5x" style="font-size:10px;font-size:3.75vw;padding: 5px;"></i></td>
 								<td style="text-align:right;font-size:150%;vertical-align:middle;;font-size:1.25vw">
-                    &nbsp;&nbsp;REMINDERS/ALERT &nbsp;&nbsp;&nbsp;</td>
+                    &nbsp;&nbsp;PDC REPORT&nbsp;&nbsp;</td>
 							</tr>
 							</table>
                     
@@ -845,6 +807,7 @@ $obj_servicerequest->getRenovationId();
 				</div>
 			</div>
 		</td>
+    	
        
         
       
@@ -940,6 +903,29 @@ window.onload = function ()
 						}]
 				});
 						chart1.render();			
+			var chart7 = new CanvasJS.Chart("chartContainer7", {
+				theme: "theme2",
+				animationEnabled: true,
+				///title: {
+							//text: "World Energy Consumption by Sector - 2012"
+						// },
+						legend: {
+			maxWidth: 350,
+			itemWidth: 120
+		},
+				data: [{
+						type: "pie",
+						indexLabel: "{label} ({y})",
+						
+						//indexLabelPlacement: "inside",
+						
+						showInLegend: true,
+						//legendText: "{label}",
+						legendText: "{indexlabel}",
+						dataPoints: <?php echo json_encode($dataPoint7 , JSON_NUMERIC_CHECK); ?>
+						}]
+				});
+						chart7.render();			
 			var chart2 = new CanvasJS.Chart("chartContainer2", {
 			animationEnabled: true,
 			theme: "light2", // "light1", "light2", "dark1", "dark2"
@@ -1024,6 +1010,20 @@ window.onload = function ()
 				}]
 			});
 			chart5.render();
+			var chart6 = new CanvasJS.Chart("chartContainer6", {
+			animationEnabled: true,
+			theme: "light2", // "light1", "light2", "dark1", "dark2"
+			//title:{
+							
+				//},
+		data: [{
+				type: "column", 
+				indexLabel: "{y}", //Shows y value on all Data Points
+				indexLabelFontColor: "#5A5757",
+				dataPoints: <?php echo json_encode($dataPoint6, JSON_NUMERIC_CHECK); ?>
+				}]
+			});
+			chart6.render();
  	}
 </script>
 <script type="text/javascript" src="js/home_s.js"></script>
