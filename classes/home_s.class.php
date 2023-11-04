@@ -581,7 +581,7 @@ class CAdminPanel
 	public function getServiceRequestList()
 	{
 		//$sqlServiceRequest= "SELECT * FROM `service_request` where status NOT IN('Closed') ORDER BY request_id DESC";
-		$sqlServiceRequest="SELECT sr.* ,u.unit_no FROM `service_request` as sr join unit as u on sr.unit_id=u.unit_id where sr.status NOT IN('Closed') AND sr.status NOT IN('Resolved') ORDER BY request_id DESC";
+		$sqlServiceRequest="SELECT sr.* ,u.unit_no FROM `legal_case` as sr join unit as u on sr.unit_id=u.unit_id where sr.status NOT IN('Closed') AND sr.status NOT IN('Resolved') ORDER BY request_id DESC";
 		$result=$this->m_dbConn->select($sqlServiceRequest);
 		return $result;
 	}
