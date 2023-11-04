@@ -1,0 +1,59 @@
+legalcase.php
+legalcase.class.php
+addlegalcase.php
+header.php
+ajaxlegalcase.php
+legalcase.process.php
+jsLegalcase.js
+viewlegalcase.php
+
+
+
+CREATE TABLE `legal_case` (
+ `request_id` int(11) NOT NULL AUTO_INCREMENT,
+ `request_no` int(11) NOT NULL,
+ `society_id` int(11) NOT NULL,
+ `reportedby` varchar(50) NOT NULL,
+ `dateofrequest` date NOT NULL,
+ `email` varchar(50) NOT NULL,
+ `phone` varchar(20) NOT NULL DEFAULT '0',
+ `priority` varchar(50) NOT NULL,
+ `category` varchar(50) NOT NULL,
+ `summery` longtext NOT NULL,
+ `details` longtext NOT NULL,
+ `status` varchar(50) NOT NULL,
+ `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ `unit_id` int(11) NOT NULL,
+ `visibility` int(11) NOT NULL DEFAULT '1',
+ `img` varchar(500) NOT NULL,
+ `case_no` varchar(50) NOT NULL,
+ `outstanding_rent` double(50,2) NOT NULL,
+ `open_on` date NOT NULL,
+ `case_open_date` date NOT NULL,
+ PRIMARY KEY (`request_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1
+
+
+
+
+
+CREATE TABLE IF NOT EXISTS `ledger_details` (
+  `Ledger_details_id` int(11) NOT NULL AUTO_INCREMENT,
+  `LedgerID` int(11) NOT NULL,
+  `GSTIN_No` varchar(50) NOT NULL,
+  `PAN_No` varchar(50) NOT NULL,
+  `TDS_NatureOfPayment` varchar(50) NOT NULL,
+  `TDS_Ded_rate` int(11) NOT NULL DEFAULT '0',
+  `Time_Stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` varchar(10) NOT NULL DEFAULT 'Y',
+  `vendor_address1` varchar(400) NOT NULL,
+  `vendor_city` varchar(50) NOT NULL,
+  `vendor_pincode` varchar(10) NOT NULL,
+  `vendor_state` varchar(50) NOT NULL,
+  `vendor_address2` varchar(400) NOT NULL,
+  `vendor_contact` varchar(50) NOT NULL,
+  `vendor_office_no` varchar(50) NOT NULL,
+  `vendor_email` varchar(100) NOT NULL,
+  `website` varchar(100) NOT NULL,
+  PRIMARY KEY (`Ledger_details_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
