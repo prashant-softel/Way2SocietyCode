@@ -189,6 +189,9 @@ $mimes = array('application/vnd.ms-excel','text/csv','text/tsv');
 		{
 			include('import_tenant_data.php');
 		}
+        elseif($_POST['flag']==18){
+            include('import_rc_tenant_data.php');
+        }
 	}
  }
 ?>
@@ -409,6 +412,22 @@ $(document).ready(function () {
     else if(flag==17)
 	{
 	
+        for (let j = 0; j <12 ; j++)
+        {
+			if(j==0 || j==1 || j==2 || j==3 || j==4 || j==5 || j==6 || j==7 || j==8 || j==9 || j==10 || j==11 || j==12 )
+			{
+				document.getElementsByClassName('columns')[j].checked = true;
+            			document.getElementsByClassName('columns')[j].disabled = true;
+			}
+        }
+        
+        $("#Cancel").click(function() {
+            window.location.href = "import_tenant_data.php";
+        });   	
+	}
+    else if(flag==18)
+	{
+	
         for (let j = 0; j <16 ; j++)
         {
 			if(j==0 || j==1 || j==2 || j==3 || j==4 || j==5 || j==6 || j==7 || j==8 || j==9 || j==10 || j==11 || j==12 || j==13 || j==14 || j==15)
@@ -419,7 +438,7 @@ $(document).ready(function () {
         }
         
         $("#Cancel").click(function() {
-            window.location.href = "import_tenant_data.php";
+            window.location.href = "import_rc_tenant_data.php";
         });   	
 	}
 });
@@ -613,6 +632,12 @@ function validateData()
         <form name="import_tenant_data" id="import_tenant_data" action="process/import_tenant_data.process.php" method="post" enctype="multipart/form-data" >
         <?php
         }
+        elseif ($_POST['flag'] == 18)
+        {
+        ?>
+        <form name="import_rc_tenant_data" id="import_rc_tenant_data" action="process/import_tenant_data.process.php" method="post" enctype="multipart/form-data" >
+        <?php
+        }
         }  
     }
 ?>    
@@ -739,6 +764,11 @@ function validateData()
 				<?php 
 				}
                 else if($_POST['flag'] == 17)
+                {?>
+                    <div class="panel-heading" id="pageheader">Import Tenant Data</div>
+                <?php 
+                }
+                else if($_POST['flag'] == 18)
                 {?>
                     <div class="panel-heading" id="pageheader">Import Tenant Data</div>
                 <?php 
