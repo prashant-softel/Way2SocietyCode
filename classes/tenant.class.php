@@ -98,6 +98,7 @@ class tenant
 				$srResult = $this->addServiceRequest($_SESSION['serviceRequestDetails']['srTitle'],$_SESSION['serviceRequestDetails']['priority'],$_SESSION['serviceRequestDetails']['category'],$_SESSION['TENANT_REQUEST_ID'],$_SESSION['serviceRequestDetails']['unit_no'],$_SESSION['login_id'],$_SESSION['society_id']);
 			}
 			$wing = $_POST["wing_id"];
+			$security_deposit = $_POST["sd"];
 			$unitLedgerName = $_POST['unit_no'];
 			//echo $unitLedgerName;
 			$start=getDBFormatDate($_POST['start_date']);
@@ -106,12 +107,13 @@ class tenant
 			$total_month = $_POST["Lease_Period"];
 			$p_verification = $_POST['pVerified'];
 			$leaveAndLicenseAgreement = $_POST['leaveAndLicenseAgreement'];
+			$amount = $_POST['sd_amount'];
 			$chequeCount = (int)$_POST['cheqcount'];
 			$members=$_POST['count'];
-			echo $sql = "select APP_DEFAULT_SOCIETY from appdefault";
+			$sql = "select APP_DEFAULT_SOCIETY from appdefault";
 			$res = $this->landLordDBRoot->select($sql);
 			$landLordSocietyID = $res[0]['APP_DEFAULT_SOCIETY'];
-			echo "ID: " .$landLordSocietyID;
+			// echo "ID: " .$landLordSocietyID;
 
 			if($this->isLandLordDB)
 			{
@@ -188,7 +190,7 @@ class tenant
 						}														
 						// echo $sql1 = "insert into unit(unit_id,society_id,wing_id,unit_no) values(" . $sqlLegerID . ", ".$_SESSION['society_id']." , ".$wing.", ".$this->m_dbConn->escapeString($unitLedgerName).")";										
 						// $res1 = $this->m_dbConn->insert($sql1);
-						$sql2= "insert into `tenant_module` (`serviceRequestId`,`doc_id`,`unit_id`,`tenant_name`,tenant_MName,tenant_LName,`mobile_no`,`email`,`dob`,`agent_name`,`agent_no`,`members`,`create_date`,`start_date`,`end_date`, `total_month`, `note`,`ApprovalLevel`,`noofcheque`) values ('".$srResult."','0'," . $unitLedgerName . ",'".$_POST['t_name']."','".$_POST['t_mname']."','".$_POST['t_lname']."','".$_POST['contact_1']."','".$_POST['email_1']."','".getDBFormatDate($_POST['mem_dob_1'])."','".$_POST['agent']."','".$_POST['agent_no']."','1','".date('Y-m-d')."','".$start."','".$end."', '".$total_month."', '".$_POST['note']."','".$this->getApprovalLevel()."', '".$chequeCount."')";
+						$sql2= "insert into `tenant_module` (`serviceRequestId`,`doc_id`,`unit_id`,`tenant_name`,tenant_MName,tenant_LName,`mobile_no`,`email`,`dob`,`agent_name`,`agent_no`,`members`,`create_date`,`start_date`,`end_date`, `total_month`, `note`,`ApprovalLevel`,`noofcheque`,`security_deposit`) values ('".$srResult."','0'," . $unitLedgerName . ",'".$_POST['t_name']."','".$_POST['t_mname']."','".$_POST['t_lname']."','".$_POST['contact_1']."','".$_POST['email_1']."','".getDBFormatDate($_POST['mem_dob_1'])."','".$_POST['agent']."','".$_POST['agent_no']."','1','".date('Y-m-d')."','".$start."','".$end."', '".$total_month."', '".$_POST['note']."','".$this->getApprovalLevel()."', '".$chequeCount."','".$amount."')";
 						$result = $this->landLordDB->insert($sql2);
 
 						$sql7 = "insert into `approval_details` (`referenceId`, module_id) values ('".$result."','".TENANT_SOURCE_TABLE_ID."');";
@@ -289,6 +291,19 @@ class tenant
 						$updateProfileSql = "update tenant_module set `img` = '".$fileName."' where tenant_id = '".$result."';";
 						$updateResult = $this->landLordDB->update($updateProfileSql);
 					}
+// ---------------------------------Security Deposit Cheque-----------------------------------------------------
+					$tenantId = $result;
+					//echo "tenant id: " .$tenantId;
+					//echo "cheque no: " .$chequeCount;
+					$bank_name = $_POST['bankName'];
+					$bank_branch = $_POST['branch'];
+					$cheqno = $_POST['cheqno'];
+					$cheque_date= $_POST['cheqdate'];
+					$amount = $_POST['amount'];
+					$remark = $_POST['remark'];
+					$type = "Security Deposit";
+					$insert_query = "insert into postdated_cheque (`tenant_id`,`unit_id`,`bank_name`,`bank_branch`,`cheque_no`,`cheque_date`,`amount`,`remark`,`type`,`status`) values ('".$tenantId."','".$unitLedgerName."','".$bank_name."','".$bank_branch."','".$cheqno."','".getDBFormatDate($cheque_date)."','".$amount."','".addslashes(trim(ucwords($remark)))."','".$type."','Y')";
+					$data = $this->landLordDB->insert($insert_query);
 
 					//--------------------------------------------------Post Dated Cheque-----------------------------------------------------------------------//
 
@@ -303,7 +318,8 @@ class tenant
 						$cheque_date= $_POST['cheqdate_'.$i];
 						$amount = $_POST['amount_'.$i];
 						$remark = $_POST['remark_'.$i];
-						$insert_query = "insert into postdated_cheque (`tenant_id`,`unit_id`,`bank_name`,`bank_branch`,`cheque_no`,`cheque_date`,`amount`,`remark`,`status`) values ('".$tenantId."','".$unitLedgerName."','".$bank_name."','".$bank_branch."','".$cheqno."','".getDBFormatDate($cheque_date)."','".$amount."','".addslashes(trim(ucwords($remark)))."','Y')";
+						$type = "PDC";
+						$insert_query = "insert into postdated_cheque (`tenant_id`,`unit_id`,`bank_name`,`bank_branch`,`cheque_no`,`cheque_date`,`amount`,`remark`,`type`,`status`) values ('".$tenantId."','".$unitLedgerName."','".$bank_name."','".$bank_branch."','".$cheqno."','".getDBFormatDate($cheque_date)."','".$amount."','".addslashes(trim(ucwords($remark)))."','".$type."','Y')";
 						$data = $this->landLordDB->insert($insert_query);
 					}
 
@@ -513,6 +529,10 @@ class tenant
 						{
 							$sqlInsert = "INSERT INTO `ledger`(`society_id`, `categoryid`, `ledger_name`, `sale`, `receipt`, `opening_balance`,`opening_type`) VALUES ('".$_SESSION['society_id']."', '" . $account_category. "', '".$_POST['t_name']."', 1, 1, '" . abs($total_opening_balance) . "',1)";	
 							$sqlLegerID = $this->m_dbConn->insert($sqlInsert);
+
+							$sd_sql = "INSERT INTO `ledger`(`society_id`, `categoryid`, `ledger_name`, `sale`, `receipt`, `opening_balance`,`opening_type`) VALUES ('".$_SESSION['society_id']."','56','".$_POST['t_name']."-".$unitLedgerName."-Security deposit', 1, 1, '" . abs($total_opening_balance) . "',1)";	
+							$sd_res = $this->m_dbConn->insert($sd_sql);
+
 							$insertAsset = $obj_register->SetAssetRegister(getDBFormatDate($Date), $sqlLegerID, 0, 0, TRANSACTION_CREDIT, abs($total_opening_balance), 1);
 							$sqlInsert1 = "INSERT INTO `ledger`(`society_id`, `categoryid`, `ledger_name`, `sale`, `receipt`, `opening_balance`,`opening_type`) VALUES ('".$landLordSocietyID."' , '" . $category_id. "', '".$_POST['t_name']."', 1, 1, '" . abs($total_opening_balance) . "',1)";	
 							$sqlLegerID1 = $this->landLordDBRoot->insert($sqlInsert1);
@@ -521,9 +541,14 @@ class tenant
 						{
 							$sqlInsert = "INSERT INTO `ledger`(`society_id`, `categoryid`, `ledger_name`, `sale`, `receipt`, `opening_balance`,`opening_type`) VALUES (".$_SESSION['society_id'].", '". $account_category ."', '".$_POST['t_name']."', 1, 1, ". abs($total_opening_balance) .",2)";	
 							$sqlLegerID = $this->m_dbConn->insert($sqlInsert);
+							// echo "test";
+							$sd_sql = "INSERT INTO `ledger`(`society_id`, `categoryid`, `ledger_name`, `sale`, `receipt`, `opening_balance`,`opening_type`) VALUES ('".$_SESSION['society_id']."','56','".$_POST['t_name']."-".$unitLedgerName."-Security deposit', 1, 1, '" . abs($total_opening_balance) . "',2)";	
+							$sd_res = $this->m_dbConn->insert($sd_sql);
+
 							$insertAsset = $obj_register->SetAssetRegister(getDBFormatDate($Date), $sqlLegerID, 0, 0, TRANSACTION_DEBIT, $total_opening_balance, 1);
 							$sqlInsert1 = "INSERT INTO `ledger`(`society_id`, `categoryid`, `ledger_name`, `sale`, `receipt`, `opening_balance`,`opening_type`) VALUES ('".$landLordSocietyID."' , '" . $category_id. "', '".$_POST['t_name']."', 1, 1, '" . abs($total_opening_balance) . "',2)";	
 							$sqlLegerID1 = $this->landLordDBRoot->insert($sqlInsert1);
+							
 							//pending : Add log for above queries
 						}
 						$getmax="select max(sort_order) as cnt from `unit` where society_id='".$_SESSION['landLordSocID']."'";
@@ -537,7 +562,7 @@ class tenant
 						}														
 						// echo $sql1 = "insert into unit(unit_id,society_id,wing_id,unit_no) values(" . $sqlLegerID . ", ".$_SESSION['society_id']." , ".$wing.", ".$this->m_dbConn->escapeString($unitLedgerName).")";										
 						// $res1 = $this->m_dbConn->insert($sql1);
-						$sql2= "insert into `tenant_module` (`serviceRequestId`,`doc_id`,`unit_id`,`tenant_name`,tenant_MName,tenant_LName,`mobile_no`,`email`,`dob`,`agent_name`,`agent_no`,`members`,`create_date`,`start_date`,`end_date`, `total_month`, `note`,`ApprovalLevel`,`noofcheque`) values ('".$srResult."','0'," . $unitLedgerName . ",'".$_POST['t_name']."','".$_POST['t_mname']."','".$_POST['t_lname']."','".$_POST['contact_1']."','".$_POST['email_1']."','".getDBFormatDate($_POST['mem_dob_1'])."','".$_POST['agent']."','".$_POST['agent_no']."','1','".date('Y-m-d')."','".$start."','".$end."', '".$total_month."', '".$_POST['note']."','".$this->getApprovalLevel()."', '".$chequeCount."')";
+						$sql2= "insert into `tenant_module` (`ledger_id`,`serviceRequestId`,`doc_id`,`unit_id`,`tenant_name`,tenant_MName,tenant_LName,`mobile_no`,`email`,`dob`,`agent_name`,`agent_no`,`members`,`create_date`,`start_date`,`end_date`, `total_month`, `note`,`ApprovalLevel`,`noofcheque`,`security_deposit`) values ('".$sqlLegerID."','".$srResult."','0'," . $unitLedgerName . ",'".$_POST['t_name']."','".$_POST['t_mname']."','".$_POST['t_lname']."','".$_POST['contact_1']."','".$_POST['email_1']."','".getDBFormatDate($_POST['mem_dob_1'])."','".$_POST['agent']."','".$_POST['agent_no']."','1','".date('Y-m-d')."','".$start."','".$end."', '".$total_month."', '".$_POST['note']."','".$this->getApprovalLevel()."', '".$chequeCount."','".$amount."')";
 						$result = $this->m_dbConn->insert($sql2);
 
 						$sql7 = "insert into `approval_details` (`referenceId`, module_id) values ('".$result."','".TENANT_SOURCE_TABLE_ID."');";
@@ -638,6 +663,19 @@ class tenant
 						$updateProfileSql = "update tenant_module set `img` = '".$fileName."' where tenant_id = '".$result."';";
 						$updateResult = $this->m_dbConn->update($updateProfileSql);
 					}
+// ---------------------------------Security Deposit Cheque-----------------------------------------------------
+					$tenantId = $result;
+					//echo "tenant id: " .$tenantId;
+					//echo "cheque no: " .$chequeCount;
+					$bank_name = $_POST['bankName'];
+					$bank_branch = $_POST['branch'];
+					$cheqno = $_POST['cheqno'];
+					$cheque_date= $_POST['cheqdate'];
+					$amount = $_POST['amount'];
+					$remark = $_POST['remark'];
+					$type = "Security Deposit";
+					$insert_query = "insert into postdated_cheque (`tenant_id`,`unit_id`,`bank_name`,`bank_branch`,`cheque_no`,`cheque_date`,`amount`,`remark`,`type`,`status`) values ('".$tenantId."','".$unitLedgerName."','".$bank_name."','".$bank_branch."','".$cheqno."','".getDBFormatDate($cheque_date)."','".$amount."','".addslashes(trim(ucwords($remark)))."','".$type."','Y')";
+					$data = $this->m_dbConn->insert($insert_query);
 
 					//--------------------------------------------------Post Dated Cheque-----------------------------------------------------------------------//
 
@@ -652,7 +690,8 @@ class tenant
 						$cheque_date= $_POST['cheqdate_'.$i];
 						$amount = $_POST['amount_'.$i];
 						$remark = $_POST['remark_'.$i];
-						$insert_query = "insert into postdated_cheque (`tenant_id`,`unit_id`,`bank_name`,`bank_branch`,`cheque_no`,`cheque_date`,`amount`,`remark`,`status`) values ('".$tenantId."','".$unitLedgerName."','".$bank_name."','".$bank_branch."','".$cheqno."','".getDBFormatDate($cheque_date)."','".$amount."','".addslashes(trim(ucwords($remark)))."','Y')";
+						$type = "PDC";
+						$insert_query = "insert into postdated_cheque (`tenant_id`,`unit_id`,`bank_name`,`bank_branch`,`cheque_no`,`cheque_date`,`amount`,`remark`,`type`,`status`) values ('".$tenantId."','".$unitLedgerName."','".$bank_name."','".$bank_branch."','".$cheqno."','".getDBFormatDate($cheque_date)."','".$amount."','".addslashes(trim(ucwords($remark)))."','".$type."''Y')";
 						$data = $this->m_dbConn->insert($insert_query);
 					}
 

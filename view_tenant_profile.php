@@ -254,7 +254,7 @@ $(function()
 	?>
     </td>
     <td style="padding:5px">
-    <input type="button" class="btn btn-primary "  value="Total Dues Rs.<?php echo $obj_utility->getDueAmount($show_tenant_main[0]['unit_id'])?>" style=" height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;background-color:#FFFFFF;color:#000;border-color:#FFFFFF;border-top-style:none;border-left-style:none;border-right-style:none;font-weight:bold" onClick="window.open('tenant_ledger_report.php?&uid=<?php echo $show_tenant_main[0]['unit_id'];?>', '_blank')">
+    <input type="button" class="btn btn-primary "  value="Total Dues Rs.<?php echo $obj_utility->getDueAmount($show_tenant_main[0]['unit_id'])?>" style=" height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;background-color:#FFFFFF;color:#000;border-color:#FFFFFF;border-top-style:none;border-left-style:none;border-right-style:none;font-weight:bold" onClick="window.open('tenant_ledger_report.php?&uid=<?php echo $show_tenant_main[0]['ledger_id'];?>', '_blank')">
     </td>
     </tr>
     </table>
@@ -945,6 +945,8 @@ $(function()
                         <th width="180">E-Mail</th>-->
                         <th width="150">Amount</th>
                         <th width="100">Remark</th>
+                        <th width="150">Cheque Type</th>
+                        <th width="150">Status</th>
                <!-- <th width="80">Document</th>-->
                         </tr>
                         <tr><td><br></td></tr>
@@ -961,6 +963,8 @@ $(function()
                         <th width="180">E-Mail</th>-->
                         <th width="100">Amount</th>
                         <th width="100">Remark</th>
+                        <th width="150">Cheque Type</th>
+                        <th width="150">Status</th>
                       <!--  <th width="80">Document</th>-->	
         </tr>
         <?php 
@@ -974,6 +978,15 @@ $(function()
 			$cheque_date=getDisplayFormatDate($cheque_List[$i]['cheque_date']);
 			$amount=$cheque_List[$i]['amount'];
 			$remark=$cheque_List[$i]['remark'];
+            $cheque_type = $cheque_List[$i]['type'];
+            $status = $cheque_List[$i]['status'];
+            if($status == 0){
+                $status = "Accepted";
+            }elseif($status == 1){
+                $status = "Deposited";
+            }else{
+                $status = "Cancelled or Replaced";
+            }
 			?>
              <tr height="25" bgcolor="#BDD8F4">
             <td><?php echo $bank_name; ?></td>
@@ -981,6 +994,8 @@ $(function()
             <td><?php echo getDisplayFormatDate($cheque_date);?></td>
             <td><?php echo $amount; ?></td>
             <td><?php echo $remark; ?></td>
+            <td><?php echo $cheque_type; ?></td>
+            <td><?php echo $status; ?></td>
             </tr>
                              
 		<?php }?>

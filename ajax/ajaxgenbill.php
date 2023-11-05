@@ -108,6 +108,18 @@
 	{
 		$result = $obj_genbill->deleteDebitorCredit($_REQUEST['DebitorCreditID'],$_REQUEST['NoteType']);
 	}
+	else if(isset($_REQUEST['method']) && $_REQUEST['method']=='Tenant_rent')
+	{
+		// echo "<pre>";
+		// print_r($_REQUEST);
+		// echo "</pre>";
+		// echo"test";
+		// $ledger_id = $_GET['uid'];
+		// echo "ID" .$ledger_id;
+		$tenant_rent = "select annual_rent from tenant_module where ledger_id = '".$_REQUEST['ledgerid']."' ";
+		$res = $dbConn->select($tenant_rent);
+		echo $res[0]['annual_rent'];
+	}
 	else if(isset($_REQUEST['method']) && $_REQUEST['method']=='Checktaxable')
 	{
 		$checktaxableLedger="select taxable as tax from ledger where id = '".$_REQUEST['showtax']."' ";

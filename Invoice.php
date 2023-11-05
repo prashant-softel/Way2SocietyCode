@@ -528,7 +528,30 @@ function checktaxable(count)
 	}
 	
 }
-
+function tenant_rent(NewRowCounter){
+	var ledger_id = '<?php echo $_REQUEST['uid']; ?>';
+	var Count = 0;
+	// console.log(NewRowCounter);
+	  for(var m=1;m <= NewRowCounter; m++)
+		{	
+			var	name =document.getElementById('particular'+m).value;
+			Count++;
+			if(name == 66){
+				$.ajax({
+				url : "ajax/ajaxgenbill.php",
+				type : "POST",
+				data: {"method" : 'Tenant_rent',"rent":name,"ledgerid":ledger_id},
+				success : function(data)
+				{
+					// console.log(data);
+					// console.log(m);
+					document.getElementById('HeaderAmount'+NewRowCounter).value = data;
+				}
+			});
+			}
+			// console.log(name);
+		}
+}
 var NewRowCounter=0;
 
 	function AddNewRow()
@@ -546,7 +569,7 @@ var NewRowCounter=0;
           var newRow="<tr><td style='border:1px solid black;border-left:none;text-align:center;font-size:14px;'>"+NewRowCounter+"</td>";
 		  
 		  newRow += "<td colspan=3 style='border:1px solid black;'> <?php if($bApplyServiceTax == 1 && (isset($_REQUEST['add']) || isset($_REQUEST['edt']) || isset($_REQUEST['add_credit']) || isset($_REQUEST['add_debit']))){?>
-		  <select onchange='IsTaxable(NewRowCounter)' name='particular"+NewRowCounter+"' id='particular"+NewRowCounter+"' style='width:30%;'><?php echo $Particular = $obj_genbill->comboboxEx($SELECT_Query);?></select><?php } else {?> <select name='particular"+NewRowCounter+"' id='particular"+NewRowCounter+"' style='width:30%;'><?php echo $Particular = $obj_genbill->comboboxEx($SELECT_Query);?></select><?php  }?></td>";
+		  <select onchange='IsTaxable(NewRowCounter)' name='particular"+NewRowCounter+"' id='particular"+NewRowCounter+"' style='width:30%;'><?php echo $Particular = $obj_genbill->comboboxEx($SELECT_Query);?></select><?php } else {?> <select onchange='tenant_rent(NewRowCounter)' name='particular"+NewRowCounter+"' id='particular"+NewRowCounter+"' style='width:30%;'><?php echo $Particular = $obj_genbill->comboboxEx($SELECT_Query);?></select><?php  }?></td>";
 		  
 			<?php if($bApplyServiceTax == 1 && (isset($_REQUEST['add']) || isset($_REQUEST['edt']) || isset($_REQUEST['add_credit']) || isset($_REQUEST['add_debit'])))
 			{?>
@@ -902,7 +925,7 @@ var billdate="";
 							</select></td>	
                        <?php if(isset($_REQUEST['add'])  || isset($_REQUEST['edt'])){?>     
                       <td style="width:15%; display:none;" id = 'Outside'><select name="Outsider" id="Outsider"  style="width:250px;margin-top:5px;">
-						<?php  echo $combo_state = $obj_genbill->FetchUnitName($outsider = 1); ?>   
+						<?php  echo $combo_state = $obj_genbill->FetchUnitName($outsider = 1,$_REQUEST['uid']); ?>   
                         			
 							</select></td>   
                            

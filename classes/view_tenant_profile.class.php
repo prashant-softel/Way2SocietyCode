@@ -53,12 +53,12 @@ class view_tenant_profile
     public function show_tenant_main()
 	{
 		if($_SESSION['res_flag'] == 1){
-			$sql = "SELECT w.wing,u.unit_no,tm.unit_id,u.flat_configuration,u.area,tm.tenant_name,tm.mobile_no,tm.email FROM tenant_module as tm,unit as u,wing as w where tm.unit_id = u.unit_id and u.wing_id = w.wing_id and tm.status='Y' and tm.tenant_id='".$_GET['id']."' ";
+			$sql = "SELECT w.wing,u.unit_no,tm.unit_id,u.flat_configuration,u.area,tm.ledger_id,tm.tenant_name,tm.mobile_no,tm.email FROM tenant_module as tm,unit as u,wing as w where tm.unit_id = u.unit_id and u.wing_id = w.wing_id and tm.status='Y' and tm.tenant_id='".$_GET['id']."' ";
 			$res = $this->landLordDB->select($sql);
 
 			return $res;
 		}else{
-			$sql = "SELECT w.wing,u.unit_no,tm.unit_id,u.flat_configuration,u.area,tm.tenant_name,tm.mobile_no,tm.email FROM tenant_module as tm,unit as u,wing as w where tm.unit_id = u.unit_id and u.wing_id = w.wing_id and tm.status='Y' and tm.tenant_id='".$_GET['id']."' ";
+			$sql = "SELECT w.wing,u.unit_no,tm.unit_id,u.flat_configuration,u.area,tm.ledger_id,tm.tenant_name,tm.mobile_no,tm.email FROM tenant_module as tm,unit as u,wing as w where tm.unit_id = u.unit_id and u.wing_id = w.wing_id and tm.status='Y' and tm.tenant_id='".$_GET['id']."' ";
 			$res = $this->m_dbConn->select($sql);
 	
 			return $res;
@@ -78,7 +78,7 @@ class view_tenant_profile
 			$tenant_id = $result[0]['tenant_id'];
 
 			if($tenant_id <> ''){
-				$sqlData = "select `bank_name`, `cheque_no`, `cheque_date`, `amount`, `remark` from postdated_cheque where tenant_id = ".$tenant_id."";
+				$sqlData = "select `bank_name`, `cheque_no`, `cheque_date`, `amount`, `type`,`remark`,`status` from postdated_cheque where tenant_id = ".$tenant_id."";
 				$res = $this->m_dbConn->select($sqlData);
 				$result[0]['Allcheque'] = $res;
 			}

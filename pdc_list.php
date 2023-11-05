@@ -232,7 +232,7 @@ if(localStorage.getItem("client_id") != "" && localStorage.getItem("client_id") 
 	<div class="panel-heading" id="pageheader">List of PDC's</div>
 <?php }?>
 <br/>
-<button type="button" class="btn btn-primary"  id="chequeDeposit"  onclick= sendData() >Deposit Cheque</button>
+<button type="button" class="btn btn-primary"  disabled id="chequeDeposit"  onclick= sendData() >Deposit Cheque</button>
 <center>
 	<br>
 <!--<a href="unit.php?imp&ssid=<?php echo $_SESSION['society_id'];?>&idd=<?php echo time();?>"><input type="button" value="Add Unit"></a>-->

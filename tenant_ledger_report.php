@@ -621,6 +621,7 @@ $SelectedBillType = $_COOKIE["BillType"];
         		</tr>
        
 				<?php
+				// print_r($show_due_details);
 				if($show_due_details<>"")
 				{
 					

@@ -287,8 +287,7 @@ $(document).ready(function(){
             changeMonth: true,
             changeYear: true,
             yearRange: '-100:+0',
-            buttonImageOnly: true ,
-            defaultDate: '01-01-1980'
+            buttonImageOnly: true
         };
 		$(function () 
 		{
@@ -336,11 +335,11 @@ function addNewCheque()
 	for( var i =1 ; i<= nocheq;i++)
 	{
 		ChequeCount = ChequeCount + 1; 
-		var sChequeContent = '<tr><td id="bankName_td_'+ChequeCount+'"><input name = "bankName_'+ChequeCount+'" id = "bankName_'+ChequeCount+'" type="text" value = ""   style="width:140px;" /></td>&nbsp;<td id="branch_td_'+ChequeCount+'"><input name = "branch_'+ChequeCount+'" id = "branch_'+ChequeCount+'" type="text" value = ""  style="width:100px;"  /></td>&nbsp;<td id="cheqno_td_'+ChequeCount+'"><input name = "cheqno_'+ChequeCount+'" id = "cheqno_'+ChequeCount+'" type="text" value = ""  style="width:100px;"  /></td>&nbsp;&nbsp;'+'<td id="cheqdate_td_'+ChequeCount+'"><input name = "cheqdate_'+ChequeCount+'" id = "cheqdate_'+ChequeCount+'"  class="basics_Dob" type="text" value = "" size="10"   style="width:100px;" /></td><td id="amount_td_'+ChequeCount+'">&nbsp;&nbsp;&nbsp;&nbsp;<input name = "amount_'+ChequeCount+'" id = "amount_'+ChequeCount+'" type="text" value = ""  style="width:100px;"  /></td><td id="remark_td_'+ChequeCount+'"><input name = "remark_'+ChequeCount+'" id = "remark_'+ChequeCount+'" type="text" value = ""  style="width:100px;"  />&nbsp;</td><td></td><td></td></tr>';
+		var sChequeContent = '<tr><td id="bankName_td_'+ChequeCount+'"><input name = "bankName_'+ChequeCount+'" id = "bankName_'+ChequeCount+'" type="text" value = ""   style="width:140px;" /></td>&nbsp;<td id="branch_td_'+ChequeCount+'"><input name = "branch_'+ChequeCount+'" id = "branch_'+ChequeCount+'" type="text" value = ""  style="width:100px;"  /></td>&nbsp;<td id="cheqno_td_'+ChequeCount+'"><input name = "cheqno_'+ChequeCount+'" id = "cheqno_'+ChequeCount+'" type="text" value = ""  style="width:100px;"  /></td>&nbsp;&nbsp;'+'<td id="cheqdate_td_'+ChequeCount+'"><input name = "cheqdate_'+ChequeCount+'" id = "cheqdate_'+ChequeCount+'"  class="basics" type="text" value = "" size="10"   style="width:100px;" /></td><td id="amount_td_'+ChequeCount+'">&nbsp;&nbsp;&nbsp;&nbsp;<input name = "amount_'+ChequeCount+'" id = "amount_'+ChequeCount+'" type="text" value = ""  style="width:100px;"  /></td><td id="remark_td_'+ChequeCount+'"><input name = "remark_'+ChequeCount+'" id = "remark_'+ChequeCount+'" type="text" value = ""  style="width:100px;"  />&nbsp;</td><td></td><td></td></tr>';
 		if(ChequeCount <= MaxChequeInputs) //max file box allowed
 		{
 			$("#cheq_table").append(sChequeContent);
-			$(".basics_Dob").datepicker(datePickerOptions);
+			$(".basics").datepicker(datePickerOptions);
 			document.getElementById('cheqcount').value=ChequeCount;
 		}
 		else
@@ -1252,18 +1251,6 @@ function loadchanges()
              			<td style="text-align:left">&nbsp; : &nbsp;</td>
 						<td style="text-align:left" id="td_6"><input type="checkbox" name="verified" id="verified" value="1" ></td>
 					</tr>
-                    <!--<tr  align="left" id = "pVerifyTr">
-                    	<td style="text-align:right"><?php //echo $star;?></td>
-						<td style="text-align:right"><b>Police Verification Submitted</b></td>
-             			<td style="text-align:left">&nbsp; : &nbsp;</td>
-						<td style="text-align:left" id="td_8"><input type="checkbox" name="pVerified" id="pVerified" value="1" ></td>
-					</tr>
-                     <tr  align="left" id = "leaveAndLicenseAgreementTr">
-                    	<td style="text-align:right"><?php //echo $star;?></td>
-						<td style="text-align:right"><b>Leave and License Agreement Submitted</b></td>
-             			<td style="text-align:left">&nbsp; : &nbsp;</td>
-						<td style="text-align:left" id="td_8"><input type="checkbox" name="leaveAndLicenseAgreement" id="leaveAndLicenseAgreement" value="1"></td>
-					</tr>-->
 					<?php 
 					}
 					
@@ -1306,52 +1293,100 @@ function loadchanges()
                 </td>
             </tr>
 			<tr><td colspan="6"><hr></td></tr>
-        	<tr  align="left">
-        		<td style="text-align:left;"><b>Lease Documents</b></td>
-				<td style="text-align:left"></td>
-            	<td></td>
+            <tr align="left" >
+            <table width="100%"><tr align="left">
+			<tr>
+				<td><?php echo $star ?><b>Security Deposit</b></td>
+				<td>&nbsp;  : &nbsp;</td>
+				<td ><input type="text" name="security_deposit" id="security_deposit" width:></td>
+				<td ><?php echo $star ?><b>Annual Rent</b></td>
+				<td >&nbsp;  : &nbsp;</td>
+				<td ><input type="text" name="annual_rent" id="annual_rent" ></td>
+				<td ><?php echo $star ?><b>Contract Value</b></td>
+				<td >&nbsp;  : &nbsp;</td>
+				<td ><input type="text" name="contract_value" id="contract_value" ></td>
+			</tr>
             </tr>
-            <tr></tr>
-            <tr align="left"><td colspan="4"><div id="doc" style="margin-left: 50px;font-weight: bold;text-transform: capitalize;"></div></td></tr>
-            <tr align="left">
-			<td colspan="6">
-            <table id="doc_Id">
-            <tr align="left">
-            <td><b>Enter document name</b></td>
-            <td><b>&nbsp;&nbsp;Select file to upload</b></td>
+<!-- -----------------Security Deposits-------------------------- -->
+<tr><td colspan="6"><hr></td></tr>
+    <tr align="left">
+        <td valign="left"><b>Security Deposit Cheque</b></td>
+            <td></td></tr>
+            <tr align="left" >
+			<td colspan="8">
+			<input type="hidden" name="chequecount" id="chequecount" value="">
+			<!-- <input id="btnAdd" type="hidden" value="Add" onclick="addNewCheque()"/> -->
+            <table id="sd_cheq_table" style="margin-top:-10px;" width="100%"><tr align="left" id="mem_table_tr"><td width="20%"><b>&nbsp;&nbsp;Bank Name</b></td>
+            <td width="20%"><b>Branch Name</b></td><td width="20%"><b>Cheque No</b></td><td width="20%"><b>Cheque Date<br/>(DD-MM-YYYY)</b></td>
+          	<td width="20%">&nbsp;&nbsp;&nbsp;&nbsp;<b><?php //echo $star;?>&nbsp;&nbsp;Amount</b></td>
+            <td width="20%"><b>&nbsp;&nbsp;Remark</b></td>
+           <!-- <td id="create_login">Create Login</td>
+            <td id="send_emails">Send E-Mails ?</td>-->
             </tr>
-            <?php if(!isset($_REQUEST['edit']))
-			{?>
             <tr align="left">
-            <td><input type="text" id="doc_name_1" name="doc_name_1" placeholder="Emirate ID"></td>
-            <td align="left"><input type="file" name="userfile1" id="userfile1"/></td>
-            </tr>
-            <tr align="left">
-            <td><input type="text" id="doc_name_2" name="doc_name_2" placeholder="Ejari Document" ></td>
-            <td align="left"><input type="file" name="userfile2" id="userfile2"/></td>
-             <!--<td><input id="btnAddDoc" type="button" value="Add More" /></td>--><!--<td><div id="doc" style="margin-left: 73px;font-weight: bold;text-transform: capitalize;"></div></td>-->
-            </tr>
-            <!--<tr><td   valign="middle"><div id="FileContainer" >-->
-            <input type="hidden" name="doc_count" id="doc_count" value="2">
-            <?php }
-			else
-			{ ?>
-                <tr align="left">
-                <td><input type="text" id="doc_name_1" name="doc_name_1"></td>
-                <td align="left"><input type="file" name="userfile1" id="userfile1"/></td>
-                <td><input id="btnAddDoc" type="button" value="Add More" /></td><!--<td><div id="doc" style="margin-left: 73px;font-weight: bold;text-transform: capitalize;"></div></td>-->
-                </tr>
-                <!--<tr><td   valign="middle"><div id="FileContainer" >-->
-                <input type="hidden" name="doc_count" id="doc_count" value="1">	
-                
-            <?php }?>
-            <!--</div>-->
-            <!--</td></tr>-->
-            </table>
-            </td>
+            <td align="left" id="bankName_td"><input type="text" name="bankName" id="bankName" style="width:140px;" /></td>
+            <td id="branch_td"><input type="text" name="branch" id="branch"  style="width:100px;" value = "" /></td>
+            <td id="cheqno_td"><input type="text" name="cheqno" id="cheqno"  style="width:100px;" value = "" /></td>
+            <td id="cheqdate_td"><input type="text" name="cheqdate" id="cheqdate" class="basics" size="10" style="width:100px;" /></td>
+            <td id="amount_td">&nbsp;&nbsp;&nbsp;<input type="text" name="sd_amount" id="sd_amount"  style="width:100px;"  onBlur="extractNumber(this,0,true);" onKeyUp="extractNumber(this,0,true);" onKeyPress="return blockNonNumbers(this, event, true, true)" size="30" /></td>
+            <td id="remark_td"><input type="text" name="remark" id="remark" style="width:100px;" /></td>            
+			<!--<td><input type="checkbox"  name="chkCreateLogin" id="chkCreateLogin" value="1" /></td>
+			<td><input type="checkbox" name="other_send_commu_emails" id="other_send_commu_emails" value="1" /></td>-->
 		</tr>
-       
-    <tr><td colspan="6"><hr></td></tr>
+            </tr>
+            <!--<tr><td   valign="left"><div id="TextBoxContainer" >-->
+    <!--Textboxes will be added here -->
+<!--</div></td></tr>-->
+<br />
+<br />
+</table>
+
+        </td></tr>
+		<!-- ------------------------------------------Post Dated Cheque----------------------------------------------- -->
+<tr><td colspan="1"><hr></td></tr>
+    <tr align="left">
+        <td valign="left"><b>Number Of Cheque</b></td>
+    </tr>
+	<tr align="left">
+	<td>
+		<select id = "nochq" name="nochq" style= "width: 55px">
+		<option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+		</select>
+	</td>
+	<td id="add_button"><input id="btnAdd" type="button" value="Add" onclick="addNewCheque()"/></td>
+	</tr>
+            <tr align="left" >
+			<td colspan="8">
+			<input type="hidden" name="chequecount" id="chequecount" value="">
+            <table id="cheq_table" style="margin-top:-10px;" width="100%"><tr align="left" id="mem_table_tr"><td width="20%"><b>&nbsp;&nbsp;Bank Name</b></td>
+            <td width="20%"><b>Branch Name</b></td><td width="20%"><b>Cheque No</b></td><td width="20%"><b>Cheque Date<br/>(DD-MM-YYYY)</b></td>
+          	<td width="20%">&nbsp;&nbsp;&nbsp;&nbsp;<b><?php //echo $star;?>&nbsp;&nbsp;Amount</b></td>
+            <td width="20%"><b><?php //echo $star;?>&nbsp;&nbsp;Remark</b></td>
+           <!-- <td id="create_login">Create Login</td>
+            <td id="send_emails">Send E-Mails ?</td>-->
+            </tr>
+            <tr align="left">
+            <td align="left" id="bankName_td_1"><input type="text" name="bankName_1" id="bankName_1" style="width:140px;" /></td>
+            <td id="branch_td_1"><input type="text" name="branch_1" id="branch_1"  style="width:100px;" value = "" /></td>
+            <td id="cheqno_td_1"><input type="text" name="cheqno_1" id="cheqno_1"  style="width:100px;" value = "" /></td>
+            <td id="cheqdate_td_1"><input type="text" name="cheqdate_1" id="cheqdate_1" class="basics" size="10" style="width:100px;" /></td>
+            <td id="amount_td_1">&nbsp;&nbsp;&nbsp;<input type="text" name="amount_1" id="amount_1"  style="width:100px;"  onBlur="extractNumber(this,0,true);" onKeyUp="extractNumber(this,0,true);" onKeyPress="return blockNonNumbers(this, event, true, true)" size="30" /></td>
+            <td id="remark_td_1"><input type="text" name="remark_1" id="remark_1" style="width:100px;" /></td>            
+			<!--<td><input type="checkbox"  name="chkCreateLogin" id="chkCreateLogin" value="1" /></td>
+			<td><input type="checkbox" name="other_send_commu_emails" id="other_send_commu_emails" value="1" /></td>-->
+		</tr>
+            </tr>
+			<input type="hidden" name="cheqcount" id="cheqcount" value="1">
+            <!--<tr><td   valign="left"><div id="TextBoxContainer" >-->
+    <!--Textboxes will be added here -->
+<!--</div></td></tr>-->
+<br />
+<br />
+</table>
+
+        </td></tr>
+
+		<tr><td colspan="6"><hr></td></tr>
     <tr  align="left">
         <td valign="left"><b>Lessee occupying the unit</b></td>
 			<td</td>
@@ -1385,46 +1420,6 @@ function loadchanges()
 <br />
 </table>
 
-<tr><td colspan="6"><hr></td></tr>
-    <tr align="left">
-        <td valign="left"><b>Number Of Cheque</b></td>
-			<td>
-			<select id = "nochq" name="nochq" style= "width: 55px">
-			<option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
-			</select>
-			</td>
-            <td></td></tr>
-            <tr align="left" >
-			<td colspan="8">
-			<input type="hidden" name="chequecount" id="chequecount" value="">
-            <table id="cheq_table" style="margin-top:-10px;" width="100%"><tr align="left" id="mem_table_tr"><td width="20%"><b>&nbsp;&nbsp;Bank Name</b></td>
-            <td width="20%"><b>Branch Name</b></td><td width="20%"><b>Cheque No</b></td><td width="20%"><b>Cheque Date<br/>(DD-MM-YYYY)</b></td>
-          	<td width="20%">&nbsp;&nbsp;&nbsp;&nbsp;<b><?php //echo $star;?>&nbsp;&nbsp;Amount</b></td>
-            <td width="20%"><b><?php //echo $star;?>&nbsp;&nbsp;Remark</b></td>
-           <!-- <td id="create_login">Create Login</td>
-            <td id="send_emails">Send E-Mails ?</td>-->
-            </tr>
-            <tr align="left">
-            <td align="left" id="bankName_td_1"><input type="text" name="bankName_1" id="bankName_1" style="width:140px;" /></td>
-            <td id="branch_td_1"><input type="text" name="branch_1" id="branch_1"  style="width:100px;" value = "" /></td>
-            <td id="cheqno_td_1"><input type="text" name="cheqno_1" id="cheqno_1"  style="width:100px;" value = "" /></td>
-            <td id="cheqdate_td_1"><input type="text" name="cheqdate_1" id="cheqdate_1" class="basics_Dob" size="10" style="width:100px;" /></td>
-            <td id="amount_td_1">&nbsp;&nbsp;&nbsp;<input type="text" name="amount_1" id="amount_1"  style="width:100px;"  onBlur="extractNumber(this,0,true);" onKeyUp="extractNumber(this,0,true);" onKeyPress="return blockNonNumbers(this, event, true, true)" size="30" /></td>
-            <td id="remark_td_1"><input type="text" name="remark_1" id="remark_1" style="width:100px;" /></td>            
-			<!--<td><input type="checkbox"  name="chkCreateLogin" id="chkCreateLogin" value="1" /></td>
-			<td><input type="checkbox" name="other_send_commu_emails" id="other_send_commu_emails" value="1" /></td>-->
-		</tr>
-            <td id="add_button"><input id="btnAdd" type="button" value="Add" onclick="addNewCheque()"/></td>
-            </tr>
-			<input type="hidden" name="cheqcount" id="cheqcount" value="1">
-            <!--<tr><td   valign="left"><div id="TextBoxContainer" >-->
-    <!--Textboxes will be added here -->
-<!--</div></td></tr>-->
-<br />
-<br />
-</table>
-
-        </td></tr>
   		<tr><td colspan="6"><hr></td></tr>
  		<tr  align="left" id = "vehicle_main_tr">
         	<td id="vehicleBtnTd" style="text-align:left"><b>Vehicle Details</b></td>
@@ -1531,6 +1526,52 @@ function loadchanges()
             </table>
             
         </td></tr>
+		<tr><td colspan="6"><hr></td></tr>
+        	<tr  align="left">
+        		<td style="text-align:left;"><b>Lease Documents</b></td>
+				<td style="text-align:left"></td>
+            	<td></td>
+            </tr>
+            <tr></tr>
+            <tr align="left"><td colspan="4"><div id="doc" style="margin-left: 50px;font-weight: bold;text-transform: capitalize;"></div></td></tr>
+            <tr align="left">
+			<td colspan="6">
+            <table id="doc_Id">
+            <tr align="left">
+            <td><b>Enter document name</b></td>
+            <td><b>&nbsp;&nbsp;Select file to upload</b></td>
+            </tr>
+            <?php if(!isset($_REQUEST['edit']))
+			{?>
+            <tr align="left">
+            <td><input type="text" id="doc_name_1" name="doc_name_1" placeholder="Emirate ID"></td>
+            <td align="left"><input type="file" name="userfile1" id="userfile1"/></td>
+            </tr>
+            <tr align="left">
+            <td><input type="text" id="doc_name_2" name="doc_name_2" placeholder="Ejari Document" ></td>
+            <td align="left"><input type="file" name="userfile2" id="userfile2"/></td>
+             <!--<td><input id="btnAddDoc" type="button" value="Add More" /></td>--><!--<td><div id="doc" style="margin-left: 73px;font-weight: bold;text-transform: capitalize;"></div></td>-->
+            </tr>
+            <!--<tr><td   valign="middle"><div id="FileContainer" >-->
+            <input type="hidden" name="doc_count" id="doc_count" value="2">
+            <?php }
+			else
+			{ ?>
+                <tr align="left">
+                <td><input type="text" id="doc_name_1" name="doc_name_1"></td>
+                <td align="left"><input type="file" name="userfile1" id="userfile1"/></td>
+                <td><input id="btnAddDoc" type="button" value="Add More" /></td><!--<td><div id="doc" style="margin-left: 73px;font-weight: bold;text-transform: capitalize;"></div></td>-->
+                </tr>
+                <!--<tr><td   valign="middle"><div id="FileContainer" >-->
+                <input type="hidden" name="doc_count" id="doc_count" value="1">	
+                
+            <?php }?>
+            <!--</div>-->
+            <!--</td></tr>-->
+            </table>
+            </td>
+		</tr>
+
 		<table hidden = "hidden" align="center" style="width:100%">
 		<tr class="UnitFields"><td colspan="4"><br /><br /></td></tr>
 		<tr height="50" align="center"  class="UnitFields"><td>&nbsp;</td><th colspan="3" align="center"><table align="center"><tr height="25"><th bgcolor="#CCCCCC"  style="padding-top: 6px;"width="180">Particulars For Bill </th></tr></table></th></tr>
