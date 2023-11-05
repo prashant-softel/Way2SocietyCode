@@ -109,6 +109,7 @@ $UnitBlock = $_SESSION["unit_blocked"];
 <script type="application/javascript" language="javascript"></script>
 <script type="text/javascript" src="js/OpenDocumentViewer.js">
 
+
 function go_error()
 {
 	setTimeout('hide_error()',10000);	
@@ -254,13 +255,18 @@ $(function()
 	?>
     </td>
     <td style="padding:5px">
+<<<<<<< HEAD
     <input type="button" class="btn btn-primary "  value="Total Dues Rs.<?php echo $obj_utility->getDueAmount($show_tenant_main[0]['unit_id'])?>" style=" height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;background-color:#FFFFFF;color:#000;border-color:#FFFFFF;border-top-style:none;border-left-style:none;border-right-style:none;font-weight:bold" onClick="window.open('tenant_ledger_report.php?&uid=<?php echo $show_tenant_main[0]['ledger_id'];?>', '_blank')">
+=======
+    <input type="button" class="btn btn-primary "  value="Total Dues Rs.<?php echo $obj_utility->getDueAmount($show_tenant_main[0]['unit_id'])?>" style=" height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;background-color:#FFFFFF;color:#000;border-color:#FFFFFF;border-top-style:none;border-left-style:none;border-right-style:none;font-weight:bold" onClick="window.open('member_ledger_report.php?&uid=<?php echo $show_tenant_main[0]['unit_id'];?>', '_blank')">
+>>>>>>> 03b76bfc2ed7bd9f942dec1a1a64066e5947086d
     </td>
     </tr>
     </table>
     </center>
 </div>
 <div id="errorBox"></div>
+<div id="tenant_details">
 <table border="0"> <!-- class="profile_table" -->
 <tr>
 	<td valign="top" align="center"><font color="red"><?php if(isset($_GET['up'])){echo "<b id=error>Record Updated Successfully</b>";}else{echo '<b id=error></b>';} ?></font></td>
@@ -424,7 +430,7 @@ $(function()
 	<td colspan="6">
     <?php if( $TenantDetails[0]['tenant_id'] =='')
 	 {?>
-     <table border="0" >
+     <table border="0" id="lease_table">
      <tr height="30" bgcolor="#E8E8E8">
       <th width="280">Name on the Lease Document</th>
                         <th width="150">Start Date</th>
@@ -434,7 +440,7 @@ $(function()
                         <th width="150">Member(s)</th>
                <!-- <th width="80">Document</th>-->
                         </tr>
-                        <tr><td><br></td></tr>
+                        <!-- <tr><td><br></td></tr> -->
                         <tr><td colspan="6" style="color: red;font-size: 11px; font-weight: bold;">No Active Lessee Record Found</td></tr>
                         
      <?php }
@@ -618,23 +624,9 @@ $(function()
                     </table>-->
                         </table><?php }?>
                         </td></tr>
-                        <tr><td><br></td></tr>
+                        <!-- <tr><td><br></td></tr> -->
                         
-                  <?php if( $TenantDetails[0]['Count']==0 && $TenantDetails[0]['tenant_id']<>'')
-	 			{?><tr>
-			 <td colspan="6"> <span style="float: left;margin-left: 3px;"><a href="tenant_list.php?u_id=<?php echo $show_tenant_main[0]['unit_id']?>" target="_blank"><b> Number of Previous Lease Entries : <?php  echo $TenantDetails[0]['Count']?></b></a></span></td></tr>
-             <?php 
-			 }
-			  else if( $TenantDetails[0]['Count']==0)
-	 			{?><tr>
-			 <td colspan="6"> <span style="float: left;margin-left: 3px;"><b> Number of Previous Lease Entries : <?php  echo $TenantDetails[0]['Count']?></b></span></td></tr>
-             <?php 
-			 }
-			 else
-			 {
-				 //var_dump($TenantDetails);?>
-          <tr><td  colspan="6"><span style="float: left;margin-left: 3px;"><a href="tenant_list.php?u_id=<?php echo $show_tenant_main[0]['unit_id']?>" target="_blank"><b> Number of Previous Lease Entries : <?php  echo $TenantDetails[0]['Count']?></b></a></span></td></tr>
-             <?php }?>
+                  
              
     </table>
     
@@ -654,7 +646,7 @@ $(function()
 
 <tr>
 	<td colspan="6">
-    	<table border="0">
+    	<table border="0" id="car_table">
         <tr height="30" bgcolor="#E8E8E8">
             <th width="120">Car Owner</th>
             <th width="150">Car Registration No.</th>
@@ -783,12 +775,13 @@ $(function()
         ?>
         <input type="hidden" name="tot_car" value="<?php echo $ii2-1;?>" />
         </table>
+    </br>
     </td>
 </tr>
 
 <tr>
 	<td colspan="6">
-    	<table border="0">
+    	<table border="0" id="bike_table">
         <tr height="30" bgcolor="#E8E8E8">
             <th width="120">Bike Owner</th>
             <th width="150">Bike Registration No.</th>
@@ -936,7 +929,7 @@ $(function()
 	<td colspan="6">
     <?php if( $TenantDetails[0]['tenant_id'] =='')
 	 {?>
-     <table border="0" >
+     <table border="0" id="cheque_table">
      <tr height="30" bgcolor="#E8E8E8">
       <th width="150">Bank Name</th>
                         <th width="150">Cheque No</th>
@@ -949,12 +942,12 @@ $(function()
                         <th width="150">Status</th>
                <!-- <th width="80">Document</th>-->
                         </tr>
-                        <tr><td><br></td></tr>
-                        <tr><td colspan="6" style="color: red;font-size: 11px; font-weight: bold;">No Active Lessee Record Found</td></tr>
+                        <!-- <tr><td><br></td></tr> -->
+                        <tr><td colspan="6" style="color: red;font-size: 11px; font-weight: bold;" >No Active Lessee Record Found</td></tr>
                         
      <?php }
 	 else{?>
-    	<table border="0">
+    	<table border="0" id="cheque_table">
         <tr height="30" bgcolor="#E8E8E8">
                         <th width="200">Bank Name</th>
                         <th width="200">Cheque No</th>
@@ -967,6 +960,7 @@ $(function()
                         <th width="150">Status</th>
                       <!--  <th width="80">Document</th>-->	
         </tr>
+<<<<<<< HEAD
         <?php 
 			$cheque_List=$show_cheque_detail[0]['Allcheque'];
 			// $doc_List=$TenantDetails[0]['Alldocuments'];
@@ -999,6 +993,16 @@ $(function()
             </tr>
                              
 		<?php }?>
+=======
+        
+        <tr height="25" bgcolor="#BDD8F4">
+        <td><?php echo $show_cheque_detail[0]['bank_name']; ?></td>
+        <td><?php echo $show_cheque_detail[0]['cheque_no'];?></td>
+        <td><?php echo getDisplayFormatDate($show_cheque_detail[0]['cheque_date']);?></td>
+        <td><?php echo $show_cheque_detail[0]['amount']?></td>
+        <td><?php echo $show_cheque_detail[0]['remark']?></td>
+     </tr>
+>>>>>>> 03b76bfc2ed7bd9f942dec1a1a64066e5947086d
     </table><?php 
 }?>
 
@@ -1034,15 +1038,15 @@ $(function()
                 if(!isset($_GET['edt']))
                 {  
                     ?>
-                        <input type="button"  class="btn btn-primary"  value="Edit Profile"  id="Edit" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='view_tenant_profile.php?edt&prf&mkm&tik_id=<?php echo time();?>&id=<?php echo $_GET['id'];?>'">
-                        <input type="button"  class="btn btn-primary"  value="Tenancy Form"  id="Form" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='tenancy_contract/tenancy_form.php?id=<?php echo $_GET['id'];?>'">
+                        <button type="button"  class="btn btn-primary"   id="Edit" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='view_tenant_profile.php?edt&prf&mkm&tik_id=<?php echo time();?>&id=<?php echo $_GET['id'];?>'">Edit Profile</button>
+                        <button type="button"  class="btn btn-primary"    id="Print" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="PrintPage()"  name="Print!">Print</button>
                     <?php
                 }
                 else
                 {
                     ?>
-                        <input type="submit"  class="btn btn-primary"  value="Update Profile"  id="insert" name="update" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal; background-color: #337ab7;color: #fff; border-color: #2e6da4;">
-                        <input type="button"  class="btn btn-primary"  value="Cancel" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='view_tenant_profile.php?prf&mkm&tik_id=<?php echo time();?>&id=<?php echo $_GET['id'];?>'">
+                        <button type="submit"  class="btn btn-primary"  value="Update Profile"  id="insert" name="update" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal; background-color: #337ab7;color: #fff; border-color: #2e6da4;">
+                        <button type="button"  class="btn btn-primary"  value="Cancel" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='view_tenant_profile.php?prf&mkm&tik_id=<?php echo time();?>&id=<?php echo $_GET['id'];?>'">
                     <?php
                 }
             ?>
@@ -1051,11 +1055,13 @@ $(function()
 </td></tr>
 
 <tr>
-<td><input type="hidden" name="test" id="test"/></td>
+    <td><input type="hidden" name="test" id="test"/></td>
 </tr>
 
 </table>
 </form>
+</div>
+
 <center>
 <?php
     if(!isset($_GET['edt']))
@@ -1076,6 +1082,64 @@ $(function()
     }
 ?>
 <script>
+                function PrintPage() 
+                {
+                    var originalContents = document.body.innerHTML;
+                    // document.getElementById('societyname').style.display ='block';
+
+                    // Get all the button elements
+                    var buttons = document.getElementsByTagName("button");
+                    var lease_table = document.getElementById("lease_table");
+                    var car_table = document.getElementById("car_table");
+                    var bike_table = document.getElementById("bike_table");
+                    var cheque_table = document.getElementById("cheque_table");
+
+                    cheque_table.border = 1;
+
+
+                    // Check if there are any buttons before hiding them
+                    if (buttons.length > 0) {
+                        for (var i = 0; i < buttons.length; i++) {
+                            buttons[i].style.display = "none";
+                        }
+                    }
+
+
+                    // Function to set a border for each cell in a table
+                    function setBorderForAllCells(tableId, borderStyle) {
+                        const table = document.getElementById(tableId);
+                        if (!table) {
+                            console.error(`Table with id '${tableId}' not found.`);
+                            return;
+                        }
+
+                        table.style.border = borderStyle;
+                        const rows = table.rows;
+                        for (let i = 0; i < rows.length; i++) {
+                            console.log(rows[i]);
+                            const cells = rows[i].cells;
+                            // if(cells){
+                            for (let j = 0; j < cells.length; j++) {
+                                    cells[j].style.border = borderStyle;
+                                }
+                            // }
+                        }
+                    }
+
+                    // Usage: Set a border for each cell in the table with id 'myTable' with a red border
+                    setBorderForAllCells('lease_table', '1px solid #000');
+                    setBorderForAllCells('car_table', '1px solid #000');
+                    setBorderForAllCells('bike_table', '1px solid #000');
+                    setBorderForAllCells('cheque_table', '1px solid #000');
+
+                    
+                    var printContents = document.getElementById('tenant_details').innerHTML;
+                    
+                    document.body.innerHTML = printContents;
+                    window.print();
+
+                    // document.body.innerHTML= originalContents;
+                }
  				function showRenewModal(data, vehicle_type) {
                 
 				const VEHICLE_CAR = 4;

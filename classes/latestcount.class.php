@@ -1,5 +1,5 @@
 <?php
-	
+	// comment
 		include_once("changelog.class.php");
 		include_once("include/dbop.class.php");
 		include_once("email_format.class.php");
@@ -7,14 +7,21 @@
 		class latestCount
 		{
 			public $m_dbConn;
+			public $m_landLordDB;
 			public $m_objLog;
-			private $Conn; //Making new connection to insert log if voucher counter not found.
+			private $Conn;
+			public $isLandLordDB;
+			 //Making new connection to insert log if voucher counter not found.
 			
-			function __construct($dbConn)
+			function __construct($dbConn, $dbConnRoot = "", $landLordDB = "")
 			{
 				$this->Conn = new dbop();
 				$this->m_dbConn = $dbConn;
+				$this->m_landLordDB = $landLordDB;
 				$this->m_objLog = new changeLog($this->Conn);
+				if($_SESSION['landLordDB']){
+					$this->isLandLordDB = true;
+				}
 				
 			}
 			
@@ -108,7 +115,15 @@
 			function getLatestRequestNo($society_id)
 			{
 				$sqlSelect = "select MAX(`request_no`) as max from `service_request` where `society_id`='" .$society_id."'" ;	
-				$sqlResult = $this->m_dbConn->select($sqlSelect);	
+
+				if($this->isLandLordDB && $this->m_landLordDB){
+					$sqlResult = $this->m_landLordDB->select($sqlSelect);	
+
+				}else{
+					$sqlResult = $this->m_dbConn->select($sqlSelect);	
+				}
+
+				
 				//$length = sizeof($sqlResult);
 				//echo "length: ".$length;
 				$sqlCounter = $sqlResult[0]['max'];			

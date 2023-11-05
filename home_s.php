@@ -1,5 +1,6 @@
  <?php include_once "ses_set_s.php"; 
 ?>
+<!-- comment -->
 <?php include_once("includes/head_s.php");
 include_once("classes/home_s.class.php");
 include_once("classes/dbconst.class.php");

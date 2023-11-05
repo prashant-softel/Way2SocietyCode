@@ -1,4 +1,5 @@
 <?php
+// comment
 	//error_reporting(7);
 	include_once "dbconst.class.php";	
 	include_once "adduser.class.php";
@@ -4771,11 +4772,8 @@ function getPaymentOption()
 	}
 
 	public function getDBName($society_id){
-		//echo "Id: " .$society_id;
-		$sql = "SELECT `dbname` FROM `society` WHERE `society_id` = '".$society_id."'";
-		$res = $this->m_dbConnRoot->select($sql);
-		return $res[0]['dbname'];
-		//echo $res[0]['dbname'];
+
+		return $this->m_dbConnRoot->select("SELECT `dbname` FROM `society` WHERE `society_id` = '".$society_id."'")[0]['dbname'];
 	}
 
 }
