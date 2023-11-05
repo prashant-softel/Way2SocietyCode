@@ -36,24 +36,15 @@ CREATE TABLE `legal_case` (
 
 
 
-
-CREATE TABLE IF NOT EXISTS `ledger_details` (
-  `Ledger_details_id` int(11) NOT NULL AUTO_INCREMENT,
-  `LedgerID` int(11) NOT NULL,
-  `GSTIN_No` varchar(50) NOT NULL,
-  `PAN_No` varchar(50) NOT NULL,
-  `TDS_NatureOfPayment` varchar(50) NOT NULL,
-  `TDS_Ded_rate` int(11) NOT NULL DEFAULT '0',
-  `Time_Stamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `status` varchar(10) NOT NULL DEFAULT 'Y',
-  `vendor_address1` varchar(400) NOT NULL,
-  `vendor_city` varchar(50) NOT NULL,
-  `vendor_pincode` varchar(10) NOT NULL,
-  `vendor_state` varchar(50) NOT NULL,
-  `vendor_address2` varchar(400) NOT NULL,
-  `vendor_contact` varchar(50) NOT NULL,
-  `vendor_office_no` varchar(50) NOT NULL,
-  `vendor_email` varchar(100) NOT NULL,
-  `website` varchar(100) NOT NULL,
-  PRIMARY KEY (`Ledger_details_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+CREATE TABLE IF NOT EXISTS `legal_case_history` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sr_request_id` int(11) NOT NULL,
+  `case_no` varchar(250) NOT NULL,
+  `updated_by` varchar(300) NOT NULL,
+  `comment` longtext NOT NULL,
+  `expense_amt` double(50,2) NOT NULL,
+  `status` varchar(50) NOT NULL,
+  `up_hearing_date` date NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
