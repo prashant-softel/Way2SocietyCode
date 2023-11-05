@@ -160,6 +160,8 @@ if(isset($_REQUEST['rq']))
 		buttonImage: "images/calendar.gif", 
 		buttonImageOnly: true 
 	})});
+	
+
 </script>
 	<style type="text/css">
 		.fancybox-custom .fancybox-skin 
@@ -217,7 +219,7 @@ if($details <> "")
         <th style="width:10%;"><center>Status</center></th>
         <th style="width:20%;"><center>Category</center></th>
          <th style="width:20%;"><center>Outstanding Amount</center></th>
-        <th style="width:20%;"><center>Judgment Amount</center></th>
+        <th style="width:20%;"><center>Expense Amount</center></th>
 
         <!--<th style="width:20%;">Photo</th>-->
     </tr>
@@ -240,7 +242,8 @@ if($details <> "")
 		if($latestStatus[0]['status'] == 'Case Closed')
 		{
 			$ExpenseAmountSum = $obj_request->getTotalExpense($_REQUEST['rq']);
-			$totalAmt = $details[0]['outstanding_rent']+$ExpenseAmountSum;
+			//$totalAmt = $details[0]['outstanding_rent']+$ExpenseAmountSum;
+			$totalAmt = $ExpenseAmountSum;
 		}
 		//else
 		//{
@@ -462,10 +465,29 @@ if($_SESSION['is_year_freeze'] == 1)
 {?>
 <script>
 	$("#viewrequest").css( 'display', 'none' );
+	
 </script>
 <?php }?>
 
 </div>
-
+<script>
+	
+	$("#status").on("change",function(){
+    //Getting Value
+    var selValue = $("#status").val();
+    //Setting Value
+	if(selValue == "Case Closed")
+	{
+		$('#upcom_date').attr('disabled', true);
+		//document.get("upcom_date").disabled=true;
+	}
+	else
+	{
+		$('#upcom_date').attr('disabled', false);
+		//document.getElementById("upcom_date").disabled=false;
+		}
+    
+});
+</script>
 <?php include_once "includes/foot.php"; ?>
         

@@ -464,7 +464,7 @@ class import_rc_tenantdata
 							// print_r($id);
 							//die();
 							
-								$sql_insert1 = "insert into `tenant_member`(`tenant_id`,`mem_name`,`relation`,`mem_dob`,`email`,`contact_no`) values ('".$sql_insert_done."','".$Tenantfname." " .$Tenantmname." ".$Tenantlname."','".self."','". getDBFormatDate($dob)."','".$email."','".$Mobile."')";
+								$sql_insert1 = "insert into `tenant_member`(`tenant_id`,`mem_name`,`relation`,`mem_dob`,`email`,`contact_no`) values ('".$sql_insert_done."','".$Tenantfname." " .$Tenantmname." ".$Tenantlname."','".self."','". getDBFormatDate($dob)."','".$Email."','".$Contactnumber."')";
 
 								$sql_insert_member = $this->m_dbConn->insert($sql_insert1);
 							//die();

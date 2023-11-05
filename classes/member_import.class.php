@@ -16,7 +16,7 @@ $obj_fetch = new FetchData($dbConn);
 class member_import 
 {
 	public $allColumns = array('BCode', 'WCode', 'FCode','FloorNo', 'Owner','Occupation', 
-			'DateOfBirth', 'AnnivarsaryDate', 'Gender', 'BloodGroup', 'OwnerAddress','FlatArea', 'GSTINNO', 'ResPhone', 'MobileNo','OffPhone', 'EMail', 'Email1', 'DisposeDate', 'Inactive', 'EmergencyPersonName','EmergencyMobileNo', 'EmergencyTelephoneNo','ParkingNo','FlatConfiguration','ExtnLedgerName','AssociateMemberName','VirtualAC');
+			'DateOfBirth', 'AnnivarsaryDate', 'Gender', 'BloodGroup', 'OwnerAddress','FlatArea', 'GSTINNO', 'ResPhone', 'MobileNo','OffPhone', 'EMail', 'Email1', 'DisposeDate', 'Inactive', 'EmergencyPersonName','EmergencyMobileNo', 'EmergencyTelephoneNo','ParkingNo','FlatConfiguration','ExtnLedgerName','AssociateMemberName','VirtualAC','Location',);
 
 	public $ci = array();
 	const BCODE = 0;
@@ -262,6 +262,13 @@ class member_import
 								$extnledgername=$row=[$ExtnLedgerName];
 								$associatemembername=$row=[$AssociateMemberName];
 								$virtualac=$row=[$VirtualAC];
+								$location = $row=[$Location];
+								$Propertytype=$row=[$property_type];
+								$plotno=$row=[$Plot_No];
+								$makanino=$row=[$Makani_No];
+								$premisesno=$row=[$Premises_No];
+								$propertyno=$row=[$property_No];
+
 
 								$get_society_id="select society_id from society where society_code='".$society_code."'";
 								$data2=$this->m_dbConn->select($get_society_id);
@@ -280,7 +287,7 @@ class member_import
 									$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"W");
 								}
 								
-								$get_unit_id="select `unit_id` from `unit` where `unit_no` = '".$unit_no."'  and `society_id` = '" . $society_id . "' and `wing_id` = '" . $wing_id . "'";
+								echo $get_unit_id="select `unit_id`,`unit_no` from `unit` where `unit_no` = '".$unit_no."'  and `society_id` = '" . $society_id . "' and `wing_id` = '" . $wing_id . "'";
 								$data4=$this->m_dbConn->select($get_unit_id);
 								$unit=$data4[0]['unit_id'];
 								
@@ -900,15 +907,17 @@ class member_import
 			 $get_unit_id="select `unit_id` from `unit` where `unit_no` like '%".$unit_no."%'  and `society_id` = '" . $society_id . "' and `wing_id` = '" . $wing_id . "'";
 			$data4=$this->m_dbConn->select($get_unit_id);
 			$unit=$data4[0]['unit_id'];
+            
 
-			$get_member_id = "select `member_id` FROM `member_main` where unit='".$unit."'";
+		    $get_member_id = "select `member_id` FROM `member_main` where unit='".$unit."'";
 			$res2 = $this->m_dbConn->select($get_member_id);
+			
 			$member_id=$res2[0]['member_id'];
 			
 			if($data4=='')
 			{
 				$memberExists = false;
-				$errormsg=" Unit &lt;".$unit_no."&gt;  not found in unit table for member: &lt;".$owner_name."&gt; and wing: &lt;".$wing_code."&gt;  ";
+			    $errormsg=" Unit &lt;".$unit_no."&gt;  not found in unit table for member: &lt;".$owner_name."&gt; and wing: &lt;".$wing_code."&gt;  ";
 				$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"W");
 			}
 			
@@ -953,7 +962,7 @@ class member_import
 					{
 					   // FlatConfiguration to be Updated";
 				
-						   echo $sql2 = "Update `unit` set `flat_configuration`='".$flat_configuration."' Where `unit_id`='".$unit."'";
+						    $sql2 = "Update `unit` set `flat_configuration`='".$flat_configuration."' Where `unit_id`='".$unit."'";
 							$this->m_dbConn->update($sql2);
 						
 						    $m_TraceDebugInfo.= "Updated flat_configuration where Flat No: <" .$unit_no. "><br>";
@@ -1293,7 +1302,7 @@ class member_import
 				// $regexForEmail = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@" + "(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
 				
 				if(array_search($EMail,$indexes))
-				{
+			{
 				if (isset($EMail))
 				{
 					// Email to be updated	

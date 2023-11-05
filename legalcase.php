@@ -8,8 +8,8 @@
 include_once("classes/home_s.class.php");
 include_once("classes/dbconst.class.php");
 include_once("classes/legalcase.class.php");
-include_once( "include/fetch_data.php");
-include_once("include/utility.class.php");
+include_once( "classes/include/fetch_data.php");
+include_once("classes/utility.class.php");
 $obj_request = new legalcase($m_dbConn);
 //$requests = $obj_request->GetUnitNoIfNZero($_REQUEST['id']);
 $objfetch=new FetchData($m_dbConn);
@@ -97,6 +97,7 @@ if($_SESSION['is_year_freeze'] == 0)
             <table id="example" class="display" cellspacing="0" width="100%">
                 <thead>
                     <tr>
+                        <th>Case Id.</th>
                         <th>Building No.</th>
                         <th>Flat No.</th>
                         <th>Tenant Name</th>
@@ -104,7 +105,7 @@ if($_SESSION['is_year_freeze'] == 0)
                         <th>Next Due Date</th>
                         <th>Category</th>
                         <th>Outstanding Amount</th>  
-                        <th>Total Judgment Amount</th>                        
+                        <th>Expense Amount</th>                        
                         <th>Status</th> 
                         <!--<th >Edit</th>
                         <th>Delete</th>-->                                                                      
@@ -122,7 +123,7 @@ if($_SESSION['is_year_freeze'] == 0)
 							$count=0;
 							 $unitNo=$objfetch->GetUnitNumber($requests[$i]['unit_id']);
 							 $memID=$obj->GetMemberIDNew($requests[$i]['unit_id']);
-							
+							 $buildingNo = $obj_request->getBuildingNo($requests[$i]['unit_id']);
 							$CategoryDetails = $obj_request->GetCategoryDetails( $requests[$i]['category']);
 							if($prevRequestNo != $requests[$i]['request_no'])
 							{
@@ -130,22 +131,18 @@ if($_SESSION['is_year_freeze'] == 0)
 								$prevRequestNo = $requests[$i]['request_no'];
 					?>
                     <tr>
-                        <td style="text-align:center"><a href="viewlegalcase.php?rq=<?php echo $requests[$i]['request_id'];?>" target="_blank"><?php echo $requests[$i]['request_id'];?></a></td>
+                     <td style="text-align:center"><a href="viewlegalcase.php?rq=<?php echo $requests[$i]['request_id'];?>" target="_blank"><?php echo $requests[$i]['request_id'];?></a></td>
+                        <td style="text-align:center"><?php echo $buildingNo;?></td>
                         
                           <?php
 						  $details = $obj_request->getViewDetails($requests[$i]['request_id'],true);
 	
 						$latestStatus = $obj_request->getLatestStatus($requests[$i]['request_id']);
 						$totalAmt=0;
-						if($latestStatus[0]['status'] == 'Case Closed')
-						{
-							$ExpenseAmountSum = $obj_request->getTotalExpense($requests[$i]['request_id']);
-							$totalAmt = $details[0]['outstanding_rent']+$ExpenseAmountSum;
-						}
-						else
-						{
-							$totalAmt = 0;
-						}
+						
+						$ExpenseAmountSum = $obj_request->getTotalExpense($requests[$i]['request_id']);
+						$totalAmt = $ExpenseAmountSum;
+						
 	
 	?>	
     					<td><a href="view_member_profile.php?scm&id=<?php echo $memID[0]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank" ><?php echo $unitNo;?></a></td>

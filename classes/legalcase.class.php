@@ -1152,6 +1152,12 @@ public function deleting($id)
 		$sql1_res = $this->m_dbConn->select($sql1);
 		return ($sql1_res[0]['member_id']);
 	}
+	public function getBuildingNo($unitId)
+	{
+		$sql1 = "SELECT w.`wing` FROM `unit` as u join `wing` as w on w.wing_id=u.unit_id where u.unit_id = '".$unitId."'";
+		$sql1_res = $this->m_dbConn->select($sql1);
+		return ($sql1_res[0]['wing']);
+	}
 	public function getMemberAddress($unitId,$societyId)
 	{
 		$sql1 = "Select s.`society_add`,s.`city`,s.`region`,s.`postal_code`,u.`unit_no`, u.`floor_no`,w.`wing` FROM `society` as s,`unit` as u,wing as `w` where u.`wing_id` = w.`wing_id` and u.`unit_id` = '".$unitId."' and u.`society_id` = '".$societyId."';";

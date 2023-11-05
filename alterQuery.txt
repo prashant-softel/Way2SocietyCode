@@ -8,6 +8,9 @@ jsLegalcase.js
 viewlegalcase.php
 
 
+ALTER TABLE `postdated_cheque` Add `type` varchar(100);
+ALTER TABLE `tenant_module` Add `security_id` INT(11) NOT NULL AFTER `ledger_id`;
+ 
 
 CREATE TABLE `legal_case` (
  `request_id` int(11) NOT NULL AUTO_INCREMENT,
