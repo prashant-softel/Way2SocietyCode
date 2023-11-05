@@ -2,6 +2,7 @@
 	session_start();
 
 include_once("../classes/import_tenant_data.class.php"); 
+include_once("../classes/import_rc_tenant_data.class.php");
 include_once("../classes/include/dbop.class.php");
 require_once ("../classes/CsvOperations.class.php");
 
@@ -38,12 +39,21 @@ require_once ("../classes/CsvOperations.class.php");
 				$checkBoxIndexes = explode(',', $data);
 			
 				$obj_member_import = new import_tenantdata($dbConnRoot, $dbConn);
+				$obj_tenant_import = new import_rc_tenantdata($dbConnRoot, $dbConn);
 			
-				$validator = $obj_member_import->UploadData($fileName, $fileData, $bvalidate);
+				if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+					$validator = $obj_tenant_import->UploadData1($fileName, $fileData, $bvalidate);
+				}else{
+					$validator = $obj_member_import->UploadData($fileName, $fileData, $bvalidate);
+				}
 				
-
-				$actionPage = $obj_member_import->actionPage;
-				$ErrorLog = $obj_member_import->errorLog;
+				if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+					$actionPage = $obj_tenant_import->actionPage;
+					$ErrorLog = $obj_tenant_import->errorLog;
+				}else{
+					$actionPage = $obj_member_import->actionPage;
+					$ErrorLog = $obj_member_import->errorLog;
+				}
 
 			
 				echo $validator;	
