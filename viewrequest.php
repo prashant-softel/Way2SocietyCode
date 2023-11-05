@@ -11,9 +11,10 @@ include_once ("classes/include/fetch_data.php");
 include_once ("dbconst.class.php"); 
 $dbConn = new dbop();
 $dbConnRoot = new dbop(true);
+$landLordDB = new dbop(false,false,false,false,true);
 $objFetchData = new FetchData($dbConn);
 $objFetchData->GetSocietyDetails($_SESSION['society_id']);
-$obj_request = new servicerequest($dbConn);
+$obj_request = new servicerequest($dbConn, $dbConnRoot, $landLordDB);
 $LoginIDQuery = "select `member_id` from `login` where `login_id`='".$_SESSION['login_id']."'";
 $loginID = $dbConnRoot->select($LoginIDQuery);
 //$details = $obj_request->getViewDetails($_REQUEST['rq']);
@@ -25,13 +26,14 @@ if(isset($_REQUEST['rq']))
 {
 	if($_REQUEST['rq']<>"")
 	{
-		$details = $obj_request->getViewDetails($_REQUEST['rq'],true);
+		$req_history = $obj_request->getreqhistory($_REQUEST['rq'], true, $_REQUEST['socid']);
+		$details = $obj_request->getViewDetails($_REQUEST['rq'],true, $_REQUEST['socid']);
 		
 		//for($i=0;$i <= sizeof($edit)-1; $i++)
-			//{ 
-			$image=$details[0]['img'];
-			$image_collection = explode(',', $image);	
-			//print_r(sizeof($details));
+			//{ ~~
+			foreach($req_history as $key => $val){
+				$image_collection[] = explode(',', $val['img']);	
+			}
 			for($i=0;$i < sizeof($details); $i++)
 			{
 				//echo $details[$i]['email'];
@@ -45,10 +47,9 @@ if(isset($_REQUEST['rq']))
 			{
 				$strSREMailIDs = implode(";", $SREmailIDs);
 			}
-			
-			$histortdetails = array_reverse($obj_request->getViewDetails1($_REQUEST['rq'],true));
 	}
 	}
+	
 ?>
 <!--<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -59,7 +60,7 @@ if(isset($_REQUEST['rq']))
 
 <div class="panel panel-info" id="panel" style="margin-top:4%;margin-left:1%; width:76%;">
 <div class="panel-heading" id="pageheader" style="font-size:20px">
-    Legal Case Details
+    Service Request Details
     </div>
     <br />
 <script type="text/javascript" src="lib/jquery-1.10.2.min.js"></script>
@@ -118,6 +119,13 @@ if(isset($_REQUEST['rq']))
 
 	<!-- Add Media helper (this is optional) -->
 	<script type="text/javascript" src="source/helpers/jquery.fancybox-media.js?v=1.0.0"></script>
+
+	<!-- new scripts  -->
+	<script type="text/javascript" src="lib/jquery-1.10.2.min.js"></script>
+	<script type="text/javascript" src="lib/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+	<link rel="stylesheet" type="text/css" href="lib/source/jquery.fancybox.css?v=2.1.5" media="screen" />
+	<link rel="stylesheet" type="text/css" href="lib/source/helpers/jquery.fancybox-thumbs.css?v=1.0.7" />
+	<script type="text/javascript" src="lib/source/helpers/jquery.fancybox-thumbs.js?v=1.0.7"></script>
     
     <script type="text/javascript">
 		$(document).ready(function() {			
@@ -126,7 +134,103 @@ if(isset($_REQUEST['rq']))
 		$('.fancybox').fancybox();
 		$('.fancybox1').fancybox();
 	
-	
+		$(".fancybox-effects-c").fancybox({
+				wrapCSS    : 'fancybox-custom',
+				closeClick : true,
+
+				openEffect : 'none',
+
+				helpers : {
+					title : {
+						type : 'inside'
+					},
+					overlay : {
+						css : {
+							'background' : 'rgba(238,238,238,0.85)'
+						}
+					}
+				}
+			});
+			$(".fancybox-effects-d").fancybox({
+				padding: 0,
+
+				openEffect : 'elastic',
+				openSpeed  : 150,
+
+				closeEffect : 'elastic',
+				closeSpeed  : 150,
+
+				closeClick : true,
+
+				helpers : {
+					overlay : null
+				}
+			});
+
+
+			/*
+			 *  Thumbnail helper. Disable animations, hide close button, arrows and slide to next gallery item if clicked
+			 */
+
+			$('.fancybox-thumbs').fancybox({
+				prevEffect : 'none',
+				nextEffect : 'none',
+
+				closeBtn  : false,
+				arrows    : false,
+				nextClick : true,
+
+				helpers : {
+					thumbs : {
+						width  : 50,
+						height : 50
+					}
+				}
+			});
+
+			/*
+			 *  Media helper. Group items, disable animations, hide arrows, enable media and button helpers.
+			*/
+			$('.fancybox-media')
+				.attr('rel', 'media-gallery')
+				.fancybox({
+					openEffect : 'none',
+					closeEffect : 'none',
+					prevEffect : 'none',
+					nextEffect : 'none',
+
+					arrows : false,
+					helpers : {
+						media : {},
+						buttons : {}
+					}
+			});
+			$("#fancybox-manual-c").click(function() {
+				$.fancybox.open([ 
+				<?php 
+				for($i=0;$i<sizeof($image_collection);$i++)
+				{
+				?>
+					{ 
+						href : 'ads/<?php echo $image_collection[$i]?>',
+						//title : 'My title'
+					},
+				<?php }?>/*{
+					href : '2_b.orjpg',
+						title : '2nd title'
+					}, {
+						href : '3_b.jpg'
+					}*/
+				], {
+					helpers : {
+						thumbs : {
+							width: 75,
+							height: 50
+						}
+					}
+				});
+			});
+
 		//Button helper. Disable animations, hide close button, change title type and content
 		$('.fancybox-buttons').fancybox({
 		openEffect  : 'none',
@@ -150,17 +254,7 @@ if(isset($_REQUEST['rq']))
 		});
 		});
 	</script>
-    <script type="text/javascript">
-	$(function()
-	{
-		$.datepicker.setDefaults($.datepicker.regional['']);
-		$(".basics").datepicker({ 
-		dateFormat: "dd-mm-yy", 
-		showOn: "both", 
-		buttonImage: "images/calendar.gif", 
-		buttonImageOnly: true 
-	})});
-</script>
+    
 	<style type="text/css">
 		.fancybox-custom .fancybox-skin 
 		{
@@ -191,7 +285,7 @@ if(isset($_REQUEST['rq']))
             </div>
             <div id="society_address"; style="font-size:14px; border-left:thick;"><?php echo 'Reg. Add:'.$objFetchData->objSocietyDetails->sSocietyAddress; ?></div>
 </div>-->
-<?php //echo "role".$_SESSION['role'];?>
+
 <center><!--<a href="servicerequest.php">Go Back</a>-->
 <div style="padding-left: 15px;padding-bottom: 10px;">
 		 <center> <INPUT TYPE="button" id="Print" onClick="printTable()" name="Print" value="Print"   class="btn btn-primary"></center></div>
@@ -203,37 +297,21 @@ if(isset($_REQUEST['rq']))
 <?php 
 //print_r($details);
 if($details <> "")
-	  { ?>
-<div width="100%" style="font-size:12px;" id="PrintableDiv"  >
-<div id="society_name" style="font-weight:bold; font-size:18px; display:none;"><?php echo $objFetchData->objSocietyDetails->sSocietyName; ?></div>
-   
-<table width="100%" style="font-size:12px;" id="PrintableTable">
-
-	<tr style="background-color:#bce8f1;font-size:12px;" height="30">
-        <th style="width:10%;"><center>Building No.</center></th>
-        <th style="width:10%;"><center>Flat No.</center></th>
-        <th style="width:20%;"><center>Tenant Name</center></th>
-        <th style="width:20%;"><center>Created Date</center></th>
-        <th style="width:10%;"><center>Status</center></th>
-        <th style="width:20%;"><center>Category</center></th>
-         <th style="width:20%;"><center>Outstanding Amount</center></th>
-        <th style="width:20%;"><center>Judgment Amount</center></th>
-
-        <!--<th style="width:20%;">Photo</th>-->
-    </tr>
-    <tr>
-    <?php $timestamp = strtotime($details[0]['timestamp']);
+	  { 
+		$timestamp = strtotime($details[0]['timestamp']);
 	
 		//$sql = "SELECT `img` FROM `service_request` WHERE `request_id` = '".$_SESSION['unit_id']."' AND `society_id` = '".$_SESSION['society_id']."'";
 		//$result = $this->m_dbConn->select($sql);
 		$CategoryDetails = $obj_request->GetCategoryDetails( $details[0]['category']);
 		//var_dump($CategoryDetails);
 		$MemberName = $obj_request->GetMemberName( $details[0]['category']);
+		// var_dump($details[0]['category']);
 		
 		$UnitNo = $obj_request->GetUnitNoIfZero( $_REQUEST['rq']);
 		$GotUnitNo = $obj_request->GetUnitNoIfNZero( $_REQUEST['rq']);
-		$MemName = $obj_request->getmemDetails($GotUnitNo[0]['unit_id']);
-		$latestStatus = $obj_request->getLatestStatus($_REQUEST['rq']);
+		$status = $obj_request->getUpdatedStatus( $_REQUEST['rq']);
+		$color = constant(strtoupper(preg_replace('/[^A-Za-z0-9]+/', '_', $status)));
+		
 		if($UnitNo[0]['unit_id'] == 0)
 		{
 			$show = " - ";
@@ -241,29 +319,33 @@ if($details <> "")
 		else
 		{			
 			$show = $GotUnitNo[0]['unit_no'];
-		}
-		$totalAmt = 0;
-		if($latestStatus[0]['status'] == 'Case Closed')
-		{
-			$ExpenseAmountSum = $obj_request->getTotalExpense($_REQUEST['rq']);
-			$totalAmt = $details[0]['outstanding_rent']+$ExpenseAmountSum;
-		}
-		//else
-		//{
-			//$totalAmt = $details[0]['outstanding_rent'];
-		//}
-	?>
+		}?>
+<div width="100%" style="font-size:12px;" id="PrintableDiv"  >
+<div id="society_name" style="font-weight:bold; font-size:18px; display:none;"><?php echo $objFetchData->objSocietyDetails->sSocietyName; ?></div>
+<div class="text-right" style="margin: 10px 0;"><span class="" style="padding: 5px 15px;margin: 2px;border-radius: 5px;background-color:<?php echo $color ?>;font-size:15px;"><b><?php echo $status ?></b></span></div>
+<table width="100%" style="font-size:12px;" id="PrintableTable">
+	<tr style="background-color:#bce8f1;font-size:14px;" height="25">
+        <th style="width:10%;"><center>Request ID</center></th>
+        <!-- <th style="width:10%;"><center>Unit No.</center></th> -->
+        <th style="width:20%;"><center>Raised Date</center></th>
+        <th style="width:10%;"><center>Status</center></th>
+        <th style="width:10%;"><center>Priority</center></th>
+        <th style="width:20%;"><center>Category</center></th>
+        <th style="width:20%;"><center>Supervised By</center></th>
+        <!--<th style="width:20%;">Photo</th>-->
+    </tr>
+    <tr>
+
     	
     	<td align="center"><?php echo $_REQUEST['rq'];?></td>
-        <td align="center"><?php echo $show;?></td>
-        <td align="center"><?php echo $MemName;?></td>
+        <!-- <td align="center"><?php echo $show;?></td> -->
         <td align="center"><?php echo $details[0]['raisedDate'];?></td>
-        <td align="center"><?php echo $latestStatus[0]['status'];?></td>
-        
+        <td align="center"><?php echo $details[sizeof($details)-1]['status'];?></td>
+        <td align="center"><?php echo $details[0]['priority'];?></td>
         <td align="center"><?php echo $CategoryDetails[0]['category'];?></td>
-        <td align="center"><?php echo $details[0]['outstanding_rent'];?></td>
-         <td align="center"><?php echo $totalAmt;?></td>
-  
+        <td align="center"><?php echo $MemberName[0]['other_name'];?></td>
+      <!--  <td align="center"><a href="<?php// echo substr($details[0]['img'],3);?>" class="fancybox"><img src="<?php// echo substr($details[0]['img_thumb'],3);?>" height="100" width="100" /></a></td>-->
+        
     </tr> 
     <tr><td colspan="10"><br /></td></tr>   
     <tr style="background-color:#bce8f1;font-size:14px;"  height="25">
@@ -280,7 +362,7 @@ if($details <> "")
     <tr>
     	<td colspan="10" align="left"><span style="margin-left:10px; float: left; margin-top: 5px;">
         <?php 
-			/*if($details[0]['category'] == $_SESSION['RENOVATION_DOC_ID'])
+			if($details[0]['category'] == $_SESSION['RENOVATION_DOC_ID'])
 	  		{
 				echo $url = $details[0]['details']."<a href='document_maker.php?temp=".$details[0]['category']."&rId=".$details[0]['Id']."&action=view' target='_blank'> Click here to view.</a>";
 			}
@@ -293,9 +375,9 @@ if($details <> "")
 				echo $url = $details[0]['details']."<a href='document_maker.php?temp=".$details[0]['category']."&tId=".$details[0]['tenant_id']."' target='_blank'> Click here to view.</a>";
 			}
 			else
-			{*/
+			{
 				echo $details[0]['details'];
-			/*}*/
+			}
 		?>
         </span></td>
     </tr>
@@ -305,17 +387,20 @@ if($details <> "")
  <tr><td>
  <table width="500%"><tr><td  align="left">
      <?php 
-	// print_r($image_collection);
-		for($i=0;$i<sizeof($image_collection);$i++)
-		{
-			if(strlen($image_collection[$i]) >0 )
+			// echo "debug images";
+			// echo "<pre>";
+			// print_r($image_collection);
+			// echo "</pre>";
+			// exit;
+			for($i=0;$i<sizeof($image_collection[0]);$i++)
 			{
+				if(strlen($image_collection[0][$i]) >0 )
+				{
 		?>
         
-		<a href="upload/main/<?php echo $image_collection[$i]?>" class="fancybox"><img  style="    width: 100px;
-    height: 70px;" src="upload/main/<?php echo $image_collection[$i]?>" ></a>
+			<a href="upload/main/<?php echo $image_collection[0][$i]?>" class="fancybox"><img  style="    width: 100px; height: 70px;" src="upload/main/<?php echo $image_collection[0][$i]?>" ></a>
       <?php
-	   }
+	   		}
 		}
 	  ?>
        </td></tr></table>
@@ -330,36 +415,73 @@ if($details <> "")
     </tr>
     <tr>
     
-    <table cellspacing="0px" style="width:100%"> 
+    <table cellspacing="0px"> 
      <tr style="background-color:#988e8e30;font-size:14px;" height="25">
-    	<th align="left" style="padding-left: 9px; width: 35%;" >Details</th>
-        <th align="left">Case No.</th>
-        <th align="center" style="text-align:center" >Up. Hearing Date</th>
-        <th align="center"  style="text-align:center" >Expense Amount</th>
-        <th align="left">Status</th>
-        <!--<th align="left" style="width: 10%;">Timestamp</th>-->
+    	<th align="left" style="width: 65%;padding-left:10px" colspan="3">Details</th>
+        <th align="left" style="width: 20%;">Attachments</th>
+        <th align="left" style="width: 20%;" colspan="2">Updated By</th>
+        <th align="left" style="width: 5%;">Status</th>
+        <th align="left" style="width: 10%;">Timestamp</th>
     </tr>
    
     <?php
-	//echo "<pre>";
-	//print_r($histortdetails);
-	//echo "</pre>";
-	for($i = 0; $i < sizeof($histortdetails); $i++)
+	for($i = sizeof($req_history)-1; $i>=0;$i-- )
 		{
 			//echo $timestamp = strtotime($details[$i]['timestamp']);
-			//$timestamp = date('d-m-Y (h:i:s A)',strtotime('+5 hour +30 minutes +1 seconds',strtotime($details[$i]['timestamp'])));
-		//if($details[$i]['status']=="Reopen")
-		//{
-			//$cnt=$cnt+1;
-		//}
+			$timestamp = date('d-m-Y (h:i:s A)',strtotime('+5 hour +30 minutes +1 seconds',strtotime($req_history[$i]['timestamp'])));
+		if($req_history[$i]['status']=="Reopen")
+		{
+			$cnt=$cnt+1;
+		}
+		$history_img_col = explode(',', $req_history[$i]['img']);	
+
 	?>
    
     <tr>
-    	<td align="left"  style = "border-bottom:1px solid #988e8e30;padding-left:10px;padding-top:10px"><?php echo $histortdetails[$i]['comment']; ?></td>
-        <td align="left"  style="border-bottom:1px solid #988e8e30;padding-top:10px"><?php echo $histortdetails[$i]['case_no']; ?></td>
-        <td align="center" style="border-bottom:1px solid #988e8e30;padding-top:10px" ><?php echo getDisplayFormatDate($histortdetails[$i]['up_hearing_date']); ?></td>
-        <td align="center" style=" border-bottom:1px solid #988e8e30;padding-top:10px"><?php echo number_format($histortdetails[$i]['expense_amt'], 2); ?></td>
-        <td align="left" style="border-bottom:1px solid #988e8e30;padding-top:10px"><?php echo $histortdetails[$i]['status']; ?></td>
+    	<td align="left" colspan="3" style = "width: 30%;border-bottom:1px solid #988e8e30;padding-left:10px;padding-top:10px"><?php echo $req_history[$i]['summery']; ?></td>
+        <td align="left" style="width: 20%;border-bottom:1px solid #988e8e30;padding-top:10px">
+		<?php 
+			foreach($history_img_col as $img)
+			{
+				if(!empty($img))
+				{
+
+		?>
+					<a href="upload/main/<?php echo $img?>" class="fancybox"><img id="fancybox-manual-c"  style="width: 30px; height: 30px;padding:2px;" src="upload/main/<?php echo $img?>" ></a>
+		<?php   } else { 
+			echo '<img  style="width: 30px; height: 30px;padding:2px;" src="upload/main/nophoto.PNG" >';
+			} } ?>
+		<script type="text/javascript">
+			$(".fancybox-manual-c").click(function() {
+				$.fancybox.open([ 
+				<?php 
+				foreach($history_img_col as $img)
+				{
+				?>
+					{ 
+						href : 'upload/main/<?php echo $img?>',
+						// title : 'My title'
+					},
+				<?php }?>/*{
+					href : '2_b.orjpg',
+						title : '2nd title'
+					}, {
+						href : '3_b.jpg'
+					}*/
+				], {
+					helpers : {
+						thumbs : {
+							width: 75,
+							height: 50
+						}
+					}
+				});
+			});
+		</script>
+		</td>
+        <td align="left" colspan="2" style="width: 20%;border-bottom:1px solid #988e8e30;padding-top:10px"><?php echo $req_history[$i]['reportedby']; ?></td>
+        <td align="left" style="width: 5%;border-bottom:1px solid #988e8e30;padding-top:10px" ><?php echo $req_history[$i]['status']; ?></td>
+        <td align="left" style="width: 10%;border-bottom:1px solid #988e8e30;padding-top:10px"><?php echo $timestamp  //echo date("d-m-Y (h:i:s A)", $timestamp ); ?></td>
         </tr>
        
     <?php
@@ -368,64 +490,80 @@ if($details <> "")
 	?>
      </table>
     </tr>
-    <tr><td colspan="5"><br /></td></tr> 
+    <tr><td colspan="6"><br /></td></tr> 
 </table>
 </div>
 <br />
-<form name="viewrequest" id="viewrequest" method="post" action="process/servicerequest.process.php?vr=<?php echo $_REQUEST['rq'];?>" onSubmit="return val();">
+<form name="viewrequest" id="viewrequest" method="post" action="process/servicerequest.process.php?vr=<?php echo $_REQUEST['rq'];?>"  enctype="multipart/form-data" onSubmit="return val();">
 <center>
 <table style="border:1px solid #CCC; width:85%;font-size:12px; padding:10px; border-radius: 15px;">
 <?php
 	if(isset($_POST["ShowData"]))
 		{
 ?>
-			<tr height="30"><td colspan="6" align="center"><font color="red" style="size:11px;"><b id="error"><?php echo $_POST["ShowData"]; ?></b></font></td></tr>
+			<tr height="30"><td colspan="3" align="center"><font color="red" style="size:11px;"><b id="error"><?php echo $_POST["ShowData"]; ?></b></font></td></tr>
 <?php   }
 		else
 		{?>
-			<tr height="30"><td colspan="6" align="center"><font color="red" style="size:11px;"><b id="error"></b></font></td></tr>
+			<tr height="30"><td colspan="3" align="center"><font color="red" style="size:11px;"><b id="error"></b></font></td></tr>
 <?php 	} ?>   
-	<tr>
-		<th>&nbsp; Changed By</th>
-        <td >&nbsp; : &nbsp;</td>
-        <td ><?php echo $_SESSION['name'];?></td>
-        
-        <th >&nbsp; Expense Amount</th>
+    <tr><td colspan="3"><input type="hidden" name="changedby" id="changedby" value="<?php echo $_SESSION['name'];?>" /></td></tr>
+     <?php if($_SESSION['role'] && $_SESSION['role']==ROLE_ADMIN){?>
+     <tr align="left">
+        <th>&nbsp; Priority</th>
         <td>&nbsp; : &nbsp;</td>
-        <td><input type="text" name="expense_amt" id="expense_amt" value="" onKeyPress="return blockNonNumbers(this, event, true, false);" /></td>
-    </tr>
-    <tr><td colspan="6"><input type="hidden" name="changedby" id="changedby" value="<?php echo $_SESSION['name'];?>" /></td></tr>
-     
-    <tr><td colspan="6"><br /></td></tr>
-    
+        <td>
+        	<select id="priority" name="priority">
+            	<option value="0" <?php if($details[0]['priority']=='0'){?> selected <?php }?>> Please Select </option>
+                <option value="1 - Low" <?php if($details[0]['priority']=='1 - Low'){?> selected <?php }?>> 1 - Low </option>
+                <option value="2 - Medium" <?php if($details[0]['priority']=='2 - Medium'){?> selected <?php }?>> 2 - Medium </option>
+                <option value="3 - High" <?php if($details[0]['priority']=='3 - High'){?> selected <?php }?>> 3 - High </option>
+            </select>
+        </td>
+	</tr>
+    <tr><td colspan="3"><br /></td></tr>
+    <?php }?>
     <tr>
-    	<th >&nbsp; Status</th>
+    	<th>&nbsp; Status</th>
         <td>&nbsp; : &nbsp;</td>
         <td>
         	<select id="status" name="status">
             	<option value="0"> Please Select </option>
-	            <option value="Legal State 1" > Legal State 1 </option>
-                <option value="Legal State 2"> Legal State 2 </option>
-                <option value="Legal State 3"> Legal State 3 </option>
-                <option value="Case Closed"> Case Closed </option>
-             </select>
+                <?php
+				
+				if($_SESSION['role'] && ($_SESSION['role']==ROLE_ADMIN || $_SESSION['role']==ROLE_ADMIN_MEMBER || $_SESSION['role']==ROLE_SUPER_ADMIN))
+	      		{?>
+<!--                <option value="Raised" <?php //if($details[sizeof($details)-1]['status']=='Raised'){?> selected <?php// }?>> Raised </option>
+-->                <option value="Assigned" <?php if($req_history[sizeof($req_history)-1]['status']=='Assigned'){?> selected <?php }?>> Assigned </option>
+                <option value="In process" <?php if($req_history[sizeof($req_history)-1]['status']=='In process'){?> selected <?php }?>> In process </option>
+                <option value="Resolved" <?php if($req_history[sizeof($req_history)-1]['status']=='Resolved'){?> selected <?php }?>> Resolved </option>
+                <option value="Waiting for details" <?php if($req_history[sizeof($req_history)-1]['status']=='Waiting for details'){?> selected <?php }?>> Waiting for details </option>
+   				<?php } 
+				else
+				{
+                	$status=$req_history[sizeof($req_history)-1]['status'];
+					?>
+                	<option value="<?php echo $status;?>"  selected ><?php echo $status;?></option>
+          <?php }?>
+                
+                <option value="Reopen" <?php if($req_history[sizeof($req_history)-1]['status']=='Reopen'){?> selected <?php }?>> Re-Open </option>
+                <option value="Closed" <?php if($req_history[sizeof($req_history)-1]['status']=='Closed'){?> selected <?php }?>> Closed </option>                
+            </select>
         </td>
-        <th >&nbsp; Upcomming Hearing Date</th>
-        <td>&nbsp; : &nbsp;</td>
-        <td><input type="text" name="upcom_date" id="upcom_date" class="basics" readonly /></td>
     </tr>
-    <tr><td colspan="6"><br /></td></tr>
-	<tr>
-        <th >&nbsp; Case No.</th>
+    <tr><td colspan="3"><br /></td></tr>
+    <tr>       
+        <th>&nbsp; Upload Image	</th>
         <td>&nbsp; : &nbsp;</td>
-        <td><input type="text" name="case_no" id="case_no" value=""/></td>
-    </tr>
-    <tr><td colspan="6"><br /></td></tr>
+        <td><input  style=" width: 200px;" name="img[]" id="img" type="file" accept=".jpg, .png, .jpeg, .gif" multiple /></td>
+	</tr>
+    <tr><td colspan="3"><br /></td></tr>
     <tr>       
         <th>&nbsp; Comments</th>
         <td>&nbsp; : &nbsp;</td>
-        <td colspan="4"><textarea name="comments" id="comments" rows="6" cols="60" ></textarea>
-      </td>
+        <td><textarea name="comments" id="comments" rows="6" cols="60" ></textarea>
+      
+        </td>
 	</tr>
      	<script>
 			//CKEDITOR.config.height = 100;
@@ -444,14 +582,14 @@ if($details <> "")
 								 });
 		</script>
       
-   <tr><td colspan="6"><br /><input type="hidden" id="unit" name="unit" value="<?php echo $details[0]['unit_id'] ?>"></td></tr>
+    <tr><td colspan="3"><br /><input type="hidden" id="unit" name="unit" value="<?php echo $details[0]['unit_id'] ?>"></td></tr>
     <tr align="center">
-    	<td colspan="6"><input type="submit" name="submit" id="submit" value="Submit Comments"  class="btn btn-primary"/> </td>
+    	<td colspan="3"><input type="submit" name="submit" id="submit" value="Submit Comments"  class="btn btn-primary"/> </td>
     </tr>
-    <tr><td colspan="6"><input type="hidden" name="emailID" id="emailID" value="<?php echo $loginID[0]['member_id']; ?>" /></td></tr>
-        <tr><td colspan="6"><input type="hidden" name="SREmailIDs" id="SREmailIDs" value="<?php echo $strSREMailIDs; ?>" /></td></tr>
+    <tr><td colspan="3"><input type="hidden" name="emailID" id="emailID" value="<?php echo $loginID[0]['member_id']; ?>" /></td></tr>
+        <tr><td colspan="3"><input type="hidden" name="SREmailIDs" id="SREmailIDs" value="<?php echo $strSREMailIDs; ?>" /></td></tr>
      
-    <tr><td colspan="6"><br /></td></tr> 
+    <tr><td colspan="3"><br /></td></tr>      
 </table> 
 <br>
 </center> 
