@@ -11,7 +11,7 @@ $obj_events = new events($m_dbConn, $m_dbConnRoot);
 $events = $obj_events->view_events();
 $EventsCounter = count($events);
 include_once("classes/servicerequest.class.php");
-$obj_request = new servicerequest($m_dbConn, $m_dbConnRoot);
+$obj_request = new servicerequest($m_dbConn, $m_dbConnRoot, $landLordDB);
 $requests = $obj_request->getRecords($_REQUEST['cm']);
 $RequestsCounter = count($requests);
 include_once("classes/tenant.class.php");
@@ -811,10 +811,15 @@ $msgCounter = 0;
                                     <li>
                                         <a href="list_member2.php?scm">View Members</a>
                                     </li>
-                                   <!-- <li>
-                                        <a href="list_member.php?scm">Members List</a>
-                                    </li>-->
-                                    <?php if($_SESSION['role'] == "Super Admin" || $_SESSION['role'] == "Admin" || $_SESSION['role'] == "Accountant" || $_SESSION['role'] == "Manager")
+
+									<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+                                   		<li>
+											<a href="list_member3.php?scm">View Tenant</a>
+										</li>
+										<?php
+										}?>
+                                   
+								   <?php if($_SESSION['role'] == "Super Admin" || $_SESSION['role'] == "Admin" || $_SESSION['role'] == "Accountant" || $_SESSION['role'] == "Manager")
                                     { ?>
                                     	<li>
                                         	<a href="mem_rem_data.php?scm">Member Record Status</a>
@@ -852,8 +857,15 @@ $msgCounter = 0;
                                         	<a href="updateInterest.php">Update Bill Interest</a>
                                        </li>
                                        <li>
-                                <a href="society_notes.php">Account Notes</a>
-                             </li>
+                                			<a href="society_notes.php">Account Notes</a>
+                             			</li>
+
+										 <?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+                                   		<li>
+											<a href="pdc_list.php?scm">PDC</a>
+										</li>
+										<?php
+										}?>
 
                                        <?php
                                		 	}

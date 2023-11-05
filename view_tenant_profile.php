@@ -254,7 +254,7 @@ $(function()
 	?>
     </td>
     <td style="padding:5px">
-    <input type="button" class="btn btn-primary "  value="Total Dues Rs.<?php echo $obj_utility->getDueAmount($show_tenant_main[0]['unit_id'])?>" style=" height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;background-color:#FFFFFF;color:#000;border-color:#FFFFFF;border-top-style:none;border-left-style:none;border-right-style:none;font-weight:bold" onClick="window.open('member_ledger_report.php?&uid=<?php echo $show_tenant_main[0]['unit_id'];?>', '_blank')">
+    <input type="button" class="btn btn-primary "  value="Total Dues Rs.<?php echo $obj_utility->getDueAmount($show_tenant_main[0]['unit_id'])?>" style=" height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;background-color:#FFFFFF;color:#000;border-color:#FFFFFF;border-top-style:none;border-left-style:none;border-right-style:none;font-weight:bold" onClick="window.open('tenant_ledger_report.php?&uid=<?php echo $show_tenant_main[0]['unit_id'];?>', '_blank')">
     </td>
     </tr>
     </table>
@@ -963,14 +963,27 @@ $(function()
                         <th width="100">Remark</th>
                       <!--  <th width="80">Document</th>-->	
         </tr>
-        
-        <tr height="25" bgcolor="#BDD8F4">
-        <td><?php echo $show_cheque_detail[0]['bank_name']; ?></td>
-        <td><?php echo $show_cheque_detail[0]['cheque_no'];?></td>
-        <td><?php echo getDisplayFormatDate($show_cheque_detail[0]['cheque_date']);?></td>
-        <td><?php echo $show_cheque_detail[0]['amount']?></td>
-        <td><?php echo $show_cheque_detail[0]['remark']?></td>
-     </tr>
+        <?php 
+			$cheque_List=$show_cheque_detail[0]['Allcheque'];
+			// $doc_List=$TenantDetails[0]['Alldocuments'];
+			for($i=0;$i<sizeof($cheque_List);$i++)
+			{  //for($j=1;$j<=sizeof($mem_List);$j++)
+							//{
+		    $bank_name=$cheque_List[$i]['bank_name'];
+			$cheque_no=$cheque_List[$i]['cheque_no'];
+			$cheque_date=getDisplayFormatDate($cheque_List[$i]['cheque_date']);
+			$amount=$cheque_List[$i]['amount'];
+			$remark=$cheque_List[$i]['remark'];
+			?>
+             <tr height="25" bgcolor="#BDD8F4">
+            <td><?php echo $bank_name; ?></td>
+            <td><?php echo $cheque_no; ?></td>
+            <td><?php echo getDisplayFormatDate($cheque_date);?></td>
+            <td><?php echo $amount; ?></td>
+            <td><?php echo $remark; ?></td>
+            </tr>
+                             
+		<?php }?>
     </table><?php 
 }?>
 
@@ -1007,6 +1020,7 @@ $(function()
                 {  
                     ?>
                         <input type="button"  class="btn btn-primary"  value="Edit Profile"  id="Edit" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='view_tenant_profile.php?edt&prf&mkm&tik_id=<?php echo time();?>&id=<?php echo $_GET['id'];?>'">
+                        <input type="button"  class="btn btn-primary"  value="Tenancy Form"  id="Form" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='tenancy_contract/tenancy_form.php?id=<?php echo $_GET['id'];?>'">
                     <?php
                 }
                 else

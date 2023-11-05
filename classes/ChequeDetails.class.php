@@ -629,6 +629,282 @@ class ChequeDetails extends dbop
 		}
 	}
 	
+	public function AddNewValues3($VoucherDate, $ChequeDate, $ChequeNo, $ExVoucherCounter,$systemVoucherNo,$IsCallUpdtCnt, $Amount, $PaidBy, $BankID, $PayerBank, $PayerBranch, $DepositID, $Comments,$BillType, $reconcileDate = 0, $reconcileStatus = 0, $reconcile = 0, $return = 0, $EnteredByMember = 0,$isFunCalledFrmImport = false, $GatewayID = "", $TDS_Amount=0, $preChequeDetailID = 0, $importBatchID = 0)
+	{
+		try
+		{
+			//***Below code is just to verify it is a cash entry or bank entry according to that send Ledger to update counter it only applicable when same bank checked
+			$ListOfCashLedger = $this->m_objUtility->GetBankLedger($_SESSION['default_cash_account']);
+			$ExCounterType = VOUCHER_RECEIPT;
+			$CashLedgers = array();
+			for($i = 0; $i< sizeof($ListOfCashLedger); $i++)
+			{
+				array_push($CashLedgers,$ListOfCashLedger[$i]['id']);
+			}
+			
+			$IsSameCountChecked = $this->m_objUtility->IsSameCounterApply();
+			if(isset($_SESSION['login_id']))
+			{
+				$sLoginID = $_SESSION['login_id'];
+			}
+			else
+			{
+				$sLoginID =  "-2";	//payTM api
+			}
+
+			if(isset($_SESSION['society_id']))
+			{
+				$sSocietyID = $_SESSION['society_id'];
+			}
+			if($sSocietyID == "")
+			{
+				$sqlSoc = "select society_id from society";
+				$resSoc = $this->m_dbConn->select($sqlSoc);
+				$sSocietyID = $resSoc[0]["society_id"];
+				$_SESSION['society_id'] = $sSocietyID;
+			}
+			if(isset($_SESSION['default_due_from_tenant']))
+			{
+				$DuesFromTenants = $_SESSION['default_due_from_tenant'];
+			}
+			if($DuesFromTenants == "")
+			{
+				$sqlDuesFrmTen = "select APP_DEFAULT_DUE_FROM_TENANTS from appdefault";
+				$resDuesFrmTen = $this->m_dbConn->select($sqlDuesFrmMem);
+				$DuesFromTenants = $resDuesFrmTen[0]["APP_DEFAULT_DUE_FROM_TENANTS"];
+				$_SESSION['default_due_from_tenants'] = $DuesFromTenants;
+				//$DuesFromMembers = "4";
+				//echo "DuesFromMembers :".$DuesFromMembers;
+				//die();
+			}
+			$this->m_dbConn->begin_transaction();
+			
+			if($DepositID == "-2") //NEFT
+			{
+				//$VoucherDate = $ChequeDate;  // VoucherDate should be as per set by admin
+			}
+			if($TDS_Amount <> 0)
+			{
+				$TDS_Receivable = $_SESSION['default_tds_receivable'];
+			}
+			$arPaidByParentDetails = $this->m_objUtility->getParentOfLedger($PaidBy);
+			//print_r($arPaidByParentDetails);
+			if(!(empty($arPaidByParentDetails)))
+			{
+				$PaidByGroupID = $arPaidByParentDetails['group'];
+				$PaidByCategoryID = $arPaidByParentDetails['category'];
+				$PaidByName = $arPaidByParentDetails['ledger_name'];	
+			}
+			//echo '<br>Before chequeentry Insert';
+			$insert_query="insert into chequeentrydetails (`VoucherDate`,`ChequeDate`,`ChequeNumber`,`Amount`,`TDS_Amount`,`PaidBy`,`BankID`,`PayerBank`,`PayerChequeBranch`,`DepositID`,`EnteredBy`,`Comments`,`isEnteredByMember`,`BillType`, `Import_Batch_Id`) values ('".getDBFormatDate($VoucherDate)."','".getDBFormatDate($ChequeDate)."','".$ChequeNo."','".$Amount."','".$TDS_Amount."','".$PaidBy."','".$BankID."','".$this->m_dbConn->escapeString($PayerBank)."','".$this->m_dbConn->escapeString($PayerBranch)."','".$DepositID."','".$sLoginID."','".$this->m_dbConn->escapeString($Comments)."','".$EnteredByMember."','".$BillType."', '".$importBatchID."')";
+			$data = $this->m_dbConn->insert($insert_query);
+			$this->ADDEntryTracker ="New Record Added at($data)"; 
+			$this->EDITEntryTracker = "New Record for Edit Added at($data)"; 
+			
+			//echo '<br> After Insert';
+			$LatestVoucherNo = $this->m_latestcount->getLatestVoucherNo($sSocietyID);
+			if($PaidByCategoryID == CASH_ACCOUNT || $PaidByCategoryID == BANK_ACCOUNT)
+			{
+				$dataVoucher  = $this->m_voucher->SetVoucherDetails(getDBFormatDate($VoucherDate),$data, TABLE_CHEQUE_DETAILS, 
+				$LatestVoucherNo,1,VOUCHER_CONTRA,$PaidBy,TRANSACTION_DEBIT,$Amount+$TDS_Amount,'', $ExVoucherCounter);
+			}
+			else
+			{
+				//This should be other way
+				$dataVoucher  = $this->m_voucher->SetVoucherDetails(getDBFormatDate($VoucherDate),$data, TABLE_CHEQUE_DETAILS, 
+				$LatestVoucherNo,1,VOUCHER_RECEIPT,$PaidBy,TRANSACTION_DEBIT,$Amount+$TDS_Amount, '', $ExVoucherCounter);
+
+			}
+			//echo '<br> Test 1';
+			//To Credit section
+			if($PaidByCategoryID == CASH_ACCOUNT || $PaidByCategoryID == BANK_ACCOUNT)
+			{
+				$bankregQuery = $this->m_register->SetBankRegister(getDBFormatDate($VoucherDate), $PaidBy, $dataVoucher, VOUCHER_CONTRA, TRANSACTION_PAID_AMOUNT, $Amount+$TDS_Amount, $DepositID, $data, 0, getDBFormatDate($ChequeDate), 0, getDBFormatDate($reconcileDate), $reconcileStatus, $reconcile, $return);
+			}			
+			else if($PaidByGroupID==LIABILITY)
+			{
+			$SetLiabilityRegister = $this->m_register->SetLiabilityRegister(getDBFormatDate($VoucherDate),$PaidBy,$dataVoucher, VOUCHER_RECEIPT, TRANSACTION_CREDIT, $Amount+$TDS_Amount, 0);
+			}
+			else if($PaidByGroupID==ASSET)
+			{
+			$SetAssetRegister = $this->m_register->SetAssetRegister(getDBFormatDate($VoucherDate),$PaidBy,$dataVoucher, VOUCHER_RECEIPT, TRANSACTION_CREDIT, $Amount+$TDS_Amount, 0);
+			}
+			else if($PaidByGroupID==INCOME)
+			{
+			$SetIncomeRegister = $this->m_register->SetIncomeRegister($PaidBy,getDBFormatDate($VoucherDate),$dataVoucher, VOUCHER_RECEIPT, TRANSACTION_CREDIT, $Amount+$TDS_Amount);
+			}
+			else if($PaidByGroupID==EXPENSE)
+			{
+				$SetExpenseRegister = $this->m_register->SetExpenseRegister($PaidBy,getDBFormatDate($VoucherDate),$dataVoucher, VOUCHER_RECEIPT, TRANSACTION_CREDIT, $Amount+$TDS_Amount,0);
+			}
+			//echo '<br> Test 2';
+			//By Debit side Update Voucher
+			if($PaidByCategoryID == CASH_ACCOUNT || $PaidByCategoryID == BANK_ACCOUNT)
+			{
+			$dataVoucher  = $this->m_voucher->SetVoucherDetails(getDBFormatDate($VoucherDate), $data, TABLE_CHEQUE_DETAILS, $LatestVoucherNo, 2, VOUCHER_CONTRA, $BankID, TRANSACTION_CREDIT, $Amount+ $TDS_Amount,'',$ExVoucherCounter);
+			}
+			else
+			{
+				//pending : This needs to be otherway?? This should be Debit Transaction
+			$dataVoucher  = $this->m_voucher->SetVoucherDetails(getDBFormatDate($VoucherDate), $data, TABLE_CHEQUE_DETAILS, $LatestVoucherNo, 2, VOUCHER_RECEIPT, $BankID, TRANSACTION_CREDIT, $Amount, '', $ExVoucherCounter);
+			
+				if($TDS_Amount > 0)
+				{
+					$TDSDataVoucher = $this->m_voucher->SetVoucherDetails(getDBFormatDate($VoucherDate), $data, TABLE_CHEQUE_DETAILS, $LatestVoucherNo, 3, VOUCHER_RECEIPT, $TDS_Receivable, TRANSACTION_CREDIT, $TDS_Amount, '', $ExVoucherCounter);
+				}
+			}
+			//echo '<br> Test 3';
+			if($PaidByCategoryID == CASH_ACCOUNT || $PaidByCategoryID == BANK_ACCOUNT)
+			{
+				$bankregisterquery = $this->m_register->SetBankRegister(getDBFormatDate($VoucherDate),$BankID, $dataVoucher,VOUCHER_CONTRA, TRANSACTION_RECEIVED_AMOUNT, $Amount, $DepositID, $data, 0, getDBFormatDate($ChequeDate), 0, getDBFormatDate($reconcileDate), $reconcileStatus, $reconcile, $return);
+			}
+			else
+			{
+				$bankregisterquery = $this->m_register->SetBankRegister(getDBFormatDate($VoucherDate),$BankID, $dataVoucher,VOUCHER_RECEIPT, TRANSACTION_RECEIVED_AMOUNT, $Amount, $DepositID, $data, 0, getDBFormatDate($ChequeDate), 0, getDBFormatDate($reconcileDate), $reconcileStatus, $reconcile, $return);
+				if($TDS_Amount > 0)
+				{
+					$SetTDSAssetRegister = $this->m_register->SetAssetRegister(getDBFormatDate($VoucherDate),$TDS_Receivable,$dataVoucher, VOUCHER_RECEIPT, TRANSACTION_DEBIT, $TDS_Amount, 0);
+					
+				}
+			}
+			
+			if($IsCallUpdtCnt == 1)
+			{
+				if($IsSameCountChecked == 1)
+				{
+					if(in_array($BankID,$CashLedgers))
+					{
+						$this->m_objUtility->UpdateExVCounter($ExCounterType, $ExVoucherCounter, $BankID);
+					}
+					else
+					{
+						$this->m_objUtility->UpdateExVCounter($ExCounterType, $ExVoucherCounter, 0);
+					}
+				}
+				else
+				{
+					$this->m_objUtility->UpdateExVCounter($ExCounterType, $ExVoucherCounter, $BankID);	
+				}
+					
+			}
+			//echo '<br> Test 5';
+			//echo '<br> Paid By '.$PaidBy;
+			$ledgertype="select * from `ledger` where receipt='1' and categoryid='".$DuesFromTenants."' and society_id=".$sSocietyID." and `id`=".$PaidBy." ";
+			$IsLedgerUnit=$this->m_dbConn->select($ledgertype);
+			//echo "IsLedgerUnit";
+			//echo '<br> Test 6';
+			//print_r($IsLedgerUnit);
+			//echo '<br> Before Is Ledger Unit';
+			if($IsLedgerUnit <> " ")
+			{
+				$unitUpdateQuery = 'UPDATE `unit` SET `Payer_Bank`="'.$PayerBank.'",`Payer_Cheque_Branch`="'.$PayerBranch.'" WHERE `unit_id` = '.$PaidBy;	
+				$this->m_dbConn->update($unitUpdateQuery);		
+			}
+			//echo '<br>Exit';
+			//$this->m_dbConn->commit();
+
+			$ledgerDetails = $this->m_objUtility->GetLedgerDetails();
+
+			$PaidByName = $ledgerDetails[$PaidBy]['General']['ledger_name'];	
+			$BankName = $ledgerDetails[$BankID]['General']['ledger_name'];
+			$BillTypeName = $this->m_objUtility->returnBillTypeString($BillType);
+
+			$DepositName = $this->m_objUtility->getDepositName($DepositID);
+			if($this->actionType == ADD)
+			{
+				//echo "add type";
+				// if($systemVoucherNo <> $ExVoucherCounter)
+				// {
+				// 	$this->ADDEntryTracker .= " :: Voucher Number ".$ExVoucherCounter." Changed  to ".$systemVoucherNo. " on insert";
+				// }
+				
+				$dataArr = array('Voucher Date'=> $VoucherDate, 'Cheque Date'=>$ChequeDate, 'Cheque Number'=>$ChequeNo, 'Amount'=> $Amount, 'TDS Amount'=> $TDS_Amount, 'Paid By'=>$PaidByName, 'Bank'=> $BankName, 'Payer Bank'=>$PayerBank, 'Payer Cheque Branch'=>$PayerBranch, 'Deposit Name'=>$DepositName, 'Comments'=>$Comments, 'Bill Type'=>$BillTypeName);
+				
+				$logArr = json_encode($dataArr);
+				$this->m_objLog->setLog($logArr, $sLoginID, TABLE_CHEQUE_DETAILS, $data, ADD, 0);
+			}
+			if($this->actionType == EDIT)
+			{
+				// $this->EDITEntryTracker .= "<br> VoucherDate | ChequeDate | ChequeNumber | Amount | PaidBy | BankID | PayerBank | PayerChequeBranch | DepositID | EnteredBy | Comments | BillType<br>";
+				// $this->EDITEntryTracker .= $VoucherDate ."|". $ChequeDate ."|". $ChequeNo ."|". $Amount ."|". $PaidBy."|". $BankID . "|" . $PayerBank."|".$PayerBranch."|".$DepositID . "|".$sLoginID. "|" .$Comments. "|" .$BillType;
+				
+				$dataArr = array('Voucher Date'=> $VoucherDate, 'Cheque Date'=>$ChequeDate, 'Cheque Number'=>$ChequeNo, 'Amount'=> $Amount, 'TDS Amount'=> $TDS_Amount, 'Paid By'=>$PaidByName, 'Bank'=> $BankName, 'Payer Bank'=>$PayerBank, 'Payer Cheque Branch'=>$PayerBranch, 'Deposit Name'=>$DepositName, 'Comments'=>$Comments, 'Bill Type'=>$BillTypeName);
+				//$logArr = array('id'=>$data, 'data'=> $dataArr,'status'=>EDIT, 'login_id'=>$sLoginID, 'Date Time'=>date('d-m-Y H:i:s'));
+				
+				$checkPreviousLogQry = "SELECT ChangeLogID FROM change_log WHERE ChangedKey = '$preChequeDetailID' AND ChangedTable = '".TABLE_CHEQUE_DETAILS."'";
+				
+				$previousLogDetails = $this->m_dbConn->select($checkPreviousLogQry);
+
+				$previousLogID = $previousLogDetails[0]['ChangeLogID'];
+
+				// $previousLogDesc = json_decode($previousLogDetails[0]['ChangedLogDec'], true);
+
+				// array_push($previousLogDesc, $logArr);
+				
+				$previousLogDesc = json_encode($dataArr);
+
+				$this->m_objLog->setLog($previousLogDesc, $sLoginID, TABLE_CHEQUE_DETAILS, $data, EDIT, $previousLogID);
+			}
+			
+			
+			//if($isFunCalledFrmImport ==false && $DepositID == -2 && $PaidByGroupID == ASSET && $PaidByCategoryID == DUE_FROM_MEMBERS)
+			if($isFunCalledFrmImport ==false && $PaidByGroupID == ASSET && $PaidByCategoryID == DUE_FROM_TENANTS)
+			{
+				//neft payment entry for member hence send email
+				$PaymentFor = "Regular Maintenance Bill";
+				$SocietyAccountName = $this->m_objUtility->getLedgerName($BankID);
+				$sTrnxStatus = "";
+				
+				if($BillType == 1)
+				{
+					$PaymentFor = "Supplementary Maintenance Bill";
+				}
+				
+				if($DepositID == DEPOSIT_CASH)
+				{
+					$TransactionData['ModeOfReceipt'] = "Cash";
+				}
+				else if($DepositID == DEPOSIT_NEFT)
+				{
+						$TransactionData['ModeOfReceipt'] = "NEFT";
+						//echo "neft";
+				}
+				else if($DepositID == DEPOSIT_ONLINE)
+				{
+					$TransactionData['ModeOfReceipt'] = "Online";
+					$sTrnxStatus = $this->m_objUtility->GetPaymentGatewayTransactionStatus($ChequeNo);
+					//echo "online";
+				}
+				else if($DepositID == "3")
+				{
+					$TransactionData['ModeOfReceipt'] = "Cheque";
+				}
+				//echo "test".$TransactionData['ModeOfReceipt'];
+				$TransactionData['Date'] = $ChequeDate;
+				$TransactionData['SocietyAccountName'] = $SocietyAccountName;
+				$TransactionData['PaidBy'] = $PaidBy;
+				$TransactionData['PaidByName'] = $PaidByName;
+				$TransactionData['BankName'] = $PayerBank;
+				$TransactionData['BranchName'] = $PayerBranch;
+				$TransactionData['TransationNo'] = $ChequeNo;
+				$TransactionData['Amount'] = $Amount;
+				$TransactionData['Comments'] = $Comments;
+				$TransactionData['BillType'] = $PaymentFor;
+				$TransactionData['Status'] = $sTrnxStatus;
+				
+				$validator  = $this->sendNeftNotificationByEmail($TransactionData, $GatewayID,$sSocietyID);
+			}
+			$this->m_dbConn->commit();
+			echo "Success";
+			return "Insert";
+		}
+		catch(Exception $exp)
+		{
+			$this->m_dbConn->rollback();
+			return $exp;
+		}
+	}
+
 	public function deletingBatch($id)
 	{
         $sql = "delete from import_batch where Id='".$id."'";

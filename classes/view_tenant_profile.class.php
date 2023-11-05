@@ -73,10 +73,26 @@ class view_tenant_profile
 
 			return $res;
 		}else{
-			$sql = "SELECT * from postdated_cheque  where tenant_id='".$_GET['id']."'  ";
-			$res = $this->m_dbConn->select($sql);
-	
-			return $res;
+			$sql = "SELECT * from postdated_cheque  where tenant_id='".$_GET['id']."' and cheque_date >= CURDATE()";
+			$result = $this->m_dbConn->select($sql);
+			$tenant_id = $result[0]['tenant_id'];
+
+			if($tenant_id <> ''){
+				$sqlData = "select `bank_name`, `cheque_no`, `cheque_date`, `amount`, `remark` from postdated_cheque where tenant_id = ".$tenant_id."";
+				$res = $this->m_dbConn->select($sqlData);
+				$result[0]['Allcheque'] = $res;
+			}
+			$sqlCount = "select Count(tenant_id) as countTotal from postdated_cheque where `tenant_id` = ".$_GET['id']."";
+			$resCount = $this->m_dbConn->select($sqlCount);
+			$result[0]['Count'] = $resCount[0]['countTotal'];
+			if($tenant_id<>'')
+			{
+				$result[0]['Count'] = $result[0]['Count'] - 1;
+			}
+			// 	echo "<pre>";
+			// 	print_r($result);
+			// 	echo "</pre>";
+			return $result;
 		}
 	}
 
