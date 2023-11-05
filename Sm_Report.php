@@ -2,7 +2,7 @@
 <head>
 <title>W2S - Security Managment Report</title>
 </head>
-
+<!-- comment -->
 <?php 
 //******Including the required File for SM Report 
 include_once("includes/head_s.php");    

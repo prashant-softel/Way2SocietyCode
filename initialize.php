@@ -1,4 +1,5 @@
 <?php  include_once("includes/header_empty.php");
+// commen
 	//include_once("includes/head_s.php");
 	include_once('classes/include/check_session.php');
 	include_once("classes/initialize.class.php");

@@ -1,5 +1,5 @@
 <?php
-
+// comment
 include_once('dbconst.class.php');
 include_once('include/config.php');
 include_once('utility.class.php');

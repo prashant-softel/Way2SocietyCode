@@ -1,4 +1,5 @@
 <?php 
+// comment
 if(!isset($_SESSION)){ session_start(); }
 //include_once("classes/include/dbop.class.php");
 include_once("classes/include/check_session.php");

@@ -1,5 +1,5 @@
 <?php
-	
+	// comment
 		include_once("changelog.class.php");
 		include_once("include/dbop.class.php");
 		include_once("email_format.class.php");

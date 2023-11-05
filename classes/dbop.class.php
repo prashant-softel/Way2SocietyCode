@@ -1,6 +1,6 @@
 <?php
  	//Turn off all error reporting
-
+	// comment
    	error_reporting(0);
 	
 	include('DbConnection.class.php');

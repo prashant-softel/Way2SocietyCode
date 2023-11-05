@@ -1,4 +1,5 @@
 <?php
+// comment
 if(!isset($_SESSION)){ session_start(); }
 include_once ("dbconst.class.php"); 
 include_once("include/dbop.class.php");

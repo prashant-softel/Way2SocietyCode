@@ -1,4 +1,5 @@
 <?php
+// comment
 	//error_reporting(7);
 	include_once "dbconst.class.php";	
 	include_once "adduser.class.php";

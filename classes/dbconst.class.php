@@ -3,7 +3,7 @@
 	{
 		if(!isset($_SESSION)){ session_start(); }
 	}
-	
+	// comment
 	//Roles
 	define('ROLE_SUPER_ADMIN', 'Super Admin');
 	define('ROLE_ADMIN', 'Admin');

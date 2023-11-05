@@ -1,5 +1,5 @@
 <?php if(!isset($_SESSION)){ session_start(); }
-
+// comment
 //echo $_SERVER['HTTP_HOST'];
 if($_SERVER['HTTP_HOST']=="localhost")
 {
