@@ -1138,7 +1138,7 @@ $(function()
                     document.body.innerHTML = printContents;
                     window.print();
 
-                    // document.body.innerHTML= originalContents;
+                     document.body.innerHTML= originalContents;
                 }
  				function showRenewModal(data, vehicle_type) {
                 
