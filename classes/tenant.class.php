@@ -86,7 +86,24 @@ class tenant
 		else
 		{
 			echo "<br>Lease Document type not found";
-		}		
+		}
+		if($_REQUEST['insert']=='Update' && $errorExists==0){
+			
+			$sql1 ="update tenant_module set tenant_name='".$_REQUEST['t_name']."', start_date='".$_REQUEST['start_date']."', end_date ='".$_REQUEST['end_date']."', agent_name ='".$_REQUEST['agent']."', agent_no ='".$_REQUEST['agent_no']."', note = '".$_REQUEST['note']."', img ='".$_REQUEST['profile_img']."' where tenant_id = 1";
+			$result = $this->m_dbConn->insert($sql1);
+
+			if($_REQUEST['cheqcount'] > 1){
+				for($i=2;$_REQUEST['cheqcount'] >= $i;$i++){
+					$insert_query = "insert into postdated_cheque (`tenant_id`,`unit_id`,`bank_name`,`bank_branch`,`cheque_no`,`cheque_date`,`amount`,`remark`,`status`) values ('".$_REQUEST['tenant_id']."','".$_REQUEST['unit_id']."','".$_REQUEST['bankName_'.$i]."','".$_REQUEST['branch_'.$i]."','".$_REQUEST['cheqno_'.$i]."','".getDBFormatDate($_REQUEST['cheqdate_'.$i])."','".$_REQUEST['amount_'.$i]."','".addslashes(trim(ucwords($_REQUEST['remark_'.$i])))."','Y')";
+					$data = $this->m_dbConn->insert($insert_query);					
+				}
+			}
+			$sql2 ="update postdated_cheque set bank_name='".$_REQUEST['bankName_1']."', bank_branch='".$_REQUEST['branch_1']."', cheque_no ='".$_REQUEST['cheqno_1']."', cheque_date ='".$_REQUEST['cheqdate_1']."', amount ='".$_REQUEST['amount_1']."' where tenant_id = 1";
+			$result = $this->m_dbConn->insert($sql2);
+			// $sql2= "update `tenant_module` set `serviceRequestId`,`doc_id`,`unit_id`,`tenant_name`,tenant_MName,tenant_LName,`mobile_no`,`email`,`dob`,`agent_name`,`agent_no`,`members`,`create_date`,`start_date`,`end_date`, `total_month`, `note`,`ApprovalLevel`,`noofcheque`) values ('".$srResult."','0'," . $unitLedgerName . ",'".$_POST['t_name']."','".$_POST['t_mname']."','".$_POST['t_lname']."','".$_POST['contact_1']."','".$_POST['email_1']."','".getDBFormatDate($_POST['mem_dob_1'])."','".$_POST['agent']."','".$_POST['agent_no']."','1','".date('Y-m-d')."','".$start."','".$end."', '".$total_month."', '".$_POST['note']."','".$this->getApprovalLevel()."', '".$chequeCount."')";
+			$this->actionPage = "../view_tenant_profile.php?scm&id=".$_REQUEST['tenant_id'];
+			return "Update";
+		}	
 				
 		if($_REQUEST['insert']=='Submit' && $errorExists==0)
 		{
@@ -1985,8 +2002,16 @@ class tenant
 		if($_SESSION['landLordDB']){
 			$isLandLordDB = true;
 		}
-		return $this->combobox($query, $id, $isLandLordDB);
-						
+		return $this->combobox($query, $id, $isLandLordDB);						
+	}
+
+	public function getPDC()
+	{
+		$query = "select * from postdated_cheque where tenant_id = '".$_GET['id']."'";
+
+		$data = $this->m_dbConn->select($query);
+		
+		return $data;						
 	}
 
 	public function combobox($query, $id, $dbselected= false)

@@ -226,7 +226,7 @@ $(function()
 		{  
 			?>
             <td style="padding:5px">
-				<input type="button"  class="btn btn-primary"  value="Edit Profile"  id="Edit" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='view_tenant_profile.php?edt&prf&mkm&tik_id=<?php echo time();?>&id=<?php echo $_GET['id'];?>'">
+				<input type="button"  class="btn btn-primary"  value="Edit Profile"  id="Edit" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='tenant.php?edit=true&prf&mkm&tik_id=<?php echo time();?>&id=<?php echo $_GET['id'];?>'">
                 </td>
 			<?php
 		}
@@ -294,20 +294,20 @@ $(function()
 			if(isset($_POST['ShowData']))
 			{
 			?>
-				<tr height='30'><td colspan='4' align='center'><font color='red' size='-1'><span id="tenantError" style="display:none"></span><b id='error' style='display:none;'><?php echo $_POST['ShowData']; ?>			</b></font></td></tr>
+				<tr class="ig_print" height='30'><td colspan='4' align='center'><font color='red' size='-1'><span id="tenantError" style="display:none"></span><b id='error' style='display:none;'><?php echo $_POST['ShowData']; ?>			</b></font></td></tr>
 			<?php
 			}
 			else
 			{
 			?>
-				<tr height='30'><td colspan='4' align='center'><font color='red' size='-1'><b id='error' style='display:none;'><?php echo $msg; ?></b></font></td></tr>
+				<tr class="ig_print" height='30'><td colspan='4' align='center'><font color='red' size='-1'><b id='error' style='display:none;'><?php echo $msg; ?></b></font></td></tr>
 			<?php
 			}	
 		}
 		else
 		{
 		?>
-			<tr height='30'><td colspan='4' align='center'><font color='red' size='-1'><b id='error' style='display:none;'><?php echo $_POST['ShowData']; ?></b></font></td></tr>
+			<tr class="ig_print" height='30'><td colspan='4' align='center'><font color='red' size='-1'><b id='error' style='display:none;'><?php echo $_POST['ShowData']; ?></b></font></td></tr>
 		<?php
 		}
 		?>
@@ -315,7 +315,7 @@ $(function()
             <?php 
             $image = $TenantDetails[0]['img'];
             $imageUrl = "Uploaded_Documents/tenantProfile__" .$_GET['id']."_Photo.jpg"; ?>
-            	<td style="width: 200px;"><a target="_blank" href="images/noimage.png" id="profileHref"><img <?php 
+            	<td style="width: 400px;"><a target="_blank" id="profileHref"><img <?php 
 				if(isset($_REQUEST['edit']) || isset($_REQUEST['edt']) || isset($_REQUEST['view']))
 				{ 
 					if($image != "") 
@@ -336,7 +336,7 @@ $(function()
                 	src = "images/noimage.png"
                 <?php
 				}
-					?> id="profile_img" class="img-square" alt="img" style=" width:70%;height:30%;border: 1px solid #ddd;border-radius: 4px;padding: 5px;"></a>
+					?> id="profile_img" class="img-square" alt="img" style=" width:100%;height:auto;border: 1px solid #ddd;border-radius: 4px;padding: 5px;"></a>
                 </td>
 
 <td colspan="2" width="70%">
@@ -355,15 +355,39 @@ $(function()
         </tr>
         <tr>
         	<td style="text-align:right"></td>
-			<td style = "text-align:right"><b>Flat No</b></td>
+			<td style = "text-align:right"><b>Property No</b></td>
             <td>:</td>
             <td><?php echo $show_tenant_main[0]['unit_no'];?></td>
         </tr>
         <tr>
         	<td style="text-align:right"></td>
-			<td style = "text-align:right"><b> Property Area</b></td>
+			<td style = "text-align:right"><b> Property Type</b></td>
             <td>:</td>
             <td><?php echo $show_tenant_main[0]['flat_configuration'];?></td>
+        </tr>
+        <tr>
+        	<td style="text-align:right"></td>
+			<td style = "text-align:right"><b> Property Area</b></td>
+            <td>:</td>
+            <td><?php echo $show_tenant_main[0]['location'];?></td>
+        </tr>
+        <tr>
+        	<td style="text-align:right"></td>
+			<td style = "text-align:right"><b>Annual Rent</b></td>
+            <td>:</td>
+            <td><?php echo $show_tenant_main[0]['annual_rent'];?></td>
+        </tr>
+        <tr>
+        	<td style="text-align:right"></td>
+			<td style = "text-align:right"><b>Contrct Value</b></td>
+            <td>:</td>
+            <td><?php echo $show_tenant_main[0]['contract_value'];?></td>
+        </tr>
+        <tr>
+        	<td style="text-align:right"></td>
+			<td style = "text-align:right"><b>Security Deposit</b></td>
+            <td>:</td>
+            <td><?php echo $show_tenant_main[0]['security_deposit'] ;?></td>
         </tr>
         <tr>
         	<td style="text-align:right"></td>
@@ -372,12 +396,6 @@ $(function()
             <td><?php echo getDisplayFormatDate($TenantDetails[0]['start_date']);?>
             &nbsp; &nbsp;  <b>End Date : </b>
             <?php echo getDisplayFormatDate($TenantDetails[0]['end_date']);?></td>
-        </tr>
-        <tr>
-        	<td style="text-align:right"></td>
-			<td style = "text-align:right"><b>Number of Co-Occupants</b></td>
-            <td>:</td>
-            <td><?php echo $TenantDetails[0]['members'];?></td>
         </tr>
     <table>
 </td>
@@ -430,127 +448,72 @@ $(function()
 	<td colspan="6">
     <?php if( $TenantDetails[0]['tenant_id'] =='')
 	 {?>
-     <table border="0" id="lease_table">
+     <table id="lease_table">
      <tr height="30" bgcolor="#E8E8E8">
       <th width="280">Name on the Lease Document</th>
-                        <th width="150">Start Date</th>
-                        <th width="150">End Date</th>
-                      <!--  <th width="100">Mobile</th>
-                        <th width="180">E-Mail</th>-->
-                        <th width="150">Member(s)</th>
+      <th width="80">Relation</th>
+      <th width="80">Emirate No</th>
+      <th width="80">Contact NO</th>
+      <th width="80">Email Address</th>
                <!-- <th width="80">Document</th>-->
                         </tr>
                         <!-- <tr><td><br></td></tr> -->
                         <tr><td colspan="6" style="color: red;font-size: 11px; font-weight: bold;">No Active Lessee Record Found</td></tr>
                         
      <?php }
-	 else{?>
-    	<table border="0">
+	 else{
+      
+        ?>
+    	<table id="lease_table">
         <tr height="30" bgcolor="#E8E8E8">
                         <th width="280">Name on the Lease Document</th>
-                        <th width="100">Start Date</th>
-                        <th width="100">End Date</th>
-                       <!-- <th width="100">Mobile</th>
-                        <th width="180">E-Mail</th>-->
-                        <th width="100">Member(s)</th>
+                        <th width="80">Relation</th>
+                        <th width="80">Emirate No</th>
+                        <th width="80">Contact NO</th>
+                        <th width="80">Email Address</th>
                       <!--  <th width="80">Document</th>-->
                         <?php
-                        if(!isset($_GET['edt']))
-                        {
-                            ?>
-                                <th width="100">View</th>
-                            <?php
-                        }
-                        else
-                        {
-                            ?>
-                                <th width="100">Delete</th>
-                            <?php
-                        }
+                        
                         if($TenantDetails[0]['active']==0)
 						{?>
-                        <th width="100">Edit</th>
+                        <th width="100" class="ig_print">Edit</th>
                         <?php 
 						}
 						else
 						{?>
-						<th width="100" style="display:none">Edit</th>
+						<th width="100" style="display:none" class="ig_print">Edit</th>
 						<?php }
 						if($TenantDetails[0]['active']==0)
 						{?>
-                        <th width="100"  style="display:none" >Status</th>
+                        <th width="100"  style="display:none" class="ig_print">Status</th>
                         <?php }
 						else{?>
-                        <th width="100">Status</th>
+                        <th width="100" class="ig_print">Status</th>
                         <?php }?>	
         </tr>
         
         <tr height="25" bgcolor="#BDD8F4">
         <td><a onClick="window.location.href='tenant.php?mem_id=<?php echo $_GET['id']; ?>&tik_id=<?php echo time(); ?>&view=<?php echo $TenantDetails[0]['tenant_id']; ?>'"><?php echo $TenantDetails[0]['tenant_name'] ?></a></td>
-        <td><?php echo getDisplayFormatDate($TenantDetails[0]['start_date']);?></td>
-        <td><?php echo getDisplayFormatDate($TenantDetails[0]['end_date']);?></td>
-         <!--<td><?php// echo $TenantDetails[0]['mobile_no']?></td>
-        <td><?php //echo $TenantDetails[0]['email']?></td>-->
-        <td><?php echo $TenantDetails[0]['members']?></td>
-      	<!--<td>  <?php //echo "<a href='http://localhost/onedrive/sujit/beta_aws/Uploaded_Documents/".$TenantDetails[0]['Document']. "'download>"?> <?php // "<img src='images/download1.ico'  width='20'>";?></a></td>-->
+      	<td>Self</td>
+      	<td><?php echo $TenantDetails[0]['emirate_no'] ?></td>
+      	<td><?php echo $TenantDetails[0]['mobile_no'] ?></td>
+      	<td><?php echo $TenantDetails[0]['email'] ?></td>
        <!--<td> <?php //echo  " <a href='http://localhost/onedrive/sujit/beta_aws/Uploaded_Documents/".$TenantDetails[0]['Document']. "'download>"?>Download </a></td>-->
        
-        <td style="text-transform: capitalize;"><a id="mem_" onClick="memexpandDetails(this);">More</a></td>
        <?php
        if($TenantDetails[0]['active']==0)
 	   {?><!--need this line -->
-		   <td><a href="tenant.php?mem_id=<?php echo $_GET['id'];?>&tik_id=<?php echo time();?>&edit=<?php echo $TenantDetails[0]['tenant_id'];?>"><img src="images/edit.gif" /></a></td>
+		   <td class="ig_print"><a href="tenant.php?mem_id=<?php echo $_GET['id'];?>&tik_id=<?php echo time();?>&edit=<?php echo $TenantDetails[0]['tenant_id'];?>"><img src="images/edit.gif" /></a></td>
 		<?php }
 	      else
 		  {?>
-       <td><span>Active</span>
+       <td class="ig_print"><span>Active</span>
        <a href="tenant.php?mem_id=<?php echo $_GET['id'];?>?edit=<?php echo $TenantDetails[0]['tenant_id'];?>"><img src="images/edit.gif"  style="display:none;"/></a></td>
         <?php }?>
         
                    
         </tr>
-         <?php
-        if(!isset($_GET['edt']))
-        {
-            ?>
-                <tr id="memdetail_" style="display: none;">
-            <?php
-        }
-        else
-        {
-            ?>  
-                <tr id="memdetail_">
-            <?php
-        }
-    ?>
-       <!-- <tr align="left" id="memdetail_" style="display: none;">-->
-        <td  valign="left" colspan="8">
-        <table class="table_format_left" style="width: 100%; float:left">
-        <tr><td width="200%">
-        					<table width="100%"  style="background-color:#f9f9f9;">
-                         <tr height="25" align="left"  style="background-color:#f9f9f9;">
-                         <th width="80px"style="text-align:left" >Agent Name :</th><th style="text-transform: capitalize;text-align:left; width:180px;"><?php echo $TenantDetails[0]['agent_name']?></th>
-                         <th width="80px"style="text-align:left" >Contact No :</th><th><?php echo $TenantDetails[0]['agent_no']?></th>
-                         </tr>
-                         </table>
-                         </td></tr>
-                          <tr><td>
-                         <table  width="100%"  >
-                         <tr style="background-color:#bce8f1;font-size:14px;"  height="25">
-    	<th colspan="8" align="center" style="text-align:center;">Lessee Occupying in the Flat </th>
-        <th style="background-color:#FFF; width:50px;"></th>
-      <th style="width:150px; text-align:center;" align="center">Document </th>
-
-                            <tr height="25" align="left" style="background-color:#f9f9f9;">
-                            <td  colspan="8"><table><tr>
-                                <th  width="180" style="text-align:left" >Name</th>
-                        		<th width="110" style="text-align:left" >Relation</th>
-                                <th width="110" style="text-align:left" >Emirate No</th>
-                                <th width="100"style="text-align:left" >Date Of Birth</th>
-                                <th width="100"style="text-align:left" >Contact No</th>
-                                <th width="100"style="text-align:left" >Email Address</th>
-                                <th style="width:50px;">Send Communcation Emails ?</th>
-                        </tr>
+                        
                        
                         <?php 
 						 $mem_List=$TenantDetails[0]['Allmembers'];
@@ -565,40 +528,20 @@ $(function()
 							$email=$mem_List[$i]['email'];
 							$emirate=$mem_List[$i]['emirate_no'];
 							?>
-                            <tr align="left">
+                            <tr align="left" height="25" bgcolor="#BDD8F4">
                              <td style="text-transform: capitalize;"><?php //echo $j?><?php echo $member?></td>
                             <td style="text-transform: capitalize;"><?php echo $Relation?></td>
                              <td style=""><?php echo $emirate?></td>
-                            <td><?php echo $MemberDob?></td>
                              <td><?php echo $number?></td>
                               <td><?php echo $email?></td>
-                              <td style="text-align:center"> <input type="checkbox" name="mem_Send_commu_emails<?php echo $ii1;?>" id="mem_Send_commu_emails<?php echo $ii1;?>" value="1" <?php if($mem_List[$i]['send_commu_emails']==1){echo 'checked';}else{echo '';}?> <?php  echo 'disabled'; ?> <?php if($_SESSION['role'] == ROLE_ADMIN) { echo 'onclick="return false;"';} ?>></td>
+                              <td></td>
 
                               </tr>
                              
 						<?php }?>
                         </table></td> 
 						 <td style="width:50px; background-color:#FFF"></td>
-                         <td colspan="2"><table  width="150px">
-						<?php $doc_List=$TenantDetails[0]['Alldocuments'];
-						for($i=0;$i<sizeof($doc_List);$i++)
-						{ 
-							$docName=$doc_List[$i]['Name'];
-							$doc_Link=$doc_List[$i]['Document'];
-                            $doc_version=$doc_List[$i]['doc_version'];
-
-                            $gdrive_id = $doc_List[$i]['attachment_gdrive_id'];
-                            
-                            $doc_id=$doc_List[$i]['doc_id'];
-							?>
-                            <tr align="center">
-                            <td style="text-transform: capitalize; text-align:center;"><span style="text-align:center"><a href="<?php echo $doc_List[$i]['documentLink'];?>" target="_blank" style="cursor: pointer;text-decoration:none;"><?php echo $docName?></a></span></td>
-                            <?php if($TenantDetails[0]['active'] == 0){ ?>
-                            <td><input style="color: red" onClick="delete_doc(this.id)" type="button" id="<?php echo $doc_id;?>"  name="<?php echo $doc_id;?>"  value="<?php echo "X";?>"></td>
-                            <?php }?>
-                           </tr>
-						<?php } //}?>
-                        </table></td>
+                         
                        
                       <!--<table width="20%"> 
                         <tr height="25">
@@ -629,8 +572,94 @@ $(function()
                   
              
     </table>
+    </br>
+    <table id="doc_table">
+        <tr height="30" bgcolor="#E8E8E8">
+            <th width="50%">Document Name</th>
+            <th width="50%" class="ig_print">Document</th>
+        </tr>
+        <?php $doc_List=$TenantDetails[0]['Alldocuments'];
+        if(is_array($doc_List)){
+
+        
+        for($i=0;$i<sizeof($doc_List);$i++)
+        { 
+            $docName=$doc_List[$i]['Name'];
+            $doc_Link=$doc_List[$i]['Document'];
+            $doc_version=$doc_List[$i]['doc_version'];
+
+            $gdrive_id = $doc_List[$i]['attachment_gdrive_id'];
+            
+            $doc_id=$doc_List[$i]['doc_id'];
+            ?>
+            <tr align="" class="ig_print">
+            <td style="text-transform: capitalize; text-align:center;"><span style="text-align:center"><a href="<?php echo $doc_List[$i]['documentLink'];?>" target="_blank" style="cursor: pointer;text-decoration:none;"><?php echo $docName?></a></span></td>
+            <td ><a href="<?php echo $doc_List[$i]['documentLink']?>" target="_blank" id=""><img src="<?php echo $doc_List[$i]['documentLink']?>" alt="attachments" style="height:25px;width:25px;"></a></td>
+            </tr>
+            <tr align="" class="f_print" style="display: none;">
+            <td colspan="2" style="text-transform: capitalize; text-align:center;width:10%;"><span style="text-align:center"><?php echo $docName?></span></td>
+            </tr>
+        <?php }}//}
+        
+        ?>
+  </table>
+
     
+    <table class="table_format">
+    <tr height="25" valign="bottom" >
+        
     
+        <td colspan="6" style="font-weight: bold;text-align: center;">
+            <br/>
+            <i class="fa fa-group" style="font-size: 14px;">&nbsp;</i><b><u>POST DATED CHEQUE DETAILS</u></b>&nbsp;<i class="fa fa-group" style="font-size: 14px;"></i>
+        </td>
+    </tr>
+    <!--<tr align="left">
+    <td> Number of Tenant Entries : <?php // echo $TenantDetails[0]['counttotal']?></td></tr>
+    --><tr>
+	<td colspan="6">
+    <?php if( $TenantDetails[0]['tenant_id'] =='')
+	 {?>
+    <table border="0" id="cheque_table">
+     <tr height="30" bgcolor="#E8E8E8">
+      <th width="150">Bank Name</th>
+                        <th width="150">Cheque No</th>
+                        <th width="150">Cheque Date</th>
+                      <!--  <th width="100">Mobile</th>
+                        <th width="180">E-Mail</th>-->
+                        <th width="150">Amount</th>
+                        <th width="100">Remark</th>
+                        <th width="100">Status</th>
+               <!-- <th width="80">Document</th>-->
+                        </tr>
+                        <!-- <tr><td><br></td></tr> -->
+                        <tr><td colspan="6" style="color: red;font-size: 11px; font-weight: bold;" >No Active Lessee Record Found</td></tr>
+                        
+     <?php }
+	 else{?>
+    	<table border="0" id="cheque_table">
+        <tr height="30" bgcolor="#E8E8E8">
+                        <th width="200">Bank Name</th>
+                        <th width="200">Cheque No</th>
+                        <th width="100">Cheque Date</th>
+                       <!-- <th width="100">Mobile</th>
+                        <th width="180">E-Mail</th>-->
+                        <th width="100">Amount</th>
+                        <th width="100">Remark</th>
+                        <th width="100">Status</th>
+                      <!--  <th width="80">Document</th>-->	
+        </tr>
+        
+        <tr height="25" bgcolor="#BDD8F4">
+            <td><?php echo $show_cheque_detail[0]['bank_name']; ?></td>
+            <td><?php echo $show_cheque_detail[0]['cheque_no'];?></td>
+            <td><?php echo getDisplayFormatDate($show_cheque_detail[0]['cheque_date']);?></td>
+            <td><?php echo $show_cheque_detail[0]['amount']?></td>
+            <td><?php echo $show_cheque_detail[0]['remark']?></td>
+            <td><?php echo $show_cheque_detail[0]['status']?></td>
+        </tr>
+</table><?php 
+}?>    
    
 <tr><td><br/><br></td></tr>
 <tr height="25" valign="bottom">
@@ -914,97 +943,7 @@ $(function()
     </td>
 </tr>
 
-<table class="table_format">
-<tr height="25" valign="bottom" >
-    
-   
-    <td colspan="6" style="font-weight: bold;text-align: center;">
-        <br/>
-        <i class="fa fa-group" style="font-size: 14px;">&nbsp;</i><b><u>POST DATED CHEQUE DETAILS</u></b>&nbsp;<i class="fa fa-group" style="font-size: 14px;"></i>
-    </td>
-</tr>
-<!--<tr align="left">
-<td> Number of Tenant Entries : <?php // echo $TenantDetails[0]['counttotal']?></td></tr>
---><tr>
-	<td colspan="6">
-    <?php if( $TenantDetails[0]['tenant_id'] =='')
-	 {?>
-     <table border="0" id="cheque_table">
-     <tr height="30" bgcolor="#E8E8E8">
-      <th width="150">Bank Name</th>
-                        <th width="150">Cheque No</th>
-                        <th width="150">Cheque Date</th>
-                      <!--  <th width="100">Mobile</th>
-                        <th width="180">E-Mail</th>-->
-                        <th width="150">Amount</th>
-                        <th width="100">Remark</th>
-                        <th width="150">Cheque Type</th>
-                        <th width="150">Status</th>
-               <!-- <th width="80">Document</th>-->
-                        </tr>
-                        <!-- <tr><td><br></td></tr> -->
-                        <tr><td colspan="6" style="color: red;font-size: 11px; font-weight: bold;" >No Active Lessee Record Found</td></tr>
-                        
-     <?php }
-	 else{?>
-    	<table border="0" id="cheque_table">
-        <tr height="30" bgcolor="#E8E8E8">
-                        <th width="200">Bank Name</th>
-                        <th width="200">Cheque No</th>
-                        <th width="100">Cheque Date</th>
-                       <!-- <th width="100">Mobile</th>
-                        <th width="180">E-Mail</th>-->
-                        <th width="100">Amount</th>
-                        <th width="100">Remark</th>
-                        <th width="150">Cheque Type</th>
-                        <th width="150">Status</th>
-                      <!--  <th width="80">Document</th>-->	
-        </tr>
-<<<<<<< HEAD
-        <?php 
-			$cheque_List=$show_cheque_detail[0]['Allcheque'];
-			// $doc_List=$TenantDetails[0]['Alldocuments'];
-			for($i=0;$i<sizeof($cheque_List);$i++)
-			{  //for($j=1;$j<=sizeof($mem_List);$j++)
-							//{
-		    $bank_name=$cheque_List[$i]['bank_name'];
-			$cheque_no=$cheque_List[$i]['cheque_no'];
-			$cheque_date=getDisplayFormatDate($cheque_List[$i]['cheque_date']);
-			$amount=$cheque_List[$i]['amount'];
-			$remark=$cheque_List[$i]['remark'];
-            $cheque_type = $cheque_List[$i]['type'];
-            $status = $cheque_List[$i]['status'];
-            if($status == 0){
-                $status = "Accepted";
-            }elseif($status == 1){
-                $status = "Deposited";
-            }else{
-                $status = "Cancelled or Replaced";
-            }
-			?>
-             <tr height="25" bgcolor="#BDD8F4">
-            <td><?php echo $bank_name; ?></td>
-            <td><?php echo $cheque_no; ?></td>
-            <td><?php echo getDisplayFormatDate($cheque_date);?></td>
-            <td><?php echo $amount; ?></td>
-            <td><?php echo $remark; ?></td>
-            <td><?php echo $cheque_type; ?></td>
-            <td><?php echo $status; ?></td>
-            </tr>
-                             
-		<?php }?>
-=======
-        
-        <tr height="25" bgcolor="#BDD8F4">
-        <td><?php echo $show_cheque_detail[0]['bank_name']; ?></td>
-        <td><?php echo $show_cheque_detail[0]['cheque_no'];?></td>
-        <td><?php echo getDisplayFormatDate($show_cheque_detail[0]['cheque_date']);?></td>
-        <td><?php echo $show_cheque_detail[0]['amount']?></td>
-        <td><?php echo $show_cheque_detail[0]['remark']?></td>
-     </tr>
->>>>>>> 03b76bfc2ed7bd9f942dec1a1a64066e5947086d
-    </table><?php 
-}?>
+
 
 </tr></td>
 <table class="table_format" style="width: 100%;">
@@ -1038,8 +977,10 @@ $(function()
                 if(!isset($_GET['edt']))
                 {  
                     ?>
-                        <button type="button"  class="btn btn-primary"   id="Edit" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='view_tenant_profile.php?edt&prf&mkm&tik_id=<?php echo time();?>&id=<?php echo $_GET['id'];?>'">Edit Profile</button>
+                        <button type="button"  class="btn btn-primary"   id="Edit" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='tenant.php?edit=true&prf&mkm&tik_id=<?php echo time();?>&id=<?php echo $_GET['id'];?>'">Edit Profile</button>
                         <button type="button"  class="btn btn-primary"    id="Print" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="PrintPage()"  name="Print!">Print</button>
+			<input type="button"  class="btn btn-primary"  value="Tenancy Form"  id="Form" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='tenancy_contract/tenancy_form.php?id=<?php echo $_GET['id'];?>'">
+			<input type="button"  class="btn btn-primary"  value="Tenancy Internal Form"  id="Form2" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='tenancy_contract/tenancy_form_internal.php?id=<?php echo $_GET['id'];?>'">
                     <?php
                 }
                 else
