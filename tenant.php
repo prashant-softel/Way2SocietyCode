@@ -426,6 +426,26 @@ function getTotalMonth()
 		document.getElementById('Lease_Period').value = monthDiff;		
 	}
 }
+function enable_company()
+{
+	var checkBox = document.getElementById("company");
+  	if(checkBox.checked == true)
+	{
+    	document.getElementById('license_no').style.display='table-row';
+		document.getElementById('license_authority').style.display='table-row'; 
+		document.getElementById('licence').style.display='table-cell'; 
+		document.getElementById('licenceauth').style.display='table-cell';
+		
+ 	} 
+	else 
+	{
+     	document.getElementById('license_no').style.display='none';
+		document.getElementById('license_authority').style.display='none';
+		document.getElementById('licence').style.display='none';
+		document.getElementById('licenceauth').style.display='none';
+
+  	}
+}
 
 function updateEndDate()
 {
@@ -1289,6 +1309,27 @@ function loadchanges()
 					<?php 
 					}
 					?>
+					
+					<tr  align="left" id = "Company">
+                    	<td style="text-align:right"><?php //echo $star;?></td>
+						<td style="text-align:right"><b>Is it Company?</b></td>
+             			<td style="text-align:left">&nbsp; : &nbsp;</td>
+						<td style="text-align:left" id="td_9"><input type="checkbox" name="company" id="company" value="1" onclick="enable_company()"></td>
+					</tr>
+					<tr align="left">
+					    <td style="text-align:right"><?php //echo $star;?></td>
+						<td style="text-align:right;display:none;" id="licence"><b>License No</b></td>
+						<td style="text-align:left">&nbsp; : &nbsp;</td>
+						<td><input type="text" style="text-align:left;display:none;" name="license_no" id="license_no" placeholder="License No" /></td>
+			            
+			       </tr>
+			      <tr align="left">
+				        <td style="text-align:right"><?php //echo $star;?></td>
+				        <td id="licenceauth" style="text-align:right;display:none;" name="licenceauth"><b>&nbsp;&nbsp;License Authority</b></td>
+			            <td style="text-align:left">&nbsp; : &nbsp;</td>
+						<td><input type="text"  name="license_authority" style="display:none;text-align:left;" id="license_authority" placeholder="License Authority" /></td>
+			         
+					</tr>
                    </table>
                 </td>
             </tr>
@@ -1554,9 +1595,14 @@ function loadchanges()
             	<td align="left"><input type="text" name="license_no" id="license_no" placeholder="License No" /></td>
             	<td align="left"><input type="text" name="license_authority" id="license_authority" placeholder="License Authority" /></td>
             </tr>
+			<tr align="left">
+            	<td><input type="text" id="doc_name_2" name="doc_name_2" placeholder="Emirate Back ID"></td>
+            	<td align="left"><input type="file" name="userfile2" id="userfile2"/></td>
+				<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            </tr>
             <tr align="left">
-            <td><input type="text" id="doc_name_2" name="doc_name_2" placeholder="Ejari Document" ></td>
-            <td align="left"><input type="file" name="userfile2" id="userfile2"/></td>
+            <td><input type="text" id="doc_name_3" name="doc_name_3" placeholder="Ejari Document" ></td>
+            <td align="left"><input type="file" name="userfile3" id="userfile3"/></td>
              <!--<td><input id="btnAddDoc" type="button" value="Add More" /></td>--><!--<td><div id="doc" style="margin-left: 73px;font-weight: bold;text-transform: capitalize;"></div></td>-->
             </tr>
             <!--<tr><td   valign="middle"><div id="FileContainer" >-->

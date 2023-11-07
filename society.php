@@ -425,6 +425,27 @@ else
 					<?php echo $bank_type = $obj_society->combobox("select `BankID`,`BankName` from `bank_master` where status = 'Y' ",0,true); ?>
                 </select></span></td>
 		</tr>
+		
+        <tr style="background-color:#bce8f1;font-size:14px;" height="25">
+    	<th style="width:100%;padding-left: 5px;">Realistic Company Details</th></tr>
+        <tr><td><br></td></tr>
+        
+		<tr>
+        	<td valign="left"><span style="margin-left:4%;"><?php //echo $star;?>&nbsp;</span>
+			<span  style="margin-left: 3%;">Is it Real Estate Company</span><span style="margin-left: 17px;">&nbsp; : &nbsp;</span>
+			<span style="margin-left:4%;"><label><input type="checkbox" name="is_it_real_estate" id="is_it_real_estate" value="1"   />&nbsp;&nbsp;</label>
+            
+             </span>
+            </td>
+		</tr>
+		<tr>
+        	<td valign="left"><span style="margin-left:4%;"><?php //echo $star;?>&nbsp;</span>
+			<span  style="margin-left: 3%;">Is it Rental</span><span style="margin-left: 17px;">&nbsp;&nbsp;&nbsp; : &nbsp;</span>
+			<span style="margin-left:4%;"><label><input type="checkbox" name="is_it_real_rental" id="is_it_real_rental" value="1"   />&nbsp;&nbsp;</label>
+            
+             </span>
+            </td>
+		</tr>
          </table>
          
          
@@ -500,7 +521,7 @@ else
 			<span style="margin-left:4%;"><input type="text" name="rebate" id="rebate" class="field_input"  value="<?php echo $_REQUEST['rebate'];?>"/></span></td>
 		</tr>
         <tr>
-        	<td valign="left"><span style="margin-left:4%;">&nbsp;</span><span  style="margin-left: 3%;">Cheque Bounce Charges</span><span style="margin-left:23px;">&nbsp; : &nbsp;</span>
+        	<td valign="left"><span style="margin-left:4%;">&nbsp;</span><span  style="margin-left: 3%;">Cheque Return Charges</span><span style="margin-left:23px;">&nbsp; : &nbsp;</span>
             <span style="margin-left:4%;"><input type="text" name="chq_bounce_charge" id="chq_bounce_charge" class="field_input" value="<?php echo $_REQUEST['chq_bounce_charge'];?>"/></span></td>
 		</tr>
         <tr>

@@ -196,8 +196,17 @@ if(localStorage.getItem("client_id") != "" && localStorage.getItem("client_id") 
 <!--<center><h2><font color="#43729F"><b><?php //echo $obj_list_member->display_society_name($_SESSION['society_id']);?></b></font></h2>-->
 <br><center>
 <div class="panel panel-info" id="panel" style="display:none">
-	<div class="panel-heading" id="pageheader">List of Members</div>
-
+	
+<?php if($_SESSION['res_flag']==1)
+{
+	?>
+     <div class="panel-heading" id="pageheader">List of Properties</div>
+	<?php
+	}else{ ?>
+		<div class="panel-heading" id="pageheader">List of Members</div>
+<?php
+	}
+?>
 
 <center>
 	<br>
@@ -235,6 +244,7 @@ $str1 = $obj_list_member->pgnationNew();
 </center>
 </div>
 </center>
-<?php include_once "includes/foot.php"; ?>
+<?php include_once "includes/foot.php"; 
+?>
 
 
