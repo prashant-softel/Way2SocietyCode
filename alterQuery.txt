@@ -10,7 +10,8 @@ viewlegalcase.php
 
 ALTER TABLE `postdated_cheque` Add `type` varchar(100);
 ALTER TABLE `tenant_module` Add `security_id` INT(11) NOT NULL AFTER `ledger_id`;
- 
+
+ALTER TABLE `tenant_module` ADD `ledger_id` INT NOT NULL DEFAULT '0' AFTER `property_type`; 
 
 CREATE TABLE `legal_case` (
  `request_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -113,3 +114,10 @@ INSERT INTO `hostmjbt_society263`.`landlords` (`id`, `society_id`, `name`, `mobi
 Alter table tenant_module ADD ledger_id INT(11);
 
 ALTER TABLE `tenant_module` CHANGE `ledger_id` `ledger_id` INT(11) NULL DEFAULT NULL AFTER `tenant_id`
+
+
+
+06-11-2023
+ALTER TABLE `tenant_module` ADD `emirate_no` INT NOT NULL DEFAULT '0' AFTER `property_type`;
+ALTER TABLE `tenant_module` ADD `mobile_1` INT(20) NULL DEFAULT NULL AFTER `mobile_no`;
+ALTER TABLE `tenant_module` ADD `email_1` VARCHAR(200) NULL DEFAULT NULL AFTER `email`;
