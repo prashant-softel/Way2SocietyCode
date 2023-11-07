@@ -58,7 +58,7 @@ class pdc_list
 		//echo "test";
 		//$society_id = $_SESSION['landLordSocID'];
 		if($this->isLandLordDB){
-		$sql1 = "SELECT * FROM society as s,tenant_module as tm,unit as u,wing as w where tm.unit_id=u.unit_id and u.wing_id=w.wing_id and tm.status='Y' ";
+		$sql1 = "SELECT * FROM society as s,tenant_module as tm,unit as u,wing as w,postdated_cheque as p where tm.tenant_id = p.tenant_id and tm.unit_id=u.unit_id and u.wing_id=w.wing_id and tm.status='Y' ";
 
 			//echo $sql1;
 			if(isset($_SESSION['admin']) || isset($_SESSION['sadmin']))
@@ -79,19 +79,59 @@ class pdc_list
 			{
 				$sql1 .= " and u.unit_no = '".$_REQUEST['unit_no']."'";
 			}
+			if($_REQUEST['unit_id'] <>"")
+			{
+				$sql1 .= " and u.unit_id = '".$_REQUEST['unit_id']."'";
+			}
+			if($_REQUEST['tenant_id']<>"")
+			{
+				$sql1 .= " and tm.tenant_id like '%".addslashes($_REQUEST['tenant_id'])."%'";
+			}
+			if($_REQUEST['ledger_id']<>"")
+			{
+				$sql1 .= " and tm.ledger_id like '%".addslashes($_REQUEST['ledger_id'])."%'";
+			}
+			if($_REQUEST['security_id']<>"")
+			{
+				$sql1 .= " and tm.security_id like '%".addslashes($_REQUEST['security_id'])."%'";
+			}
 			if($_REQUEST['tenant_name']<>"")
 			{
 				$sql1 .= " and tm.tenant_name like '%".addslashes($_REQUEST['tenant_name'])."%'";
 			}
 			
-			if($_REQUEST['mobile_no'] <>"")
+			if($_REQUEST['bank_name'] <>"")
 			{
-				$sql1 .= " and tm.mobile_no like '%".addslashes($_REQUEST['mobile_no'])."%'";
+				$sql1 .= " and p.bank_name like '%".($_REQUEST['bank_name'])."%'";
+			}
+			if($_REQUEST['bank_branch'] <>"")
+			{
+				$sql1 .= " and p.bank_branch like '%".($_REQUEST['bank_branch'])."%'";
 			}
 			
-			if($_REQUEST['email'] <>"")
+			if($_REQUEST['cheque_no'] <>"")
 			{
-				$sql1 .= " and tm.email like '%".addslashes($_REQUEST['email'])."%'";
+				$sql1 .= " and p.cheque_no like '%".($_REQUEST['cheque_no'])."%'";
+			}
+            if($_REQUEST['cheque_date'] <>"")
+			{
+				$sql1 .= " and p.cheque_date like '%".($_REQUEST['cheque_date'])."%'";
+			}
+			if($_REQUEST['amount'] <>"")
+			{
+				$sql1 .= " and p.amount like '%".($_REQUEST['amount'])."%'";
+			}
+            if($_REQUEST['remark'] <>"")
+			{
+				echo $sql1 .= " and p.remark like '%".($_REQUEST['remark'])."%'";
+			}
+			if($_REQUEST['type'] <>"")
+			{
+				echo $sql1 .= " and p.type like '%".($_REQUEST['type'])."%'";
+			}
+			if($_REQUEST['status'] <>"")
+			{
+				echo $sql1 .= " and p.status like '%".($_REQUEST['status'])."%'";
 			}
 			$sql1 .= " order by wing,u.sort_order";
 			
@@ -132,6 +172,10 @@ class pdc_list
 			if($_REQUEST['ledger_id']<>"")
 			{
 				$sql1 .= " and tm.ledger_id like '%".addslashes($_REQUEST['ledger_id'])."%'";
+			}
+			if($_REQUEST['security_id']<>"")
+			{
+				$sql1 .= " and tm.security_id like '%".addslashes($_REQUEST['security_id'])."%'";
 			}
 			if($_REQUEST['tenant_name']<>"")
 			{
@@ -202,6 +246,7 @@ class pdc_list
         <table id="example" class="display" cellspacing="0" style="width:100%">
 		<thead>
         <tr>
+			<th></th>
         	<th width="50">Sr No.</th>
         	<th width="70">Wing</th>
             <th width="60">Unit No.</th>
@@ -236,7 +281,7 @@ class pdc_list
             }
 			?>
         <tr height="25" bgcolor="#BDD8F4" align="center" id="tr_<?php echo $res[$k]['ledger_id']; ?>">
-            <td><input type="checkbox" class="chk_select" id="chk_<?php echo $k?>" onClick='depositCheque("<?php echo $res[$k]['tenant_id']?>","<?php echo $res[$k]['ledger_id']?>","<?php echo $res[$k]['wing']?>","<?php echo $res[$k]['unit_id']?>","<?php echo $res[$k]['tenant_name']?>","<?php echo $res[$k]['bank_name']?>","<?php echo $res[$k]['bank_branch']?>","<?php echo $res[$k]['cheque_no']?>","<?php echo getDisplayFormatDate($res[$k]['cheque_date'])?>","<?php echo $res[$k]['amount']?>","<?php echo $res[$k]['remark']?>",this);'/></td>
+            <td><input type="checkbox" class="chk_select" id="chk_<?php echo $k?>" onClick='depositCheque("<?php echo $res[$k]['tenant_id']?>","<?php echo $res[$k]['ledger_id']?>","<?php echo $res[$k]['security_id']?>","<?php echo $res[$k]['wing']?>","<?php echo $res[$k]['unit_id']?>","<?php echo $res[$k]['tenant_name']?>","<?php echo $res[$k]['bank_name']?>","<?php echo $res[$k]['bank_branch']?>","<?php echo $res[$k]['cheque_no']?>","<?php echo getDisplayFormatDate($res[$k]['cheque_date'])?>","<?php echo $res[$k]['amount']?>","<?php echo $res[$k]['remark']?>","<?php echo $res[$k]['type']?>",this);'/></td>
         	<td align="center"><?php echo $iCounter++;?></td>
         	<td align="center" id = "wing_id"><?php echo $res[$k]['wing'];?></td>
             <td align="center" id = "unit_no"><?php echo $res[$k]['unit_no'];?></td>
@@ -259,7 +304,7 @@ class pdc_list
 			?>
             <table align="center" border="0">
             <tr>
-            	<td><font color="#FF0000" size="2"><b>Please Select a Society.</b></font></td>
+            	<td><font color="#FF0000" size="2"><b>No records for PDC</b></font></td>
             </tr>
             </table>
             <?php	
@@ -273,7 +318,7 @@ class pdc_list
 
         $banksSQL = "SELECT ledger.id AS BankID, ledger.ledger_name as BankName FROM ledger JOIN bank_master ON ledger.id = bank_master.BankID";
 		$banks = $this->m_dbConn->select($banksSQL);
-        $bankID= 67;
+        $bankID= $_SESSION['default_bank_id'];
         $bankNames = array();
 
         $Counter = $this->obj_utility->GetCounter(VOUCHER_RECEIPT, $bankID,false);
@@ -301,16 +346,25 @@ class pdc_list
             $voucherDate = $data[$k]['cheque_date'];
             $cheque_no = $data[$k]['cheque_no'];
             $cheque_date = $data[$k]['cheque_date'];
-			echo "Date" .getDBFormatDate($cheque_date);
+			// echo "Date" .getDBFormatDate($cheque_date);
             $amount = $data[$k]['amount'];
 			$tenant_id = $data[$k]['tenant_id'];
             $ledger_id = $data[$k]['ledger_id'];
+			$security_id = $data[$k]['security_id'];
             $bank_name = $data[$k]['bank_name'];
             $bank_branch = $data[$k]['bank_branch'];
             $remark = $data[$k]['remark'];
-			$sql = "update postdated_cheque set status = 1 where tenant_id = '".$tenant_id."'";
-			$res = $this->m_dbConn->update($sql); 
-            $this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$ledger_id,$bankID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0);	
+			$type = $data[$k]['cheque_type'];
+			if($type == 'Security Deposit'){
+				$sql = "update postdated_cheque set status = 1 where tenant_id = '".$tenant_id."' and type = '".$type."' and cheque_no = '".$cheque_no."'";
+				$res = $this->m_dbConn->update($sql); 
+            	$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$security_id,$bankID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0);	
+			}
+			else{
+				$sql = "update postdated_cheque set status = 1 where tenant_id = '".$tenant_id."' and type = '".$type."' and cheque_no = '".$cheque_no."'";
+				$res = $this->m_dbConn->update($sql); 
+            	$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$ledger_id,$bankID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0);	
+			}
 		    // $ErrorLog = $obj_pdc_list->errorLog;
             // echo $wing;
         }
@@ -339,14 +393,14 @@ class pdc_list
 	// });
 
 	var Data_arr = [];
-	function depositCheque(tid,lid,wid,uid,tname,bname,branch,cheq_no,cheq_date,amount,remark){
+	function depositCheque(tid,lid,sid,wid,uid,tname,bname,branch,cheq_no,cheq_date,amount,remark,ctype){
 		// console.log("wid" +wid+"uid" +uid+"tname " +tname);
 		if($('.chk_select:checked')){
-			Data_arr.push({"tenant_id":tid, "ledger_id":lid, "wing_id":wid, "unit_id":uid, "tenant_name":tname, "bank_name":bname,"bank_branch":branch, "cheque_no":cheq_no, "cheque_date":cheq_date, "amount":amount, "remark":remark});
+			Data_arr.push({"tenant_id":tid, "ledger_id":lid, "security_id":sid, "wing_id":wid, "unit_id":uid, "tenant_name":tname, "bank_name":bname,"bank_branch":branch, "cheque_no":cheq_no, "cheque_date":cheq_date, "amount":amount, "remark":remark, "cheque_type":ctype});
 			console.log(Data_arr);
 		}
 		else{
-			var value = ({"tenant_id":tid, "ledger_id":lid,"wing_id":wid, "unit_id":uid, "tenant_name":tname, "bank_name":bname, "cheque_no":cheq_no, "cheque_date":cheq_date, "amount":amount, "remark":remark});
+			var value = ({"tenant_id":tid, "ledger_id":lid, "security_id":sid, "wing_id":wid, "unit_id":uid, "tenant_name":tname, "bank_name":bname, "cheque_no":cheq_no, "cheque_date":cheq_date, "amount":amount, "remark":remark, "cheque_type":ctype});
 			index = Data_arr.findIndex(x => x.Cnt === cnt);
 			console.log("id " +index);
 		}
@@ -386,6 +440,7 @@ class pdc_list
 		success: function(data)
 		{
 			alert("Success");
+			location.reload();
 		}
 	});	
 	}

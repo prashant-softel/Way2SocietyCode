@@ -14,7 +14,7 @@ include_once("classes/unit.class.php");
 $dbConn = new dbop();
 $dbConnRoot = new dbop(true);
 
-$obj_tenant = new tenant($m_dbConn, $m_dbConnRoot, $m_landLordDB, $m_landLordDBRoot);
+$obj_tenant = new tenant($m_dbConn, $m_dbConnRoot,$landLordDB, $landLordDBRoot);
 $obj_initialize = new initialize($m_dbConnRoot);
 $obj_mem_other_family = new mem_other_family($dbConn);
 // echo "<pre>";
@@ -1159,7 +1159,7 @@ function loadchanges()
                 <br/>
                 <br/><span style="text-align:left" id="profilePhotoSpan"><b>&nbsp;Upload Profile:</b></span><input type="file" accept="image/*" id="profilePhoto" name="profilePhoto" multiple/>
                 </td>
-                <td colspan="2" width="70%">
+                <td colspan="3" width="70%">
                 	<table width="100%">
 					<tr>
         				<td style="text-align:right"></td>
@@ -1178,7 +1178,7 @@ function loadchanges()
 						<td>&nbsp;&nbsp; : &nbsp;&nbsp;</td>
 						<td>
                 			<select name="wing_id" id="wing_id" style="width:142px;" onChange="clear_unit(this.value);" value="<?php echo $_REQUEST['wing_id'];?>"<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN) { }else{echo 'disabled';} ?> >
-							<?php echo $combo_wing = $obj_tenant->getTenantWing($_SESSION['unit_id']); ?>
+							<?php echo $combo_wing =  $obj_tenant->getTenantWing( $_SESSION['unit_id']); ?>
 							</select>
             			</td>
 					</tr>
@@ -1294,17 +1294,17 @@ function loadchanges()
             </tr>
 			<tr><td colspan="6"><hr></td></tr>
             <tr align="left" >
-            <table width="100%"><tr align="left">
+            <table width="100%"><tr>
 			<tr>
-				<td><?php echo $star ?><b>Security Deposit</b></td>
-				<td>&nbsp;  : &nbsp;</td>
-				<td ><input type="text" name="security_deposit" id="security_deposit" width:></td>
-				<td ><?php echo $star ?><b>Annual Rent</b></td>
-				<td >&nbsp;  : &nbsp;</td>
-				<td ><input type="text" name="annual_rent" id="annual_rent" ></td>
-				<td ><?php echo $star ?><b>Contract Value</b></td>
-				<td >&nbsp;  : &nbsp;</td>
-				<td ><input type="text" name="contract_value" id="contract_value" ></td>
+				<td><?php echo $star ?><b>Security Deposit</b>&nbsp;:&nbsp;
+					&nbsp;&nbsp;<input type="text" name="security_deposit" id="security_deposit" style="width: 100px;">
+				</td>
+				<td ><?php echo $star ?><b>Annual Rent</b>&nbsp;:&nbsp;
+					&nbsp;&nbsp;<input type="text" name="annual_rent" id="annual_rent" style="width: 100px;">
+				</td>
+				<td ><?php echo $star ?><b>Contract Value</b>&nbsp;:&nbsp;
+					&nbsp;&nbsp;<input type="text" name="contract_value" id="contract_value" style="width: 100px;">
+				</td>
 			</tr>
             </tr>
 <!-- -----------------Security Deposits-------------------------- -->
@@ -1343,7 +1343,7 @@ function loadchanges()
 
         </td></tr>
 		<!-- ------------------------------------------Post Dated Cheque----------------------------------------------- -->
-<tr><td colspan="1"><hr></td></tr>
+<tr><td colspan="6"><hr></td></tr>
     <tr align="left">
         <td valign="left"><b>Number Of Cheque</b></td>
     </tr>
@@ -1352,8 +1352,8 @@ function loadchanges()
 		<select id = "nochq" name="nochq" style= "width: 55px">
 		<option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
 		</select>
-	</td>
-	<td id="add_button"><input id="btnAdd" type="button" value="Add" onclick="addNewCheque()"/></td>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<input id="btnAdd" type="button" value="Add" onclick="addNewCheque()"/>
 	</tr>
             <tr align="left" >
 			<td colspan="8">
@@ -1540,12 +1540,19 @@ function loadchanges()
             <tr align="left">
             <td><b>Enter document name</b></td>
             <td><b>&nbsp;&nbsp;Select file to upload</b></td>
+			<td></td>
+			<td><b>License No</b></td>
+			<td><b>&nbsp;&nbsp;License Authority</b></td>
+			<td></td>
             </tr>
             <?php if(!isset($_REQUEST['edit']))
 			{?>
             <tr align="left">
-            <td><input type="text" id="doc_name_1" name="doc_name_1" placeholder="Emirate ID"></td>
-            <td align="left"><input type="file" name="userfile1" id="userfile1"/></td>
+            	<td><input type="text" id="doc_name_1" name="doc_name_1" placeholder="Emirate ID"></td>
+            	<td align="left"><input type="file" name="userfile1" id="userfile1"/></td>
+				<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            	<td align="left"><input type="text" name="license_no" id="license_no" placeholder="License No" /></td>
+            	<td align="left"><input type="text" name="license_authority" id="license_authority" placeholder="License Authority" /></td>
             </tr>
             <tr align="left">
             <td><input type="text" id="doc_name_2" name="doc_name_2" placeholder="Ejari Document" ></td>

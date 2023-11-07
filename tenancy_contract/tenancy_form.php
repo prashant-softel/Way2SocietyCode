@@ -1,19 +1,20 @@
 <?php
-include_once ("C:\wamp\www\Alshola\classes\dbconst.class.php");
-include_once("C:\wamp\www\Alshola\classes\initialize.class.php");
-include_once("C:\wamp\www\Alshola\classes\include\dbop.class.php");
+include_once ("../classes/dbconst.class.php");
+include_once("../classes/initialize.class.php");
+include_once("../classes/include/dbop.class.php");
 include_once("classes/tenancy_form.class.php");
 
 error_reporting(0);
 $dbConn = new dbop();
 $dbConnRoot = new dbop(true);
 
-$obj_tenancy_record = new tenancy_form($dbConn, $dbConnRoot);
+
+$obj_tenancy_record = new tenancy_form($dbConn, $dbConnRoot, $landLordDB, $landLordDBRoot);
 
 $tenancy_landlordDetails = $obj_tenancy_record->tenancy_landlordDetails();
 $tenancy_tenantDetails = $obj_tenancy_record->tenancy_tenantDetails();
 $tenancy_contractDetails = $obj_tenancy_record->tenancy_contractDetails();
-//echo $tenancy_tenantDetails[0]['tenant_name'];
+// echo $tenancy_tenantDetails[0]['tenant_name'];
 ?>
 
 <!DOCTYPE html>
