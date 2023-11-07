@@ -665,20 +665,21 @@ class CAdminPanel
 			$sqlQuery .= "  and expense.Date BETWEEN '".getDBFormatDate($_SESSION['default_year_start_date'])."' AND '".getDBFormatDate($_SESSION['default_year_end_date'])."'";					
 		}
 		$sqlQuery .= "  GROUP BY expense.LedgerID";
+		//echo $sqlQuery;
 		$retData = $this->m_dbConn->select($sqlQuery);
 		//echo "First";
 		//print_r($retData);
 		$finalArray = array();
 		for($i=0; $i < sizeof($retData) ; $i++)
 		{
-			if($retData[$i]['debit'] > 10000)
-			{
+			//if($retData[$i]['debit'] > 10000)
+			//{
 				$DebitAmount=$retData[$i]['debit'];
 				$LedgerName=$retData[$i]['ledger_name'];	
 			
 				$parentArray = array('DebitAmount' => $DebitAmount, 'LedgerName' => $LedgerName);
 				array_push($finalArray , $parentArray);	
-			}
+			//}
 				
 		}
 		

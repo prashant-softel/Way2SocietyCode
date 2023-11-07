@@ -534,7 +534,7 @@ $obj_servicerequest->getRenovationId();
 							}
 							?>
 						
-							<a href="ExpenseDetails.php" style="color: white;text-decoration: none;">
+							<a href="IncomeDetails.php" style="color: white;text-decoration: none;">
 							<table style="width:100%">
 							<tr>
 								<td><i class="fa fa fa-inr fa-5x" style="font-size:10px;font-size:3.75vw;padding: 5px;"></i></td>
@@ -549,7 +549,7 @@ $obj_servicerequest->getRenovationId();
 								<tr>
 									<td style="width:60%;text-align:left;font-size:1.00vw" >
 										<div class="panel panel-default"> 
-											<a href="#" id="myBtn"><div id="chartContainer7" style="height: 105px; width: 100%;" class="zoom"></div></a> 
+											<a href="#" id="myBtn3"><div id="chartContainer7" style="height: 105px; width: 100%;" class="zoom"></div></a> 
 								   
 								
 										</div>
@@ -854,7 +854,16 @@ $obj_servicerequest->getRenovationId();
   </div>
 
 </div>
+<div id="myModal3" class="modal">
 
+  <div class="modal-content">
+    <span class="close3">&times;</span>
+    <p style="font-size: 17px;text-align: center;font-weight: bold;color: blue;">INCOME</p>
+    <div class="panel panel-default"> 
+ <div id="chartContainer8" style="height: 360px; width: 100%;"></div>
+  </div>
+  </div>
+</div>
  <!--<div id="mySidenav" class="sidenav">
   <a href="IncomeDetails.php" id="about"><span class="fa fa-plus-square fa-5x" style="font-size:10px;font-size:2.5vw;float:left;"></span><span style="float: left;">&nbsp;&nbsp;&nbsp;INCOME</span></a>
   <a href="AssetSummary.php" id="blog"><span class="fa fa-cubes fa-5x" style="font-size:10px;font-size:2.5vw;float:left;"></span><span style="float: left;">&nbsp;&nbsp;&nbsp;ASSETS</span></a>
@@ -926,7 +935,31 @@ window.onload = function ()
 						dataPoints: <?php echo json_encode($dataPoint7 , JSON_NUMERIC_CHECK); ?>
 						}]
 				});
-						chart7.render();			
+						chart7.render();
+						 var chart8 = new CanvasJS.Chart("chartContainer8", {
+				theme: "theme2",
+				animationEnabled: true,
+				///title: {
+							//text: "World Energy Consumption by Sector - 2012"
+						// },
+						legend: {
+			maxWidth: 350,
+			itemWidth: 120
+		},
+				data: [{
+						type: "pie",
+						indexLabel: "{label} ({y})",
+						
+						//indexLabelPlacement: "inside",
+						
+						showInLegend: true,
+						//legendText: "{label}",
+						legendText: "{indexlabel}",
+						dataPoints: <?php echo json_encode($dataPoint7 , JSON_NUMERIC_CHECK); ?>
+						}]
+				});
+			  chart8.render();
+			  			
 			var chart2 = new CanvasJS.Chart("chartContainer2", {
 			animationEnabled: true,
 			theme: "light2", // "light1", "light2", "dark1", "dark2"
@@ -1047,6 +1080,9 @@ var btn2 = document.getElementById("myBtn2");
 var modal2 = document.getElementById('myModal2');
 var span2 = document.getElementsByClassName("close2")[0];
 
+var btn3 = document.getElementById("myBtn3");
+var modal3 = document.getElementById('myModal3');
+var span3 = document.getElementsByClassName("close3")[0];
 // When the user clicks the button, open the modal 
 
 btn.onclick = function() {
@@ -1097,6 +1133,21 @@ window.onclick = function(event) {
         modal2.style.display = "none";
     }
 }
+btn3.onclick = function() {
+    modal3.style.display = "block";
+}
+
+
+// When the user clicks on <span> (x), close the modal
+span3.onclick = function() {
+    modal3.style.display = "none";
+}
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == modal3) {
+        modal3.style.display = "none";
+    }
+}
 </script>
 <style>
 .modal {
@@ -1119,7 +1170,7 @@ window.onclick = function(event) {
 }
 
 /* The Close Button */
-.close,.close1,.close2 {
+.close,.close1,.close2,.close3 {
     color: #aaaaaa;
     float: right;
     font-size: 28px;
@@ -1131,7 +1182,9 @@ window.onclick = function(event) {
 .close1:hover,
 .close1:focus,
 .close2:hover,
-.close2:focus {
+.close2:focus,
+.close3:hover,
+.close3:focus {
     color: #000;
     text-decoration: none;
     cursor: pointer;

@@ -11,16 +11,12 @@ include_once("classes/include/dbop.class.php");
 include_once("classes/tenant.class.php");
 include_once("classes/mem_other_family.class.php");
 include_once("classes/unit.class.php");
-include_once("classes/view_tenant_profile.class.php") ;
-
 $dbConn = new dbop();
 $dbConnRoot = new dbop(true);
 
-$obj_tenant = new tenant($m_dbConn, $m_dbConnRoot, $landLordDB);
+$obj_tenant = new tenant($m_dbConn, $m_dbConnRoot, $m_landLordDB, $m_landLordDBRoot);
 $obj_initialize = new initialize($m_dbConnRoot);
 $obj_mem_other_family = new mem_other_family($dbConn);
-$obj_view_tenant_profile = new view_tenant_profile($m_dbConn, $landLordDB);
-
 // echo "<pre>";
 // print_r($_SESSION);
 // echo "</pre>";
@@ -28,8 +24,7 @@ $obj_view_tenant_profile = new view_tenant_profile($m_dbConn, $landLordDB);
 // echo " ID: " .$_SESSION['landLordSocID'];
 
 
-$show_member_main  = $obj_view_tenant_profile->show_tenant_main();
-$PDC_data = $obj_tenant->getPDC();
+
 $unit_details = $obj_mem_other_family->unit_details($_REQUEST['mem_id']);
 $society_dets = $obj_mem_other_family->get_society_details($_SESSION['society_id']);
 $UnitBlock = $_SESSION["unit_blocked"];
@@ -1142,9 +1137,9 @@ function loadchanges()
             	<td style="text-align:center;width: 200px;"><a target="_blank" href="images/noimage.png" id="profileHref"><img <?php 
 				if(isset($_REQUEST['edit']) || isset($_REQUEST['view']))
 				{ 
-					if($show_member_main[0]['img'] != "") 
+					if($image != "") 
 					{?> 
-                    	src = "<?php echo $show_member_main[0]['img'];?>" 
+                    	src = "<?php echo $imageUrl;?>" 
 					<?php 
 					}
 					else
@@ -1183,12 +1178,7 @@ function loadchanges()
 						<td>&nbsp;&nbsp; : &nbsp;&nbsp;</td>
 						<td>
                 			<select name="wing_id" id="wing_id" style="width:142px;" onChange="clear_unit(this.value);" value="<?php echo $_REQUEST['wing_id'];?>"<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN) { }else{echo 'disabled';} ?> >
-							<?php
-							if($_GET['edit']){
-								echo '<option value="'.$show_member_main[0]['wing'].'" selected>'.$show_member_main[0]['wing'].'</option>';
-							}else{
-								echo $combo_unit = $obj_tenant->getTenantWing($show_member_main[0]['wing']); 
-							}?>
+							<?php echo $combo_wing = $obj_tenant->getTenantWing($_SESSION['unit_id']); ?>
 							</select>
             			</td>
 					</tr>
@@ -1199,12 +1189,7 @@ function loadchanges()
 						<td>
                 			<select name="unit_no" id="unit_no" style="width:142px;" onChange="clear_unit(this.value);" value="<?php echo $_REQUEST['unit_no'];?>"<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN) { }else{echo 'disabled';} ?> >
 							<?php $dbName = $_SESSION['rentalDb']?>
-							<?php 
-							if($_GET['edit']){
-								echo '<option value="'.$show_member_main[0]['unit_id'].'" selected>'.$show_member_main[0]['unit_no'].'</option>';
-							}else{
-								echo $combo_unit = $obj_tenant->getTenantUnit($show_member_main[0]['unit_id']); 
-							}?>
+							<?php echo $combo_unit = $obj_tenant->getTenantUnit( $_SESSION['unit_id']); ?>
 							</select>
             			</td>
 					</tr>
@@ -1213,7 +1198,6 @@ function loadchanges()
 						<td style="text-align:right"><?php echo $star;?>&nbsp;<b> Name of the Tenant</b></td>
             			<td style="text-align:left">&nbsp; : &nbsp;</td>
 						<td style="text-align:left" id="td_1"><input type="text" name="t_name" id="t_name"  /></td>
-						<td style="text-align:left" id="td_1"><input type="text" name="t_name" id="t_name"  value="<?php echo $_GET['edit'] ? $show_member_main[0]['tenant_name'] : '';?>"/><input type="hidden" name="profile_img"   value="<?php echo $_GET['edit'] ? $show_member_main[0]['img'] : '';?>"/></td>
 					</tr>
         			<!--<tr>
         				<td style="text-align:right"></td>
@@ -1231,13 +1215,13 @@ function loadchanges()
         				<td style="text-align:right"></td>
 						<td style="text-align:right"><?php echo $star;?>&nbsp;<b>Lease Start Date</b></td>
             			<td style="text-align:left">&nbsp; : &nbsp;</td>
-						<td style="text-align:left" id="td_2"><input type="text" name="start_date" id="start_date" class="basics" onChange="getTotalMonth();" size="10" readonly  style="width:80px;" value="<?php echo $_GET['edit'] ? $show_member_main[0]['start_date'] : '';?>"/></td>
+						<td style="text-align:left" id="td_2"><input type="text" name="start_date" id="start_date" class="basics" onChange="getTotalMonth();" size="10" readonly  style="width:80px;" /></td>
 					</tr>
 					<tr>
         				<td style="text-align:right"></td>
         				<td style="text-align:right"><?php echo $star;?>&nbsp;<b>Lease End Date</b></td>
             			<td style="text-align:left">&nbsp; : &nbsp;</td>
-						<td style="text-align:left" id="td_3"><input type="text" name="end_date" id="end_date" class="basics" onChange="getTotalMonth();" size="10" readonly  style="width:80px;" value="<?php echo $_GET['edit'] ? $show_member_main[0]['end_date'] : '';?>"/></td>
+						<td style="text-align:left" id="td_3"><input type="text" name="end_date" id="end_date" class="basics" onChange="getTotalMonth();" size="10" readonly  style="width:80px;" /></td>
 					</tr>
                     <!--<tr>
         				<td style="text-align:right"></td>
@@ -1249,13 +1233,13 @@ function loadchanges()
         				<td style="text-align:right"><?php //echo $star;?></td>
 						<td style="text-align:right"><b>Agent Name</b></td>
              			<td style="text-align:left">&nbsp; : &nbsp;</td>
-						<td style="text-align:left" id="td_4"><input type="text" name="agent" id="agent" value="<?php echo $_GET['edit'] ? $show_member_main[0]['agent_name'] : '';?>"/></td>
+						<td style="text-align:left" id="td_4"><input type="text" name="agent" id="agent" /></td>
 					</tr>
 					<tr  align="right">
         				<td style="text-align:right"><?php //echo $star;?></td>
 						<td style="text-align:right"><b>Agent  Contact No (If applicable)</b></td>
              			<td style="text-align:left">&nbsp; : &nbsp;</td>
-						<td style="text-align:left" id="td_5"><input type="text" name="agent_no" id="agent_no"  onBlur="extractNumber(this,0,true);" onKeyUp="extractNumber(this,0,true);" onKeyPress="return blockNonNumbers(this, event, true, true)" size="30"  value="<?php echo $_GET['edit'] ? $show_member_main[0]['agent_no'] : '';?>"/></td>
+						<td style="text-align:left" id="td_5"><input type="text" name="agent_no" id="agent_no"  onBlur="extractNumber(this,0,true);" onKeyUp="extractNumber(this,0,true);" onKeyPress="return blockNonNumbers(this, event, true, true)" size="30"  /></td>
 					</tr>
         			<?php
 	    			if($verifyStatus && $_REQUEST['action'] == "verify" || (!isset($_REQUEST['view']) && !isset($_REQUEST['edit']) && !isset($_REQUEST['approve']) && $_SESSION['role'] <> ROLE_MEMBER && $_SESSION['role'] <> ROLE_ADMIN_MEMBER))
@@ -1309,52 +1293,100 @@ function loadchanges()
                 </td>
             </tr>
 			<tr><td colspan="6"><hr></td></tr>
-        	<tr  align="left">
-        		<td style="text-align:left;"><b>Lease Documents</b></td>
-				<td style="text-align:left"></td>
-            	<td></td>
+            <tr align="left" >
+            <table width="100%"><tr align="left">
+			<tr>
+				<td><?php echo $star ?><b>Security Deposit</b></td>
+				<td>&nbsp;  : &nbsp;</td>
+				<td ><input type="text" name="security_deposit" id="security_deposit" width:></td>
+				<td ><?php echo $star ?><b>Annual Rent</b></td>
+				<td >&nbsp;  : &nbsp;</td>
+				<td ><input type="text" name="annual_rent" id="annual_rent" ></td>
+				<td ><?php echo $star ?><b>Contract Value</b></td>
+				<td >&nbsp;  : &nbsp;</td>
+				<td ><input type="text" name="contract_value" id="contract_value" ></td>
+			</tr>
             </tr>
-            <tr></tr>
-            <tr align="left"><td colspan="4"><div id="doc" style="margin-left: 50px;font-weight: bold;text-transform: capitalize;"></div></td></tr>
-            <tr align="left">
-			<td colspan="6">
-            <table id="doc_Id">
-            <tr align="left">
-            <td><b>Enter document name</b></td>
-            <td><b>&nbsp;&nbsp;Select file to upload</b></td>
+<!-- -----------------Security Deposits-------------------------- -->
+<tr><td colspan="6"><hr></td></tr>
+    <tr align="left">
+        <td valign="left"><b>Security Deposit Cheque</b></td>
+            <td></td></tr>
+            <tr align="left" >
+			<td colspan="8">
+			<input type="hidden" name="chequecount" id="chequecount" value="">
+			<!-- <input id="btnAdd" type="hidden" value="Add" onclick="addNewCheque()"/> -->
+            <table id="sd_cheq_table" style="margin-top:-10px;" width="100%"><tr align="left" id="mem_table_tr"><td width="20%"><b>&nbsp;&nbsp;Bank Name</b></td>
+            <td width="20%"><b>Branch Name</b></td><td width="20%"><b>Cheque No</b></td><td width="20%"><b>Cheque Date<br/>(DD-MM-YYYY)</b></td>
+          	<td width="20%">&nbsp;&nbsp;&nbsp;&nbsp;<b><?php //echo $star;?>&nbsp;&nbsp;Amount</b></td>
+            <td width="20%"><b>&nbsp;&nbsp;Remark</b></td>
+           <!-- <td id="create_login">Create Login</td>
+            <td id="send_emails">Send E-Mails ?</td>-->
             </tr>
-            <?php if(!isset($_REQUEST['edit']))
-			{?>
             <tr align="left">
-            <td><input type="text" id="doc_name_1" name="doc_name_1" placeholder="Emirate ID"></td>
-            <td align="left"><input type="file" name="userfile1" id="userfile1"/></td>
-            </tr>
-            <tr align="left">
-            <td><input type="text" id="doc_name_2" name="doc_name_2" placeholder="Ejari Document" ></td>
-            <td align="left"><input type="file" name="userfile2" id="userfile2"/></td>
-             <!--<td><input id="btnAddDoc" type="button" value="Add More" /></td>--><!--<td><div id="doc" style="margin-left: 73px;font-weight: bold;text-transform: capitalize;"></div></td>-->
-            </tr>
-            <!--<tr><td   valign="middle"><div id="FileContainer" >-->
-            <input type="hidden" name="doc_count" id="doc_count" value="2">
-            <?php }
-			else
-			{ ?>
-                <tr align="left">
-                <td><input type="text" id="doc_name_1" name="doc_name_1"></td>
-                <td align="left"><input type="file" name="userfile1" id="userfile1"/></td>
-                <td><input id="btnAddDoc" type="button" value="Add More" /></td><!--<td><div id="doc" style="margin-left: 73px;font-weight: bold;text-transform: capitalize;"></div></td>-->
-                </tr>
-                <!--<tr><td   valign="middle"><div id="FileContainer" >-->
-                <input type="hidden" name="doc_count" id="doc_count" value="1">	
-                
-            <?php }?>
-            <!--</div>-->
-            <!--</td></tr>-->
-            </table>
-            </td>
+            <td align="left" id="bankName_td"><input type="text" name="bankName" id="bankName" style="width:140px;" /></td>
+            <td id="branch_td"><input type="text" name="branch" id="branch"  style="width:100px;" value = "" /></td>
+            <td id="cheqno_td"><input type="text" name="cheqno" id="cheqno"  style="width:100px;" value = "" /></td>
+            <td id="cheqdate_td"><input type="text" name="cheqdate" id="cheqdate" class="basics" size="10" style="width:100px;" /></td>
+            <td id="amount_td">&nbsp;&nbsp;&nbsp;<input type="text" name="sd_amount" id="sd_amount"  style="width:100px;"  onBlur="extractNumber(this,0,true);" onKeyUp="extractNumber(this,0,true);" onKeyPress="return blockNonNumbers(this, event, true, true)" size="30" /></td>
+            <td id="remark_td"><input type="text" name="remark" id="remark" style="width:100px;" /></td>            
+			<!--<td><input type="checkbox"  name="chkCreateLogin" id="chkCreateLogin" value="1" /></td>
+			<td><input type="checkbox" name="other_send_commu_emails" id="other_send_commu_emails" value="1" /></td>-->
 		</tr>
-       
-    <tr><td colspan="6"><hr></td></tr>
+            </tr>
+            <!--<tr><td   valign="left"><div id="TextBoxContainer" >-->
+    <!--Textboxes will be added here -->
+<!--</div></td></tr>-->
+<br />
+<br />
+</table>
+
+        </td></tr>
+		<!-- ------------------------------------------Post Dated Cheque----------------------------------------------- -->
+<tr><td colspan="1"><hr></td></tr>
+    <tr align="left">
+        <td valign="left"><b>Number Of Cheque</b></td>
+    </tr>
+	<tr align="left">
+	<td>
+		<select id = "nochq" name="nochq" style= "width: 55px">
+		<option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+		</select>
+	</td>
+	<td id="add_button"><input id="btnAdd" type="button" value="Add" onclick="addNewCheque()"/></td>
+	</tr>
+            <tr align="left" >
+			<td colspan="8">
+			<input type="hidden" name="chequecount" id="chequecount" value="">
+            <table id="cheq_table" style="margin-top:-10px;" width="100%"><tr align="left" id="mem_table_tr"><td width="20%"><b>&nbsp;&nbsp;Bank Name</b></td>
+            <td width="20%"><b>Branch Name</b></td><td width="20%"><b>Cheque No</b></td><td width="20%"><b>Cheque Date<br/>(DD-MM-YYYY)</b></td>
+          	<td width="20%">&nbsp;&nbsp;&nbsp;&nbsp;<b><?php //echo $star;?>&nbsp;&nbsp;Amount</b></td>
+            <td width="20%"><b><?php //echo $star;?>&nbsp;&nbsp;Remark</b></td>
+           <!-- <td id="create_login">Create Login</td>
+            <td id="send_emails">Send E-Mails ?</td>-->
+            </tr>
+            <tr align="left">
+            <td align="left" id="bankName_td_1"><input type="text" name="bankName_1" id="bankName_1" style="width:140px;" /></td>
+            <td id="branch_td_1"><input type="text" name="branch_1" id="branch_1"  style="width:100px;" value = "" /></td>
+            <td id="cheqno_td_1"><input type="text" name="cheqno_1" id="cheqno_1"  style="width:100px;" value = "" /></td>
+            <td id="cheqdate_td_1"><input type="text" name="cheqdate_1" id="cheqdate_1" class="basics" size="10" style="width:100px;" /></td>
+            <td id="amount_td_1">&nbsp;&nbsp;&nbsp;<input type="text" name="amount_1" id="amount_1"  style="width:100px;"  onBlur="extractNumber(this,0,true);" onKeyUp="extractNumber(this,0,true);" onKeyPress="return blockNonNumbers(this, event, true, true)" size="30" /></td>
+            <td id="remark_td_1"><input type="text" name="remark_1" id="remark_1" style="width:100px;" /></td>            
+			<!--<td><input type="checkbox"  name="chkCreateLogin" id="chkCreateLogin" value="1" /></td>
+			<td><input type="checkbox" name="other_send_commu_emails" id="other_send_commu_emails" value="1" /></td>-->
+		</tr>
+            </tr>
+			<input type="hidden" name="cheqcount" id="cheqcount" value="1">
+            <!--<tr><td   valign="left"><div id="TextBoxContainer" >-->
+    <!--Textboxes will be added here -->
+<!--</div></td></tr>-->
+<br />
+<br />
+</table>
+
+        </td></tr>
+
+		<tr><td colspan="6"><hr></td></tr>
     <tr  align="left">
         <td valign="left"><b>Lessee occupying the unit</b></td>
 			<td</td>
@@ -1388,49 +1420,6 @@ function loadchanges()
 <br />
 </table>
 
-<tr><td colspan="6"><hr></td></tr>
-    <tr align="left">
-        <td valign="left"><b>Number Of Cheque</b></td>
-			<td>
-			<select id = "nochq" name="nochq" style= "width: 55px">
-			<option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
-			</select>
-			</td>
-            <td></td></tr>
-            <tr align="left" >
-			<td colspan="8">
-			<input type="hidden" name="chequecount" id="chequecount" value="">
-            <table id="cheq_table" style="margin-top:-10px;" width="100%"><tr align="left" id="mem_table_tr"><td width="20%"><b>&nbsp;&nbsp;Bank Name</b></td>
-            <td width="20%"><b>Branch Name</b></td><td width="20%"><b>Cheque No</b></td><td width="20%"><b>Cheque Date<br/>(DD-MM-YYYY)</b></td>
-          	<td width="20%">&nbsp;&nbsp;&nbsp;&nbsp;<b><?php //echo $star;?>&nbsp;&nbsp;Amount</b></td>
-            <td width="20%"><b><?php //echo $star;?>&nbsp;&nbsp;Remark</b></td>
-           <!-- <td id="create_login">Create Login</td>
-            <td id="send_emails">Send E-Mails ?</td>-->
-			<?php 
-			foreach($PDC_data as $key => $val){?>
-            </tr>
-            <tr align="left">
-            <td align="left" id="bankName_td_1"><input type="text" name="bankName_1" id="bankName_1" style="width:140px;" value="<?php echo $val['bank_name'];?>"/></td>
-            <td id="branch_td_1"><input type="text" name="branch_1" id="branch_1"  style="width:100px;" value = "<?php echo $val['bank_branch'];?>" /></td>
-            <td id="cheqno_td_1"><input type="text" name="cheqno_1" id="cheqno_1"  style="width:100px;" value = "<?php echo $val['cheque_no'];?>" /></td>
-            <td id="cheqdate_td_1"><input type="text" name="cheqdate_1" id="cheqdate_1" class="basics_Dob" size="10" style="width:100px;" value="<?php echo getDBFormatDate($val['cheque_date']);?>"/></td>
-            <td id="amount_td_1">&nbsp;&nbsp;&nbsp;<input type="text" name="amount_1" id="amount_1"  style="width:100px;"  onBlur="extractNumber(this,0,true);" onKeyUp="extractNumber(this,0,true);" onKeyPress="return blockNonNumbers(this, event, true, true)" size="30" value="<?php echo $val['amount'];?>"/></td>
-            <td id="remark_td_1"><input type="text" name="remark_1" id="remark_1" style="width:100px;" value="<?php echo $val['remark'];?>"/></td>            
-			<!--<td><input type="checkbox"  name="chkCreateLogin" id="chkCreateLogin" value="1" /></td>
-			<td><input type="checkbox" name="other_send_commu_emails" id="other_send_commu_emails" value="1" /></td>-->
-		</tr>
-		<?php } ?>
-            <td id="add_button"><input id="btnAdd" type="button" value="Add" onclick="addNewCheque()"/></td>
-            </tr>
-			<input type="hidden" name="cheqcount" id="cheqcount" value="1">
-            <!--<tr><td   valign="left"><div id="TextBoxContainer" >-->
-    <!--Textboxes will be added here -->
-<!--</div></td></tr>-->
-<br />
-<br />
-</table>
-
-        </td></tr>
   		<tr><td colspan="6"><hr></td></tr>
  		<tr  align="left" id = "vehicle_main_tr">
         	<td id="vehicleBtnTd" style="text-align:left"><b>Vehicle Details</b></td>
@@ -1537,6 +1526,52 @@ function loadchanges()
             </table>
             
         </td></tr>
+		<tr><td colspan="6"><hr></td></tr>
+        	<tr  align="left">
+        		<td style="text-align:left;"><b>Lease Documents</b></td>
+				<td style="text-align:left"></td>
+            	<td></td>
+            </tr>
+            <tr></tr>
+            <tr align="left"><td colspan="4"><div id="doc" style="margin-left: 50px;font-weight: bold;text-transform: capitalize;"></div></td></tr>
+            <tr align="left">
+			<td colspan="6">
+            <table id="doc_Id">
+            <tr align="left">
+            <td><b>Enter document name</b></td>
+            <td><b>&nbsp;&nbsp;Select file to upload</b></td>
+            </tr>
+            <?php if(!isset($_REQUEST['edit']))
+			{?>
+            <tr align="left">
+            <td><input type="text" id="doc_name_1" name="doc_name_1" placeholder="Emirate ID"></td>
+            <td align="left"><input type="file" name="userfile1" id="userfile1"/></td>
+            </tr>
+            <tr align="left">
+            <td><input type="text" id="doc_name_2" name="doc_name_2" placeholder="Ejari Document" ></td>
+            <td align="left"><input type="file" name="userfile2" id="userfile2"/></td>
+             <!--<td><input id="btnAddDoc" type="button" value="Add More" /></td>--><!--<td><div id="doc" style="margin-left: 73px;font-weight: bold;text-transform: capitalize;"></div></td>-->
+            </tr>
+            <!--<tr><td   valign="middle"><div id="FileContainer" >-->
+            <input type="hidden" name="doc_count" id="doc_count" value="2">
+            <?php }
+			else
+			{ ?>
+                <tr align="left">
+                <td><input type="text" id="doc_name_1" name="doc_name_1"></td>
+                <td align="left"><input type="file" name="userfile1" id="userfile1"/></td>
+                <td><input id="btnAddDoc" type="button" value="Add More" /></td><!--<td><div id="doc" style="margin-left: 73px;font-weight: bold;text-transform: capitalize;"></div></td>-->
+                </tr>
+                <!--<tr><td   valign="middle"><div id="FileContainer" >-->
+                <input type="hidden" name="doc_count" id="doc_count" value="1">	
+                
+            <?php }?>
+            <!--</div>-->
+            <!--</td></tr>-->
+            </table>
+            </td>
+		</tr>
+
 		<table hidden = "hidden" align="center" style="width:100%">
 		<tr class="UnitFields"><td colspan="4"><br /><br /></td></tr>
 		<tr height="50" align="center"  class="UnitFields"><td>&nbsp;</td><th colspan="3" align="center"><table align="center"><tr height="25"><th bgcolor="#CCCCCC"  style="padding-top: 6px;"width="180">Particulars For Bill </th></tr></table></th></tr>
@@ -1633,18 +1668,14 @@ function loadchanges()
 								 });
 		</script>
         
-        <tr><td><input type="hidden" name="tenant_id" id="tenant_id" value=<?php  echo $_GET['id']?>></td></tr>
+        <tr><td><input type="hidden" name="tenant_id" id="tenant_id" value=<?php  echo $_GET['edit']?>></td></tr>
          <tr><td><input type="hidden" name="mem_id" id="mem_id" value="<?php  echo $_GET['mem_id']?>"></td></tr>
          <tr><td><input type="hidden" name="unit_id" id="unit_id" value="<?php  echo $unit_details['unit_id']?>"></td></tr>
         <tr><td><input type="hidden" id="doc_id" name="doc_id" value="<?php echo $details[0]['doc_id']?>"></td></tr>
         <tr><td><input type="hidden" value="<?php echo getRandomUniqueCode(); ?>" name="Code" id=="Code" /></td></tr>
 		<td colspan="4" align="center">
             <!--<input type="hidden" name="id" id="id">-->
-			<?php if($_GET['edit']){?>
-				<input type="submit" name="insert" id="insert" value="Update" class="btn btn-primary" style="color:#FFF; width:100px;background-color:#337ab7;" >
-			<?php }else{ ?>
-				<input type="submit" name="insert" id="insert" value="Submit" class="btn btn-primary" style="color:#FFF; width:100px;background-color:#337ab7;" >
-			<?php } ?>
+            <input type="submit" name="insert" id="insert" value="Submit" class="btn btn-primary" style="color:#FFF; width:100px;background-color:#337ab7;" >
             <input type="button" name="print" id="print" value="Print" class="btn btn-primary" style="color:#FFF; width:100px;background-color:#337ab7; display:none" onClick="for_print();" >
             </td>
         
