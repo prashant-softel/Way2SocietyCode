@@ -358,57 +358,63 @@ $(function()
     <td>:</td>
     <td><?php echo $show_member_main[0]['intercom_no'];?></td>
 </tr>
-<tr align="left">
-	<td width="150"><b>Flat Configuration</b></td>
-    <td>:</td>
-    <td align="left"><?php  echo str_replace("-","",$show_member_main[0]['flat_configuration']);//echo $show_member_main[0]['resd_no'] ?></td>
-    <td><b>Virtual A/C No.</b></td>
-    <td>:</td>
-    <td><?php
-	echo str_replace("-","",$show_member_main[0]['virtual_acc_no']);
-	?></td>
-</tr>
-<tr align="left">
-	<td width="150"><b>Permanant Address</b></td>
-    <td>:</td>
-    <td align="left"><?php echo $show_member_main[0]['alt_address'];  ?></td>
-</tr>
-<tr align="left">
-    <td><b>Share Certificate No.</b></td>
-    <td>:</td>
-    <td align="left" colspan="4">
-        <?php 
-            if($share_certificate_details[0]['share_certificate'] <> '')
-            {
-                echo $share_certificate_details[0]['share_certificate'] . ', distinctive no. from ' . $share_certificate_details[0]['share_certificate_from'] . ' to ' . $share_certificate_details[0]['share_certificate_to'];
-                if($share_certificate_details[0]['share_certificate_from'] > 0 || $share_certificate_details[0]['share_certificate_to'] > 0)
-                {
-                    echo ' (allotted  ' . ($share_certificate_details[0]['share_certificate_to'] - $share_certificate_details[0]['share_certificate_from'] + 1) . ' shares)' ;
-                }
-            } 
-        ?>   
-    </td>
-</tr>
-<tr align="left">
-	<td width="150"><b>Nomination Form Submitted</b></td>
-    <td>:</td>
-    <td align="left"><?php if($share_certificate_details[0]['nomination'] == 1) { echo "Yes"; } else { echo "No"; } ?></td>
-    <?php if($share_certificate_details[0]['nomination'] == 1)
-	{ ?>
-    <td><b>Nominee Name</b></td>
-    <td>:</td>
-    <td align="left"><?php echo $share_certificate_details[0]['nominee_name']?></td>
-    <?php }?>
-</tr>
-<tr>
-<tr align="left">
-	<td width="150"><b>GSTIN No</b></td>
-    <td>:</td>
-    <td align="left">
-    <input type="text" name="owner_gstin_no" id="owner_gstin_no" class="field_input" value="<?php echo $show_member_main[0]['owner_gstin_no'];?>" style="width:150px;" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['profile'][PROFILE_EDIT_MEMBER] != 1 ) { echo 'readonly';} ?>/>
-    </td>
 
-</tr>
+<?php if($_SESSION['res_flag'] == 1){ ?>
+
+    <tr align="left">
+        <td width="150"><b>Flat Configuration</b></td>
+        <td>:</td>
+        <td align="left"><?php  echo str_replace("-","",$show_member_main[0]['flat_configuration']);//echo $show_member_main[0]['resd_no'] ?></td>
+        <td><b>Virtual A/C No.</b></td>
+        <td>:</td>
+        <td><?php
+        echo str_replace("-","",$show_member_main[0]['virtual_acc_no']);
+        ?></td>
+    </tr>
+    <tr align="left">
+        <td width="150"><b>Permanant Address</b></td>
+        <td>:</td>
+        <td align="left"><?php echo $show_member_main[0]['alt_address'];  ?></td>
+    </tr>
+    <tr align="left">
+        <td><b>Share Certificate No.</b></td>
+        <td>:</td>
+        <td align="left" colspan="4">
+            <?php 
+                if($share_certificate_details[0]['share_certificate'] <> '')
+                {
+                    echo $share_certificate_details[0]['share_certificate'] . ', distinctive no. from ' . $share_certificate_details[0]['share_certificate_from'] . ' to ' . $share_certificate_details[0]['share_certificate_to'];
+                    if($share_certificate_details[0]['share_certificate_from'] > 0 || $share_certificate_details[0]['share_certificate_to'] > 0)
+                    {
+                        echo ' (allotted  ' . ($share_certificate_details[0]['share_certificate_to'] - $share_certificate_details[0]['share_certificate_from'] + 1) . ' shares)' ;
+                    }
+                } 
+            ?>   
+        </td>
+    </tr>
+    <tr align="left">
+        <td width="150"><b>Nomination Form Submitted</b></td>
+        <td>:</td>
+        <td align="left"><?php if($share_certificate_details[0]['nomination'] == 1) { echo "Yes"; } else { echo "No"; } ?></td>
+        <?php if($share_certificate_details[0]['nomination'] == 1)
+        { ?>
+        <td><b>Nominee Name</b></td>
+        <td>:</td>
+        <td align="left"><?php echo $share_certificate_details[0]['nominee_name']?></td>
+        <?php }?>
+    </tr>
+    <tr>
+    <tr align="left">
+        <td width="150"><b>GSTIN No</b></td>
+        <td>:</td>
+        <td align="left">
+        <input type="text" name="owner_gstin_no" id="owner_gstin_no" class="field_input" value="<?php echo $show_member_main[0]['owner_gstin_no'];?>" style="width:150px;" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['profile'][PROFILE_EDIT_MEMBER] != 1 ) { echo 'readonly';} ?>/>
+        </td>
+
+    </tr>
+<?php
+    }  
+    ?>
 
 <!--<tr align="left"></span>
     <td><b>Show In Directory</b></td>

@@ -100,6 +100,26 @@
 			});
 			$('form').submit(function () {
 
+           var society_email = $.trim($('#society_email').val());
+		   let email = document.getElementById('society_email').value;
+		   console.log(dbname);
+		   $.ajax({
+		  url: "process/import_society.process.php",
+		  type:"POST",
+		  data: {'societyemail':email},
+		success: function(data)
+		{
+			location.reload();
+		}
+	});
+            // Check if empty of not
+           if (society_email  === '') {
+	       alert('Society Email is empty.');
+	       return false;
+           }
+           });
+			$('form').submit(function () {
+
 				// Get the Login Name value and trim it
 				var BillingCycle = $.trim($('#Cycle').val());
 			
@@ -282,8 +302,13 @@ if(isset($_POST["ShowData"]))
 			<td id="browse"><input type="file" name="file[]" id="file" accept=".csv" multiple/></td>
             <td> &nbsp; Society Data Template File : <a href="samplefile/Society_Data.csv" download>Click here to Download</a> </td>
             
-            
-</tr>   
+        </tr> 
+		<tr align="left">
+        	<td valign="middle"></td>
+			<td>Society Email</td>
+            <td>&nbsp; : &nbsp;</td>
+			<td><input type="text" name="society_email" id="society_email" value='<?php echo $_POST['society_email']; ?>'/></td>
+	</tr>  
 
 
 </tr>        
