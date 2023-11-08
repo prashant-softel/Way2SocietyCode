@@ -712,6 +712,16 @@ class list_member
 		
 		$society_id = $_SESSION['society_id'];
 		$sql1 = "SELECT * FROM society as s,member_main as mm,unit as u,wing as w where mm.unit=u.unit_id and u.wing_id=w.wing_id and mm.society_id=s.society_id and mm.status='Y' and u.status='Y' and w.status='Y' and mm.ownership_status='1' ";
+		
+		// $sql1 = "SELECT s.*, mm.*, u.*, w.*, unit.prop_type
+        // FROM society AS s
+        // JOIN member_main AS mm ON mm.unit = u.unit_id
+        // JOIN unit ON u.wing_id = w.wing_id
+        // JOIN wing AS w ON mm.society_id = s.society_id
+        // WHERE mm.status = 'Y' 
+        // AND u.status = 'Y' 
+        // AND w.status = 'Y' 
+        // AND mm.ownership_status = '1'";
 
 			//echo $sql1;
 			if(isset($_SESSION['admin']) || isset($_SESSION['sadmin']))
@@ -746,9 +756,20 @@ class list_member
 			{
 				$sql1 .= " and mm.email like '%".addslashes($_REQUEST['email_id'])."%'";
 			}
+			if($_REQUEST['property_type'] <>"")
+			{
+				$sql1 .= " and u.property_type like '%".addslashes($_REQUEST['property_type'])."%'";
+			}
+			if($_REQUEST['Location'] <>"")
+			{
+				$sql1 .= " and u.Location like '%".addslashes($_REQUEST['Location'])."%'";
+			}
 			$sql1 .= " order by wing,u.sort_order";
 			
 			$result = $this->m_dbConn->select($sql1);
+			// echo"<pre>";
+			// print_r($result);
+			// echo"</pre>";
 			
 			$this->list_member_showNew($result);
 	}
@@ -872,10 +893,23 @@ class list_member
             <th width="60">Unit No.</th>
             <th width="60">Area</th>
 			<th width="50">Flat Configuration</th>
-        	<th width="250">Members Name</th>
+			<?php if($_SESSION['res_flag'] == 1){ ?>
+				<th width="250">Owners Name</th>
+				<?php }
+				else{ ?>
+					<th width="250">Members Name</th>
+				<?php
+				} ?>
             <th width="20">Dues</th>
-            <th width="80">Mobile No.</th>
-            <th width="150">Members Email</th>
+			<?php if($_SESSION['res_flag'] == 1){ ?>
+				<th width="80">Location</th>
+            	<th width="150">Property Type</th>
+				<?php }
+				else{ ?>
+					<th width="80">Mobile No.</th>
+                    <th width="150">Members Email</th>
+				<?php
+				}?>
 			<?php if(IsReadonlyPage() == false && ($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN ||$_SESSION['role'] == ROLE_MANAGER || $_SESSION['role']==ROLE_ACCOUNTANT )){?>
             <th width="50">Edit</th>
            
@@ -922,9 +956,21 @@ class list_member
 			}?>
             </td>
             <td align="center"><a href="#" onClick="window.open('<?php echo $Url; ?>','popup','type=fullWindow,fullscreen,scrollbars=yes');" style="color:#0000FF;"><?php echo $this->obj_utility->getDueAmount($res[$k]['unit_id']);;?></a></td>
-            <td align="center"><?php echo $res[$k]['mob'];?></td>
-            <td align="center"><a href="mailto:<?php echo $res[$k]['email'];?>" style="color:#0000FF" target="_blank"><?php echo $res[$k]['email'];?></a></td>
-           <?php if(IsReadonlyPage() == false && ($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN || $_SESSION['role']==ROLE_ACCOUNTANT || $_SESSION['role'] == ROLE_MANAGER )){?>
+			<?php
+               if ($_SESSION['res_flag'] == 1) {?>
+			     <td align="center"><?php echo $res[$k]['Location']; ?></td>
+			     <td align="center"><?php echo $res[$k]['property_type']; ?></td>
+              <?php } else { ?>
+                <td align="center"><?php echo $res[$k]['mob']; ?></td>
+                <td align="center">
+                <a href="mailto:<?php echo $res[$k]['email']; ?>" style="color:#0000FF" target="_blank">
+					<?php echo $res[$k]['email']; ?>
+				</a>
+				</td>
+				<?php
+          } ?>
+		
+			<?php if(IsReadonlyPage() == false && ($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN || $_SESSION['role']==ROLE_ACCOUNTANT || $_SESSION['role'] == ROLE_MANAGER )){?>
             <td align="center">
             <a href="view_member_profile.php?edt&scm&id=<?php echo $res[$k]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank">
             <img src="images/edit.gif" />
@@ -1054,7 +1100,7 @@ class list_member
 			?>
             <table align="center" border="0">
             <tr>
-            	<td><font color="#FF0000" size="2"><b>Please Select a Society.</b></font></td>
+            	<td><font color="#FF0000" size="2"><b>No Record Found</b></font></td>
             </tr>
             </table>
             <?php	

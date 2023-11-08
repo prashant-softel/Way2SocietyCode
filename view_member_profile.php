@@ -262,7 +262,7 @@ $(function()
 	if($show_mem_lien=="")
 	{
 	?>
-    	<input type="button" class="btn btn-primary "  value="No Lien" style=" height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;background-color:#FFFFFF;color:#000;border-color:#FFFFFF;border-top-style:none;border-left-style:none;border-right-style:none;font-weight:bold" onClick="window.open('lien.php?type=open&unit_id=<?php echo $show_member_main[0]['unit'];?>', '_blank')">
+    	<!-- <input type="button" class="btn btn-primary "  value="No Lien" style=" height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;background-color:#FFFFFF;color:#000;border-color:#FFFFFF;border-top-style:none;border-left-style:none;border-right-style:none;font-weight:bold" onClick="window.open('lien.php?type=open&unit_id=<?php echo $show_member_main[0]['unit'];?>', '_blank')"> -->
     <?php
 	}
 	$openFlag=0;
@@ -359,13 +359,13 @@ $(function()
     <td><?php echo $show_member_main[0]['intercom_no'];?></td>
 </tr>
 
-<?php if($_SESSION['res_flag'] == 1){ ?>
+
 
     <tr align="left">
         <td width="150"><b>Flat Configuration</b></td>
         <td>:</td>
         <td align="left"><?php  echo str_replace("-","",$show_member_main[0]['flat_configuration']);//echo $show_member_main[0]['resd_no'] ?></td>
-        <td><b>Virtual A/C No.</b></td>
+        <!-- <td><b>Virtual A/C No.</b></td>
         <td>:</td>
         <td><?php
         echo str_replace("-","",$show_member_main[0]['virtual_acc_no']);
@@ -411,10 +411,8 @@ $(function()
         <input type="text" name="owner_gstin_no" id="owner_gstin_no" class="field_input" value="<?php echo $show_member_main[0]['owner_gstin_no'];?>" style="width:150px;" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['profile'][PROFILE_EDIT_MEMBER] != 1 ) { echo 'readonly';} ?>/>
         </td>
 
-    </tr>
-<?php
-    }  
-    ?>
+    </tr> -->
+
 
 <!--<tr align="left"></span>
     <td><b>Show In Directory</b></td>
@@ -1003,389 +1001,15 @@ $(function()
     
     
 <tr><td><br/><br></td></tr>
-<tr height="25" valign="bottom">
-    <td colspan="6" style="font-weight: bold;text-align: center;"><i class="fa fa-car" style="font-size: 14px;">&nbsp;</i><b><u id="vehicl_div">VEHICLE DETAILS</u></b>&nbsp;<i class="fa fa-car" style="font-size: 14px;"></i>
-       <?php if($_SESSION['is_year_freeze'] == 0 && ($_SESSION['role']==ROLE_SUPER_ADMIN || $_SESSION['profile'][PROFILE_EDIT_MEMBER] == '1' || $_SESSION['owner_id']==$_GET['id']))
-	{?>
-    <br/>
-    <button type="button"  class="btn btn-primary btn-xs" onClick="window.location.href='mem_vehicle_new.php?prf&mkm&mem_id=<?php echo $_GET['id'];?>&tik_id=<?php echo time();?>'" style="float: right;">Add Vehicle<!--<i class="fa fa-plus fa-small">--></i></button>
-    <!--<a href="mem_vehicle_new.php?prf&mkm&mem_id=<?php //echo $_GET['id'];?>&tik_id=<?php //echo time();?>" style="color:#00F; text-decoration:none;"><b>Add New</b></a></b>-->
-    <?php }?>
-    </td>
-</tr>
 
-<tr>
-	<td colspan="6">
-    	<table border="0">
-        <tr height="30" bgcolor="#E8E8E8">
-            <th width="120">Car Owner</th>
-            <th width="150">Car Registration No.</th>
-            <th width="85">Parking Slot No.</th>
-            <th width="85">Parking Sticker No.</th>
-            <th width="80">Parking Type</th>
-            <th width="80">Car Make</th>
-            <th width="80">Car Model</th>
-            <th width="80">Car Colour</th>
-             <?php
-			  if (!isset($_GET['edt']) && $_SESSION['society_id'] == 288) { ?>
-				<th width="50">Renewal</th>
-				<?php
-				}
-                if(isset($_GET['edt']))
-                {
-					if($_SESSION['role'] == ROLE_ADMIN || $_SESSION['role'] == ROLE_SUPER_ADMIN)
-					{
-                    ?>
-                        <th width="50">Delete</th>
-                    <?php
-					}
-                }
-            ?>
-        </tr>
-        <?php
-		if($show_mem_car_parking<>"")
-        {
-            $ii2 = 1;
-        foreach($show_mem_car_parking as $k3 => $v3)
-        {
-        ?>       
-            <input type="hidden" name="mem_car_parking_id<?php echo $ii2;?>" value="<?php echo $show_mem_car_parking[$k3]['mem_car_parking_id'];?>" />
-            <tr height="25" bgcolor="#BDD8F4">
-            <td align="center">
-                <input type="text" name="car_owner<?php echo $ii2;?>" id="car_owner" value="<?php echo $show_mem_car_parking[$k3]['car_owner'];?>" style="width:150px;" class = "field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-            <td align="center">
-                <input type="text" name="car_reg_no<?php echo $ii2;?>" id="car_reg_no" value="<?php echo $show_mem_car_parking[$k3]['car_reg_no'];?>" style="width:120px;" class = "field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-            <td align="center">
-                <input type="text" name="parking_slot<?php echo $ii2;?>" id="parking_slot<?php echo $ii2;?>" value="<?php echo $show_mem_car_parking[$k3]['parking_slot'];?>" style="width:70px;" size="13" class = "field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-            <td align="center">
-                <input type="text" name="parking_sticker<?php echo $ii2;?>" id="parking_sticker<?php echo $ii2;?>" value="<?php echo $show_mem_car_parking[$k3]['parking_sticker'];?>" style="width:70px;" size="13" class = "field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-             <td align="center">
-             	
-				<?php
-				if(isset($_GET['edt']))
-				{
-				 	if($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN)
-					{
-						
-				?>
-                		<select name="car_parking_type<?php echo $ii2;?>" id="parking_type<?php echo $ii2;?>" style="width:70px;" class="field_select">
-				<?php
-						echo $obj_view_member_profile->ComboboxWithDefaultSelect("Select `Id`,`ParkingType` from `parking_type` where Status = 'Y'",$show_mem_car_parking[$k3]['ParkingType']);
-				?>
-                		</select>    
-                <?php
-					} 
-					else
-					{ 
-				?> 
-                		<select name="car_parking_type<?php echo $ii2;?>" id="parking_type<?php echo $ii2;?>" style="width:70px;" class="field_select" disabled>
-                <?php
-						echo $obj_view_member_profile->ComboboxWithDefaultSelect("Select `Id`,`ParkingType` from `parking_type` where Status = 'Y'",$show_mem_car_parking[$k3]['ParkingType']); ?></select>
-                <?php
-					}
-				}
-				else
-				{
-					?> 
-                		<select name="car_parking_type<?php echo $ii2;?>" id="parking_type<?php echo $ii2;?>" style="width:70px;" class="field_select" disabled>
-                <?php
-						echo $obj_view_member_profile->ComboboxWithDefaultSelect("Select `Id`,`ParkingType` from `parking_type` where Status = 'Y'",$show_mem_car_parking[$k3]['ParkingType']); ?> </select>
-                <?php
-				}
-				?>
-            </td>
-            <td align="center">
-                <input type="text" name="car_make<?php echo $ii2;?>" id="car_make" value="<?php echo $show_mem_car_parking[$k3]['car_make'];?>" style="width:80px;" class = "field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-            <td align="center">
-                <input type="text" name="car_model<?php echo $ii2;?>" id="car_model" value="<?php echo $show_mem_car_parking[$k3]['car_model'];?>" style="width:80px;" class = "field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-            <td align="center">
-                <input type="text" name="car_color<?php echo $ii2;?>" id="car_color" value="<?php echo $show_mem_car_parking[$k3]['car_color'];?>" style="width:80px;" class = "field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-              <?php
-				  if (!isset($_GET['edt']) && $_SESSION['society_id'] == 288 && $show_mem_car_parking[$k3]['Renew_Registration'] == 0) // 288 is shree mari gold society
-				  { ?>
-				<td align="center"><button type="button" class="btn btn-primary" id="renew_registration" name="renew_registration" title="Renew parking registration" onclick='showRenewModal(<?php echo json_encode($show_mem_car_parking[$k3],JSON_HEX_APOS); ?>,<?php echo VEHICLE_CAR; ?>);'><i class="fa fa-undo"></i></button></td>
-			  <?php }
-					else if(!isset($_GET['edt']) && $_SESSION['society_id'] == 288 && $show_mem_car_parking[$k3]['Renew_Registration'] == 1)
-					{?>
-						<td align="center">submitted</td>
-					<?php
-					}
-					?>
-            <td>
-                 <?php
-                    if(isset($_GET['edt']))
-                    {
-						if($_SESSION['role'] == ROLE_ADMIN || $_SESSION['role'] == ROLE_SUPER_ADMIN)
-						{
-                        ?>
-                            <input type="checkbox" name="car_delete<?php echo $ii2; ?>" id="car_delete<?php echo $ii2; ?>" value="1">
-                        <?php
-                    	}
-					}
-                ?>
-            </td>
-        </tr>
-        <?php
-            $ii2++;
-        }
-        }
-        else
-        {
-            ?>
-            <tr height="25"><td colspan="8" align="center"><font color="#FF0000"><b>No Records Found<!--  by admin --></b></font></td></tr>
-            <?php   
-        }
-        ?>
-        <input type="hidden" name="tot_car" value="<?php echo $ii2-1;?>" />
-        </table>
-    </td>
-</tr>
 
-<tr>
-	<td colspan="6">
-    	<table border="0">
-        <tr height="30" bgcolor="#E8E8E8">
-            <th width="120">Bike Owner</th>
-            <th width="150">Bike Registration No.</th>
-            <th width="85">Parking Slot No.</th>
-            <th width="85">Parking Sticker No.</th>
-            <th width="80">Parking Type</th>
-            <th width="80">Bike Make</th>
-            <th width="80">Bike Model</th>
-            <th width="80">Bike Colour</th>
-            <?php
-				if (!isset($_GET['edt']) && $_SESSION['society_id'] == 288) // 288 is shree mari gold society
- 			  { ?>
-				<th width="50">Renewal</th>
-				<?php
-				}
-				
-                if(isset($_GET['edt']))
-                {
-					if($_SESSION['role'] == ROLE_ADMIN || $_SESSION['role'] == ROLE_SUPER_ADMIN)
-					{
-                    ?>
-                        <th width="50">Delete</th>
-                    <?php
-					}
-                }
-            ?>
-        </tr>    
-        <?php
-		if($show_mem_bike_parking<>"")
-        {
-            $ii3 = 1;
-        foreach($show_mem_bike_parking as $k4 => $v4)
-        {
-        ?> 
-        <input type="hidden" name="mem_bike_parking_id<?php echo $ii3;?>" value="<?php echo $show_mem_bike_parking[$k4]['mem_bike_parking_id'];?>" />      
-        <tr height="25" bgcolor="#BDD8F4">
-           	<td align="center">
-                <input type="text" name="bike_owner<?php echo $ii3;?>" id="bike_owner" value="<?php echo $show_mem_bike_parking[$k4]['bike_owner'];?>" style="width:150px;" class="field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-            <td align="center">
-                <input type="text" name="bike_reg_no<?php echo $ii3;?>" id="bike_reg_no" value="<?php echo $show_mem_bike_parking[$k4]['bike_reg_no'];?>" style="width:120px;" class="field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-            <td align="center">
-                <input type="text" name="bike_parking_slot<?php echo $ii3;?>" id="bike_parking_slot" value="<?php echo $show_mem_bike_parking[$k4]['parking_slot'];?>" style="width:70px;" size="13" class="field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-            <td align="center">
-                <input type="text" name="bike_parking_sticker<?php echo $ii3;?>" id="bike_parking_sticker<?php echo $ii3;?>" value="<?php echo $show_mem_bike_parking[$k4]['parking_sticker'];?>" style="width:70px;" size="13" class = "field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-            <td align="center">
- 	<?php
-              if(isset($_GET['edt']))
-				{
-				 	if($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN)
-					{
-						
-				?>
-                		<select name="bike_parking_type<?php echo $ii3;?>" id="parking_type<?php echo $ii3;?>" style="width:70px;" class="field_select">
-				<?php
-						echo $obj_view_member_profile->ComboboxWithDefaultSelect("Select `Id`,`ParkingType` from `parking_type` where Status = 'Y'",$show_mem_bike_parking[$k4]['ParkingType']);
-				?>
-                		</select>    
-                <?php
-					} 
-					else
-					{ 
-				?> 
-                		<select name="bike_parking_type<?php echo $ii3;?>" id="parking_type<?php echo $ii3;?>" style="width:70px;" class="field_select" disabled>
-                <?php
-						echo $obj_view_member_profile->ComboboxWithDefaultSelect("Select `Id`,`ParkingType` from `parking_type` where Status = 'Y'",$show_mem_bike_parking[$k4]['ParkingType']); ?></select>
-                <?php
-					}
-				}
-				else
-				{
-					?> 
-                		<select name="bike_parking_type<?php echo $ii3;?>" id="parking_type<?php echo $ii3;?>" style="width:70px;" class="field_select" disabled>
-                <?php
-						echo $obj_view_member_profile->ComboboxWithDefaultSelect("Select `Id`,`ParkingType` from `parking_type` where Status = 'Y'",$show_mem_bike_parking[$k4]['ParkingType']); ?> </select>
-                <?php
-				}
-				?>
-            </td>
-            <td align="center">
-            <input type="text" name="bike_make<?php echo $ii3;?>" id="bike_make" value="<?php echo $show_mem_bike_parking[$k4]['bike_make'];?>" style="width:80px;" class="field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-            <td align="center">
-            <input type="text" name="bike_model<?php echo $ii3;?>" id="bike_model" value="<?php echo $show_mem_bike_parking[$k4]['bike_model'];?>" style="width:80px;" class="field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-            <td align="center">
-            <input type="text" name="bike_color<?php echo $ii3;?>" id="bike_color" value="<?php echo $show_mem_bike_parking[$k4]['bike_color'];?>" style="width:80px;" class="field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-            <?php
-			  if (!isset($_GET['edt']) && $_SESSION['society_id'] == 288  && $show_mem_bike_parking[$k4]['Renew_Registration'] == 0) // 288 is shree mari gold society
-			  { ?>
-			<td align="center"><button type="button" class="btn btn-primary" id="renew_registration" name="renew_registration" title="Renew parking registration" onclick='showRenewModal(<?php echo json_encode($show_mem_bike_parking[$k4],JSON_HEX_APOS); ?>,<?php echo VEHICLE_BIKE; ?>);'><i class="fa fa-undo"></i></button></td>
-		  <?php }
-				 else if(!isset($_GET['edt']) && $_SESSION['society_id'] == 288  && $show_mem_bike_parking[$k4]['Renew_Registration'] == 1)
-				{?>
-					<td align="center">submitted</td>
-				<?php
-				}
-			  ?>
-            <td>
-                 <?php
-                    if(isset($_GET['edt']))
-                    {
-						if($_SESSION['role'] == ROLE_ADMIN || $_SESSION['role'] == ROLE_SUPER_ADMIN)
-						{
-                        ?>
-                            <input type="checkbox" name="bike_delete<?php echo $ii3; ?>" id="bike_delete<?php echo $ii3; ?>" value="1">
-                        <?php
-						}
-                    }
-                ?>
-            </td>
-        </tr>
-        <?php
-            $ii3++;
-        }
-        }
-        else
-        {
-            ?>
-            <tr height="25"><td colspan="8" align="center"><font color="#FF0000"><b>No Records Found<!--  by admin --></b></font></td></tr>
-            <?php   
-        }
-        ?>
-        <input type="hidden" name="tot_bike" value="<?php echo $ii3-1;?>" />
-        </table>
-    </td>
-</tr>
-<tr> <td>
-                                  <?php if($_SESSION['society_id'] == 288){?>
-                                  <br><label>
-                                  <span style="color:#fb6666;">Note : </span><span style="color:#1783f5">You need to apply for parking lot evey year before 22<sup>th</sup> Feb. Managining committee will allocate parking lots around Feb.
-Please click on renew registration button above to submit your application to management.</span></label>
-                                  <?php }?>
-                                  <br><br></td></tr>
-<tr height="25" valign="bottom">
-    <td colspan="6" style="font-weight: bold;text-align: center;"><i class="fas fa-hand-holding-usd" style="font-size: 14px;">&nbsp;</i><b><u>LIEN  / MORTGAGE DETAILS</u></b>&nbsp;<i class="fas fa-hand-holding-usd" style="font-size: 14px;"></i>
-       <?php if( $_SESSION['profile'][PROFILE_MANAGE_LIEN] == 1)
-		{
-		?>
-    		<br/>
-    <button type="button"  class="btn btn-primary btn-xs" onClick="window.location.href='addLien.php?unit_id=<?php echo $show_member_main[0]['unit'];?>'" style="float: right;">Add Lien<!--<i class="fa fa-plus fa-small">--></i></button>
-    <?php 
-	}
-	?>
-    </td>
-</tr>
-<tr>
-	<td colspan="6">
-    	<table border="0">
-        <tr height="30" bgcolor="#E8E8E8">
-            <th width="150">Bank Name</th>
-            <th width="150">Loan Amount</th>
-            <th width="150">Society NOC Date</th>
-            <th width="150">Bank Noting Date</th>
-            <th width="150">Loan Status</th>
-            <th width="150">Close Date</th>
-            
-        </tr>
-        <?php
-		if($show_mem_lien<>"")
-        {
-            $j = 1;
-        	foreach($show_mem_lien as $k5 => $v5)
-        	{
-        ?> 
-        <input type="hidden" name="lienId<?php echo $j;?>" id="lienId<?php echo $j;?>" value="<?php echo $show_mem_lien[$k5]['Id'];?>" />      
-       <tr height="25" bgcolor="#BDD8F4">
-        	<td align="center">
-                <input type="text" name="bankName<?php echo $j;?>" id="bankName<?php echo $j;?>" value="<?php echo $show_mem_lien[$k5]['BankName'];?>" style="width:150px;" class="field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-            <td align="center">
-                <input type="text" name="amount<?php echo $j;?>" id="amount<?php echo $j;?>" value="<?php echo $show_mem_lien[$k5]['Amount'];?>" style="width:120px;" class="field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-            <td align="center">
-                <input type="text" name="societyNOCDate<?php echo $j;?>" id="societyNOCDate<?php echo $j;?>" value="<?php echo getDisplayFormatDate($show_mem_lien[$k5]['SocietyNOCDate']);?>" style="width:70px;" size="13" class="field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-            <td align="center">
-                <input type="text" name="societyNOCDate<?php echo $j;?>" id="societyNOCDate<?php echo $j;?>" value="<?php echo getDisplayFormatDate($show_mem_lien[$k5]['OpeningDate']);?>" style="width:70px;" size="13" class="field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-            <td align="center">
-                <input type="text" name="lienStatus<?php echo $ii3;?>" id="lienStatus<?php echo $j;?>" value="<?php if($show_mem_lien[$k5]['LienStatus'] == LIEN_ISSUED){ echo $show_mem_lien[$k5]['LienStatus']." Issued"; } else { echo $show_mem_lien[$k5]['LienStatus']; }?>" style="width:70px;" size="13" class = "field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-            <td align="center">
-            <input type="text" name="closeDate<?php echo $j;?>" id="closeDate<?php echo $j;?>" value="<?php echo getDisplayFormatDate($show_mem_lien[$k5]['CloseDate']);?>" style="width:80px;" class="field_input" <?php if($_SESSION['role'] != ROLE_SUPER_ADMIN && $_SESSION['role'] != ROLE_ADMIN) { echo 'readonly';} ?> />
-            </td>
-           </tr>
-          <?php
-            $j++;
-        	}
-        }
-		else
-        {
-            ?>
-            <tr height="25"><td colspan="8" align="center"><font color="#FF0000"><b>No Records Found<!--  by admin --></b></font></td></tr>
-            <?php   
-        }
-        ?>
-        <input type="hidden" name="tot_lien" value="<?php echo $j-1;?>" />
-     	</table>
-     </td>
-</table>
-<table class="table_format" style="width: 100%;">
-<tr height="25" valign="bottom">
-    <td colspan="6" style="font-weight: bold;text-align: center;">
-        <br/><i class="fa fa-medkit" style="font-size: 14px;"></i>&nbsp;<u><b>EMERGENCY CONTACT DETAILS</b></u>&nbsp;<i class="fa fa-medkit" style="font-size: 14px;">&nbsp;</i>
-    </td>
-</tr>
-<tr height="25" valign="center" align="left">
-    <td style="text-align: left;" width="100px"><b>Relatives Name</b></td>
-    <td>:</td>
-    <td colspan="5" align="left" style="text-align: left;">
-    <input type="text" name="eme_rel_name" id="eme_rel_name" class="field_input" value="<?php echo $show_member_main[0]['eme_rel_name'];?>" style="width:180px;"/>
-    </td>
-</tr>
 
-<tr align="left">
-    <td style="text-align: left;"><b>Contact No.</b></td>
-    <td>:</td>
-    <td style="text-align: left;">
-    <input type="text" name="eme_contact_1" id="eme_contact_1" class="field_input" onBlur="extractNumber(this,0,true);" onKeyUp="extractNumber(this,0,true);" onKeyPress="return blockNonNumbers(this, event, true, true)" value="<?php echo $show_member_main[0]['eme_contact_1'];?>" style="width:120px;"/>
-    </td>
-    
-    <td width="120px"><b>Alternate Contact No.</b></td>
-    <td>:</td>
-    <td style="text-align: left;">
-    <input type="text" name="eme_contact_2" id="eme_contact_2" class="field_input" onBlur="extractNumber(this,0,true);" onKeyUp="extractNumber(this,0,true);" onKeyPress="return blockNonNumbers(this, event, true, true)" value="<?php echo $show_member_main[0]['eme_contact_2'];?>" style="width:120px;"/>
-    </td>
-</tr>
-</table>
+
+
+
 <br>
 <br>
+<table>
 <?php if($_SESSION['is_year_freeze'] == 0 &&($_SESSION['role']==ROLE_SUPER_ADMIN || $_SESSION['profile'][PROFILE_EDIT_MEMBER] == '1' ))
 {?>
 		<center>

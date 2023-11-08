@@ -271,7 +271,8 @@ $(document).ready(function(){
 				dateFormat: "dd-mm-yy", 
 				showOn: "both", 
 				buttonImage: "images/calendar.gif", 
-				buttonImageOnly: true 	
+				buttonImageOnly: true, 
+				yearRange : '-0:+2'	
 			})
 		});
 		$(function()
@@ -286,7 +287,8 @@ $(document).ready(function(){
             buttonImage: "images/calendar.gif", 
             changeMonth: true,
             changeYear: true,
-            yearRange: '-100:+0',
+            yearRange: '-33:-10',
+			defaultDate: '01-01-1990',
             buttonImageOnly: true
         };
 		$(function () 
@@ -1235,13 +1237,13 @@ function loadchanges()
         				<td style="text-align:right"></td>
 						<td style="text-align:right"><?php echo $star;?>&nbsp;<b>Lease Start Date</b></td>
             			<td style="text-align:left">&nbsp; : &nbsp;</td>
-						<td style="text-align:left" id="td_2"><input type="text" name="start_date" id="start_date" class="basics" onChange="getTotalMonth();" size="10" readonly  style="width:80px;" /></td>
+						<td style="text-align:left" id="td_2"><input type="text" name="start_date" id="start_date" class="basics" onChange="getTotalMonth();" size="10"   style="width:80px;" /></td>
 					</tr>
 					<tr>
         				<td style="text-align:right"></td>
         				<td style="text-align:right"><?php echo $star;?>&nbsp;<b>Lease End Date</b></td>
             			<td style="text-align:left">&nbsp; : &nbsp;</td>
-						<td style="text-align:left" id="td_3"><input type="text" name="end_date" id="end_date" class="basics" onChange="getTotalMonth();" size="10" readonly  style="width:80px;" /></td>
+						<td style="text-align:left" id="td_3"><input type="text" name="end_date" id="end_date" class="basics" onChange="getTotalMonth();" size="10"   style="width:80px;" /></td>
 					</tr>
                     <!--<tr>
         				<td style="text-align:right"></td>
@@ -1365,12 +1367,12 @@ function loadchanges()
             <td id="send_emails">Send E-Mails ?</td>-->
             </tr>
             <tr align="left">
-            <td align="left" id="bankName_td"><input type="text" name="bankName" id="bankName" style="width:140px;" /></td>
-            <td id="branch_td"><input type="text" name="branch" id="branch"  style="width:100px;" value = "" /></td>
-            <td id="cheqno_td"><input type="text" name="cheqno" id="cheqno"  style="width:100px;" value = "" /></td>
-            <td id="cheqdate_td"><input type="text" name="cheqdate" id="cheqdate" class="basics" size="10" style="width:100px;" /></td>
-            <td id="amount_td">&nbsp;&nbsp;&nbsp;<input type="text" name="sd_amount" id="sd_amount"  style="width:100px;"  onBlur="extractNumber(this,0,true);" onKeyUp="extractNumber(this,0,true);" onKeyPress="return blockNonNumbers(this, event, true, true)" size="30" /></td>
-            <td id="remark_td"><input type="text" name="remark" id="remark" style="width:100px;" /></td>            
+            <td align="left" id="bankName_td"><input type="text" name="bankName" id="bankName" style="width:140px;" onkeyup="prepopulateFields()"/></td>
+            <td id="branch_td"><input type="text" name="branch" id="branch"  style="width:100px;" value = "" onkeyup="prepopulateFields()" /></td>
+            <td id="cheqno_td"><input type="text" name="cheqno" id="cheqno"  style="width:100px;" value = ""  onkeyup="prepopulateFields()"/></td>
+            <td id="cheqdate_td"><input type="text" name="cheqdate" id="cheqdate" class="basics" size="10" style="width:100px;"  onkeyup="prepopulateFields()"/></td>
+            <td id="amount_td">&nbsp;&nbsp;&nbsp;<input type="text" name="sd_amount" id="sd_amount"  style="width:100px;"  onBlur="extractNumber(this,0,true); " onKeyUp="extractNumber(this,0,true); prepopulateFields()" onKeyPress="return blockNonNumbers(this, event, true, true)" size="30" /></td>
+            <td id="remark_td"><input type="text" name="remark" id="remark" style="width:100px;" onkeyup="prepopulateFields()" /></td>            
 			<!--<td><input type="checkbox"  name="chkCreateLogin" id="chkCreateLogin" value="1" /></td>
 			<td><input type="checkbox" name="other_send_commu_emails" id="other_send_commu_emails" value="1" /></td>-->
 		</tr>
@@ -1589,7 +1591,7 @@ function loadchanges()
             <?php if(!isset($_REQUEST['edit']))
 			{?>
             <tr align="left">
-            	<td><input type="text" id="doc_name_1" name="doc_name_1" placeholder="Emirate ID"></td>
+            	<td><input type="text" id="doc_name_1" name="doc_name_1" placeholder="Emirate Front ID"></td>
             	<td align="left"><input type="file" name="userfile1" id="userfile1"/></td>
 				<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
             	<td align="left"><input type="text" name="license_no" id="license_no" placeholder="License No" /></td>
@@ -1797,5 +1799,44 @@ echo "<br>";*/
 		<?php
 	}
 ?>
+<script>
+    function prepopulateFields() {
+        // Get references to the input fields by their IDs
+        var bankNameInput = document.getElementById('bankName');
+        var branchInput = document.getElementById('branch');
+        var cheqnoInput = document.getElementById('cheqno');
+		var chechdateInput = document.getElementById('cheqdate');
+        var amountInput = document.getElementById('sd_amount');
+        var remarkInput = document.getElementById('remark');
+
+        // // Get the values from the input fields
+        var bankNameValue = bankNameInput.value;
+        var branchValue = branchInput.value;
+        var cheqnoValue = cheqnoInput.value;
+		var checkdateValue = chechdateInput.value;
+        var amountValue = amountInput.value;
+        var remarkValue = remarkInput.value;
+
+        // // Set the values of the other fields based on the values from the input fields
+        var otherField1 = document.getElementById('bankName_1');
+        var otherField2 = document.getElementById('branch_1');
+        var otherField3 = document.getElementById('cheqno_1');
+		var otherField4 = document.getElementById('cheqdate_1');
+        var otherField5 = document.getElementById('amount_1');
+        var otherField6 = document.getElementById('remark_1');
+
+        otherField1.value = bankNameValue + '';
+        otherField2.value = branchValue + '';
+        otherField3.value = cheqnoValue + '';
+		otherField4.value = checkdateValue + '';
+        otherField5.value = amountValue + '';
+        otherField6.value = remarkValue + '';
+    }
+	
+   
+</script>
+
+
+
 
 <?php include_once "includes/foot.php"; ?>
