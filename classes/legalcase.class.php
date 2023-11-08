@@ -20,10 +20,11 @@ class legalcase
 	public $objFetchData;
 	public $m_objUtility;
 	
-	function __construct($dbConn,$dbConnRoot)
+	function __construct($dbConn,$dbConnRoot,$landLordDB)
 	{
 		$this->m_dbConn = $dbConn;		
-		$this->m_dbConnRoot = $dbConnRoot;		
+		$this->m_dbConnRoot = $dbConnRoot;	
+		$this->m_landLordDB = $landLordDB;		
 		$this->objFetchData = new FetchData($dbConn);
 		$this->objFetchData->GetSocietyDetails($_SESSION['society_id']);	
 		$this->m_objUtility = new utility($dbConn,$this->m_dbConnRoot);
@@ -105,6 +106,8 @@ class legalcase
 		{
 			$details = $_POST['details'];
 		}
+		$array_tenant = explode('|', $_POST['tenant_id']);
+
 		//$request_no = $request_no + 1;
 		// change to  $_POST['unit_no'] to $_POST['unit_no2']; in insert statment
 		 echo $sql = "INSERT INTO `legal_case` (`request_no`, `society_id`, `reportedby`, `dateofrequest`, `email`, `phone`, `priority`, `category`, `summery`,`img`, `details`, `status`, `unit_id`,`case_no`,`outstanding_rent`,`open_on`,`case_open_date`) VALUES ('".$request_no."', '".$_SESSION['society_id']."', '".$_POST['reported_by']."', '".getDBFormatDate(date('d-m-Y'))."', '".$_POST['email']."', '".$_POST['phone']."', '".$_POST['priority']."', '".$_POST['category']."', '".$_POST['summery']."','$image_collection', '".$details."', 'Created', '".$_POST['unit_no2']."','".$_POST['case_no']."','".$_POST['outstanding_amt']."','".getDBFormatDate($_POST['open_on'])."','".getDBFormatDate($_POST['open_date'])."')";					
@@ -133,7 +136,7 @@ class legalcase
 	//	$this->ServiceRequestMobileNotification($request_no, $_POST['category'], $_POST['priority'], $_POST['summery'], $EmailIDOfCategory, $CCEmailIDOfCategory,$sqlSR[0]['unitID'],$sqlSR[0]['co_unitID'], $_POST['unit_no'], true);
 		
 		//$this->ServiceRequestSMS($_POST['summery'],$sqlSR[0]['unitID'],$sqlSR[0]['co_unitID'],$_POST['unit_no']);
-		header("Location: ../servicerequest.php?type=open");
+		header("Location: ../legalcase.php?type=open");
 	}
 	}
 		else if($_REQUEST['insert']=='Update' && $errorExists==0)
@@ -247,7 +250,7 @@ class legalcase
 	
 	public function GetCategoryDetails($sCategory)
 	{
-		$sqlSRQuery  = "select ID, unitID, co_unitID,category, email,email_cc from `servicerequest_category` where ID='". $sCategory."'";
+		$sqlSRQuery  = "select ID, unitID, co_unitID,category, email,email_cc from `legalcase_category` where ID='". $sCategory."'";
 		return $this->m_dbConn->select($sqlSRQuery);
 	}
 		
@@ -589,10 +592,15 @@ class legalcase
 		
 		
 		
-	public function comboboxEx($query,$id)
+	public function comboboxEx($query,$id,$dbselected=false)
 	{ //$str.="<option value=''>All</option>";
 		$str.="<option value='0'>Please Select</option>";
-		$data = $this->m_dbConn->select($query);
+		if($dbselected){
+			echo "in eneter";
+			$data = $this->m_landLordDB->select($query);
+		}else{
+			$data = $this->m_dbConn->select($query);
+		}
 		if(!is_null($data))
 		{
 			foreach($data as $key => $value)
@@ -709,6 +717,17 @@ class legalcase
 		}
 		return $str;
 	}
+
+	public function getTenants($id)
+	{
+		$query = "SELECT  concat_ws('|',tenant_id,tenant_name) as tenant_id, tenant_name FROM `tenant_module`";
+		if($_SESSION['landLordDB']){
+			$landLordDB = true;
+		}
+		return $this->comboboxEx($query, $id, $landLordDB);
+						
+	}
+
 	
 //***--------------------------Service Request Mobile Notificatiion---------------------------------
 

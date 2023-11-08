@@ -7,7 +7,9 @@
 	include_once("includes/head_s.php"); 
 	include_once("classes/legalcase.class.php");
 	include_once("classes/dbconst.class.php");
-	$obj_servicerequest = new legalcase($m_dbConn,$m_dbConnRoot);
+	$obj_servicerequest = new legalcase($m_dbConn,$m_dbConnRoot,$m_landLordDB);
+	$obj_initialize = new initialize($m_dbConnRoot);
+
 	//$details = $obj_servicerequest->getDetails();
 	  //print_r($_SESSION);
     //  $loginID = $_SESSION["login_id"];
@@ -98,17 +100,17 @@
 		var category = trim(document.getElementById('category').value);
 		var summery = trim(document.getElementById('summery').value);
 		//var details = trim(document.getElementById('details').value);
-		var unitNo = document.getElementById("unit_no2").value;
+		var tenant_id = document.getElementById("tenant_id").value;
 		//alert("unitNo :"+unitNo);
 		var details = CKEDITOR.instances['details'].getData();
 		//document.getElementById('insert').disabled=true;
 		var role = "<?php echo $_SESSION['role'];?>";
 		if(role != "<?php echo ROLE_MEMBER;?>")
 		{
-			if(unitNo == "0")
+			if(tenant_id == "0")
 			{
 				document.getElementById('error').style.display = "";
-				document.getElementById('error').innerHTML = "Please Select Unit No.";	
+				document.getElementById('error').innerHTML = "Please Select Tenant";	
 				document.getElementById('unit_no').focus();
 				go_error();
 				return false;
@@ -220,12 +222,12 @@
 		{
 			iUnitID = "<?php echo $_SESSION['unit_id'];?>";
 			document.getElementById("unit_no").value = iUnitID;
-			document.getElementById("unit_no2").value = iUnitID;
+			document.getElementById("tenant_id").value = iUnitID;
 			//document.getElementById("unit_no2").disabled = true;    // comment out in 19-09-2019 
 		}
 		else
 		{
-			document.getElementById("unit_no2").value = iUnitID;
+			document.getElementById("tenant_id").value = iUnitID;
 			document.getElementById("unit_no").value = iUnitID;
 		}
 	});
@@ -296,7 +298,32 @@
 		}
 	}
 </script>
+<script>
+$(document).ready(function() { 
+	var socId = '<?php echo $_SESSION['landLordSocID']; ?>';
+	if(socId) {
+		document.getElementById("socid").value = socId;
+	}
+});
 
+function selectSociety() {
+	let id=document.getElementById('socid').value;
+	$.ajax({
+		url: "process/servicerequest.process.php",
+		type:"post",
+		data: {'selSocID':id},
+		success: function(data)
+		{
+			location.reload();
+		}
+	});
+}
+
+
+</script>
+<!-- <?php echo "<pre>";
+print_r($_SESSION);
+echo "</pre>"; ?> -->
 <?php if(isset($_POST["ShowData"])){?>
 <body onLoad="go_error();">
 <?php } ?>
@@ -316,6 +343,17 @@
 		} ?>
 <center>
     <button type="button" class="btn btn-primary" onClick="window.location.href='<?php echo $Url;?>'">Go Back</button>
+	<?php 
+ if($_SESSION['res_flag']) { ?>
+<h2 style="padding: 0;">Select A Landlord to Create Legal case</h2>
+<select id="socid" name="socid" style="width:auto; height:auto;">
+	<?php  echo $mapList = $obj_initialize->combobox("Select societytbl.society_id, concat_ws(' - ', societytbl.society_name, maptbl.desc) from mapping as maptbl JOIN society as societytbl ON maptbl.society_id = societytbl.society_id JOIN dbname as db ON db.society_id = societytbl.society_id WHERE maptbl.login_id = '" . $_SESSION['login_id'] . "' and societytbl.status = 'Y' and maptbl.status = '2' and societytbl.society_id != ".$_SESSION['society_id']." ORDER BY societytbl.society_name ASC ", $_SESSION['current_mapping']);
+
+	?>			
+</select>
+<br /><br />
+<button class="btn btn-primary" onclick="selectSociety();">Select</button>
+<?php } ?>
 </center>
 <br>
 <center>
@@ -347,13 +385,15 @@
         <td>&nbsp; : &nbsp;</td>
         <td>
         <input type = "hidden" id = "unit_no" name = "unit_no" value = "0"/> 
-        <select id="unit_no2" name="unit_no2" value="<?php echo $_SESSION['unit_id'];?>"> 
-            	<?php echo $obj_servicerequest->comboboxEx("SELECT u.unit_id, concat_ws(' - ', u.`unit_no`, m.`owner_name`) FROM `member_main` as m join `unit` as u on u.`unit_id` = m.`unit`",$_SESSION['unit_id']); ?>
+        <select id="tenant_id" name="tenant_id" value="<?php echo $_SESSION['unit_id'];?>"> 
+            	<?php echo $t_data = $obj_servicerequest->getTenants($_SESSION['unit_id']); ?>
                 
             </select>
             </td>
 	</tr>
-    <tr><td colspan="4"><input type="hidden" name="reportedby" id="reportedby" value="<?php echo $_SESSION['name'];?>"> </td></tr>
+    <tr><td colspan="4"><input type="hidden" name="reportedby" id="reportedby" value="<?php echo $_SESSION['name'];?>"> <input type="hidden" name="landLordSocID" id="landLordSocID" value="<?php echo $_SESSION['landLordSocID'];?>"></td></tr>
+	<?php 
+	 ?>
     
     <!--<tr>
     	<td valign="middle"><?php //echo $star;?></td>
@@ -418,7 +458,7 @@
         <td>&nbsp; : &nbsp;</td>
         <td>
         	<select id="category" name="category"> 
-            	<?php echo $combo_category = $obj_servicerequest->combobox("SELECT `id`, `category` FROM `servicerequest_category` WHERE `status` = 'Y'", 0); ?>
+            	<?php echo $combo_category = $obj_servicerequest->combobox("SELECT `id`, `category` FROM `legalcase_category` WHERE `status` = 'Y'", 0); ?>
             </select>
         </td>
 	</tr>

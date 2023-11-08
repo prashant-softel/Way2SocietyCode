@@ -631,7 +631,8 @@ $msgCounter = 0;
 								<?php
 							}
 							?>
-                            <?php if($_SESSION['module']['service_request'] == "1")
+                            <?php if($_SESSION['res_flag']) {
+							if($_SESSION['module']['service_request'] == "1")
 							{
 								?>
                             	<li class="active">
@@ -646,7 +647,7 @@ $msgCounter = 0;
                                 	<!-- /.nav-second-level -->
                             	</li>
 								<?php
-							}
+							} }
 							?>
                             <?php if($_SESSION['security_dbname'] <> '')
 							{?>

@@ -329,7 +329,7 @@ $obj_servicerequest->getRenovationId();
 <table style="width:100%;display:none;width:75vw" id="table1">
 	<tr>
    		<!-- First card -->
-		<td>
+		<td <?php echo ($_SESSION['res_flag']==0 && $_SESSION['society_id'] != 461) ? 'style="display:none"' : ''?> >
 			<div class="col-lg-3 col-md-6" style="width:100%">
 				<div class="panel panel-primary">
 					<div class="panel-heading">
@@ -371,7 +371,7 @@ $obj_servicerequest->getRenovationId();
 		</td> 
         
         <!-- Second  card in row 1 -->
-		<td>
+		<td  <?php echo ($_SESSION['res_flag']==0 && $_SESSION['society_id'] != 460) ? 'style="display:none"' : ''?> >
 			<div class="col-lg-3 col-md-6" style="width:100%">
 				<div class="panel panel-green">
 					<div class="panel-heading">

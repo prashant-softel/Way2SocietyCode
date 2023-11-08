@@ -98,8 +98,7 @@ if($_SESSION['is_year_freeze'] == 0)
                 <thead>
                     <tr>
                         <th>Case Id.</th>
-                        <th>Building No.</th>
-                        <th>Flat No.</th>
+                        <th>Landlord Name.</th>
                         <th>Tenant Name</th>
                         <th>Created Date</th>
                         <th>Next Due Date</th>
@@ -121,6 +120,7 @@ if($_SESSION['is_year_freeze'] == 0)
 						{
 							$cnt=0;
 							$count=0;
+                            $landlord_name =  $m_dbConnRoot->select("SELECT `society_name` FROM `society` WHERE `society_id` = '".$requests[$i]['landlord_soc']."'")[0]['society_name'];
 							 $unitNo=$objfetch->GetUnitNumber($requests[$i]['unit_id']);
 							 $memID=$obj->GetMemberIDNew($requests[$i]['unit_id']);
 							 $buildingNo = $obj_request->getBuildingNo($requests[$i]['unit_id']);
@@ -131,8 +131,8 @@ if($_SESSION['is_year_freeze'] == 0)
 								$prevRequestNo = $requests[$i]['request_no'];
 					?>
                     <tr>
-                     <td style="text-align:center"><a href="viewlegalcase.php?rq=<?php echo $requests[$i]['request_id'];?>" target="_blank"><?php echo $requests[$i]['request_id'];?></a></td>
-                        <td style="text-align:center"><?php echo $buildingNo;?></td>
+                     <td style="text-align:center"><a href="viewlegalcase.php?rq=<?php echo $requests[$i]['request_id'];?>" target="_blank"><?php echo $i+1;?></a></td>
+                        <td style="text-align:center"><?php echo $landlord_name;?></td>
                         
                           <?php
 						  $details = $obj_request->getViewDetails($requests[$i]['request_id'],true);
@@ -145,8 +145,7 @@ if($_SESSION['is_year_freeze'] == 0)
 						
 	
 	?>	
-    					<td><a href="view_member_profile.php?scm&id=<?php echo $memID[0]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank" ><?php echo $unitNo;?></a></td>
-                        <td><a href="tenant.php?mem_id=<?php echo $memID[0]['member_id'];?>&tik_id=<?php echo time();?>&edit=5" target="_blank" ><?php echo  $memID[0]['owner_name'];?></a></td>
+                        <td style="text-align:center"><?php echo $requests[$i]['tenant_name'];?> </td>
                         <td><?php echo getDisplayFormatDate($requests[$i]['dateofrequest']);?></td>
                         <td><?php echo  getDisplayFormatDate($latestStatus[0]['up_hearing_date']);?></td>
                         <td><?php echo $CategoryDetails[0]['category'];?></td>
