@@ -255,11 +255,8 @@ $(function()
 	?>
     </td>
     <td style="padding:5px">
-<<<<<<< HEAD
+
     <input type="button" class="btn btn-primary "  value="Total Dues Rs.<?php echo $obj_utility->getDueAmount($show_tenant_main[0]['unit_id'])?>" style=" height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;background-color:#FFFFFF;color:#000;border-color:#FFFFFF;border-top-style:none;border-left-style:none;border-right-style:none;font-weight:bold" onClick="window.open('tenant_ledger_report.php?&uid=<?php echo $show_tenant_main[0]['ledger_id'];?>', '_blank')">
-=======
-    <input type="button" class="btn btn-primary "  value="Total Dues Rs.<?php echo $obj_utility->getDueAmount($show_tenant_main[0]['unit_id'])?>" style=" height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;background-color:#FFFFFF;color:#000;border-color:#FFFFFF;border-top-style:none;border-left-style:none;border-right-style:none;font-weight:bold" onClick="window.open('member_ledger_report.php?&uid=<?php echo $show_tenant_main[0]['unit_id'];?>', '_blank')">
->>>>>>> 03b76bfc2ed7bd9f942dec1a1a64066e5947086d
     </td>
     </tr>
     </table>
@@ -314,8 +311,10 @@ $(function()
         	<tr>
             <?php 
             $image = $TenantDetails[0]['img'];
-            $imageUrl = "Uploaded_Documents/tenantProfile__" .$_GET['id']."_Photo.jpg"; ?>
-            	<td style="width: 400px;"><a target="_blank" id="profileHref"><img <?php 
+            $imageUrl =  "Uploaded_Documents/".$TenantDetails[0]['img'];
+            // echo "ID " .$imageUrl;
+            ?>
+            	<td style="width: 200px;"><a target="_blank" href="images/noimage.png" id="profileHref"><img <?php 
 				if(isset($_REQUEST['edit']) || isset($_REQUEST['edt']) || isset($_REQUEST['view']))
 				{ 
 					if($image != "") 

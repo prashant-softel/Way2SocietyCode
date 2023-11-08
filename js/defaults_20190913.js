@@ -406,6 +406,8 @@ function ApplyValues()
 	var Sundrycreditor = document.getElementById('default_Sundry_creditor').value;
 	var defaultSinkingFund  =  document.getElementById('default_sinking_fund').value;
 	var defaultInvestmentRegister =  document.getElementById('default_investment_register').value;
+	var default_sd_category  =  document.getElementById('default_sd_category').value;
+	var default_bank_id =  document.getElementById('default_bank_id').value;
 
 	
 	if(defaultSociety == 0 /*|| !EmailValidation*/)
@@ -448,7 +450,9 @@ function ApplyValues()
 					'Sundrycreditor':Sundrycreditor, 
 					'defaultSinkingFund'    : defaultSinkingFund,
 					'defaultInvestmentRegister'    : defaultInvestmentRegister,
-					'dueFromTenant': dueFromTenant
+					'dueFromTenant': dueFromTenant,
+					'default_sd_category': default_sd_category,
+					'default_bank_id': default_bank_id
 					};
 					
 		remoteCallNew(sURL, obj, 'defaultsApplied');

@@ -8,7 +8,7 @@ error_reporting(0);
 $dbConn = new dbop();
 $dbConnRoot = new dbop(true);
 
-$obj_tenancy_record = new tenancy_form($dbConn, $dbConnRoot);
+$obj_tenancy_record = new tenancy_form($dbConn, $dbConnRoot, $landLordDB, $landLordDBRoot);
 
 $tenancy_landlordDetails = $obj_tenancy_record->tenancy_landlordDetails();
 $tenancy_tenantDetails = $obj_tenancy_record->tenancy_tenantDetails();
