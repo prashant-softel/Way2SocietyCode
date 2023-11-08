@@ -36,7 +36,7 @@ class ChequeDetails extends dbop
 		$this->display_pg=new display_table($this->m_dbConn);
 		$this->actionPage = "../ChequeDetails.php?depositid=".$_POST['DepositID']."&bankid=".$_POST['BankID'];
 
-		/*//$this->curdate		= $this->display_pg->curdate();
+		/*//$this->curdate = $this->display_pg->curdate();
 		//$this->curdate_show	= $this->display_pg->curdate_show();
 		//$this->curdate_time	= $this->display_pg->curdate_time();
 		//$this->ip_location	= $this->display_pg->ip_location($_SERVER['REMOTE_ADDR']);*/
@@ -47,7 +47,7 @@ class ChequeDetails extends dbop
 		$this->m_objUtility = new utility($dbConn,$dbConnRoot, $landLordDB);
 		$_POST['EnteredBy'] = $_SESSION['login_id'];
 		$this->m_objLog = new changeLog($dbConn, $landLordDB);
-		$this->m_objFetchDetails = new FetchData($dbConn);
+		$this->m_objFetchDetails = new FetchData($dbConn, $landLordDB);
 		$this->m_objPayment = new PaymentDetails($dbConn);
 		$this->landLordDB = $landLordDB;
 		if($_SESSION['landLordDB']){
@@ -360,6 +360,7 @@ class ChequeDetails extends dbop
 			$this->AddNewValues($VoucherDate, $ChequeDate, $ChequeNo, $ExVoucherCounter,$systemVoucherNo,$IsCallUpdtCnt, $Amount, $PaidBy, $BankID, $PayerBank, $PayerBranch, $DepositID, $Comments,$BillType, $reconcileDate, $reconcileStatus, $reconcile, $return, 0, false,"", $TDS_Amount, $preChequeDetailID);
 	}
 	
+
 	public function AddNewValues($VoucherDate, $ChequeDate, $ChequeNo, $ExVoucherCounter,$systemVoucherNo,$IsCallUpdtCnt, $Amount, $PaidBy, $BankID, $PayerBank, $PayerBranch, $DepositID, $Comments,$BillType, $reconcileDate = 0, $reconcileStatus = 0, $reconcile = 0, $return = 0, $EnteredByMember = 0,$isFunCalledFrmImport = false, $GatewayID = "", $TDS_Amount=0, $preChequeDetailID = 0, $importBatchID = 0)
 	{
 		try
@@ -694,7 +695,7 @@ class ChequeDetails extends dbop
 					$TDS_Receivable = $_SESSION['default_tds_receivable'];
 				}
 				//nahi------
-				$arPaidByParentDetails = $this->m_objUtility->getParentOfLedger($PaidBy);
+				$arPaidByParentDetails = $this->m_objUtility->getParentOfLedger1($PaidBy);
 				// print_r($arPaidByParentDetails);
 				if(!(empty($arPaidByParentDetails)))
 				{
@@ -703,7 +704,7 @@ class ChequeDetails extends dbop
 					$PaidByName = $arPaidByParentDetails['ledger_name'];	
 				}
 				//echo '<br>Before chequeentry Insert';
-				echo $insert_query="insert into chequeentrydetails (`VoucherDate`,`ChequeDate`,`ChequeNumber`,`Amount`,`TDS_Amount`,`PaidBy`,`BankID`,`PayerBank`,`PayerChequeBranch`,`DepositID`,`EnteredBy`,`Comments`,`isEnteredByMember`,`BillType`, `Import_Batch_Id`) values ('".getDBFormatDate($VoucherDate)."','".getDBFormatDate($ChequeDate)."','".$ChequeNo."','".$Amount."','".$TDS_Amount."','".$PaidBy."','".$BankID."','".$this->landLordDB->escapeString($PayerBank)."','".$this->landLordDB->escapeString($PayerBranch)."','".$DepositID."','".$sLoginID."','".$this->landLordDB->escapeString($Comments)."','".$EnteredByMember."','".$BillType."', '".$importBatchID."')";
+				$insert_query="insert into chequeentrydetails (`VoucherDate`,`ChequeDate`,`ChequeNumber`,`Amount`,`TDS_Amount`,`PaidBy`,`BankID`,`PayerBank`,`PayerChequeBranch`,`DepositID`,`EnteredBy`,`Comments`,`isEnteredByMember`,`BillType`, `Import_Batch_Id`) values ('".getDBFormatDate($VoucherDate)."','".getDBFormatDate($ChequeDate)."','".$ChequeNo."','".$Amount."','".$TDS_Amount."','".$PaidBy."','".$BankID."','".$this->landLordDB->escapeString($PayerBank)."','".$this->landLordDB->escapeString($PayerBranch)."','".$DepositID."','".$sLoginID."','".$this->landLordDB->escapeString($Comments)."','".$EnteredByMember."','".$BillType."', '".$importBatchID."')";
 				$data = $this->landLordDB->insert($insert_query);
 				$this->ADDEntryTracker ="New Record Added at($data)"; 
 				$this->EDITEntryTracker = "New Record for Edit Added at($data)"; 
@@ -1821,199 +1822,397 @@ class ChequeDetails extends dbop
 		$result = 0;
 		try
 		{
-			$sqlnotify_by_email = "SELECT `neft_notify_by_email` from `society` where `status` = 'Y' ";
-			$resnotify_by_email = $this->m_dbConn->select($sqlnotify_by_email);
-			//echo "trace1";
-			$strUnitType = $this->m_objFetchDetails->getUnitPresentation($TransactionData['PaidBy']);		
-			//echo "trace2";	
-			if($resnotify_by_email[0]['neft_notify_by_email'] == 1)
+			if($this->isLandLordDB){
+				$sqlnotify_by_email = "SELECT `neft_notify_by_email` from `society` where `status` = 'Y' ";
+				$resnotify_by_email = $this->landLordDB->select($sqlnotify_by_email);
+				//echo "trace1";
+				$strUnitType = $this->m_objFetchDetails->getUnitPresentation($TransactionData['PaidBy']);		
+				//echo "trace2";	
+				if($resnotify_by_email[0]['neft_notify_by_email'] == 1)
+				{
+					//echo "trace3";
+					//notify members by email flag is set
+					require_once("include/fetch_data.php");
+					$baseDir = dirname( dirname(__FILE__) );
+					require_once($baseDir.'/swift/swift_required.php');
+					$obj_fetch = new FetchData($this->m_dbConn, $this->landLordDB);
+					if($TransactionData['ModeOfReceipt']!= "NEFT" && $TransactionData['ModeOfReceipt']  != "Cash" && $TransactionData['ModeOfReceipt']  != "Online")
+					{
+						$TrabsactionMsgAmount='Cheque Amount';
+						$TrabsactionMsgDate='Cheque Date';
+						$TrabsactionMsgID='Cheque Number';
+						$TrabsactionMsgHeader ='Cheque';
+						//echo "cheque";
+					}
+					else if($TransactionData['ModeOfReceipt']  == "Online")
+					{
+						$TrabsactionMsgAmount='Amount';
+						$TrabsactionMsgDate='Date';
+						$TrabsactionMsgID='Transaction ID';
+						//$TrabsactionMsgHeader ='Online';
+						//echo "Online";
+					}
+					else if($TransactionData['ModeOfReceipt']  == "Cash")
+					{
+						$TrabsactionMsgAmount='Amount';
+						$TrabsactionMsgDate='Date';
+						$TrabsactionMsgID='NA';
+					}
+					else
+					{
+						$TrabsactionMsgAmount='Transaction Amount';
+						$TrabsactionMsgDate='Transaction Date';
+						$TrabsactionMsgID='Transaction ID';
+					}
+					//creating email subject
+					$AmountRecd = number_format($TransactionData['Amount'],2);
+					
+					$mailSubject = $TransactionData['ModeOfReceipt'].$TrabsactionMsgHeader." Payment of Rs. ". $AmountRecd ." for ".$strUnitType." ".$TransactionData['PaidByName']." is received.";
+					
+					$memberDetails = $obj_fetch->GetMemberDetails($TransactionData['PaidBy']);
+					$societyDetails = $obj_fetch->GetSocietyDetails($obj_fetch->GetSocietyID($TransactionData['PaidBy']));
+					$mailToEmail = $obj_fetch->objMemeberDetails->sEmail;
+					$mailToName = $obj_fetch->objMemeberDetails->sMemberName;
+					
+					//creating email body
+					$mailBody = $this->m_objUtility->GetEmailHeader();
+					//if($TransactionData['PaidByName'] <> "")
+					//{
+						//$mailSubject .= " #".$TransactionData['PaidByName'];
+					//}
+					
+					$mailBody .= '<tr><td>Dear  '.$mailToName.',<br /></td></tr>
+								  <tr><td><br /></td></tr>';
+					//echo "mode:".$TransactionData['ModeOfReceipt'];				
+					//die();
+					$mailBody .= '<tr><td>Thank You. We have received your '.$TransactionData['ModeOfReceipt'].$TrabsactionMsgHeader.' payment for '.$strUnitType.' :'.$TransactionData['PaidByName'].'. Transaction details are :<br /></td></tr>
+								 <tr><td><br /></td></tr>';
+								
+		$mailBody .='<table style="border-collapse: collapse; border: 1px solid black;">
+		  <tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$strUnitType.'</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['PaidByName'].'</td>
+		  </tr>';
+		  if($TransactionData['ModeOfReceipt']  != "Cash" && $TransactionData['ModeOfReceipt']  != "Online")
 			{
-				//echo "trace3";
-				//notify members by email flag is set
-				require_once("include/fetch_data.php");
-				$baseDir = dirname( dirname(__FILE__) );
-				require_once($baseDir.'/swift/swift_required.php');
-				$obj_fetch = new FetchData($this->m_dbConn);
-				if($TransactionData['ModeOfReceipt']!= "NEFT" && $TransactionData['ModeOfReceipt']  != "Cash" && $TransactionData['ModeOfReceipt']  != "Online")
-				{
-					$TrabsactionMsgAmount='Cheque Amount';
-					$TrabsactionMsgDate='Cheque Date';
-					$TrabsactionMsgID='Cheque Number';
-					$TrabsactionMsgHeader ='Cheque';
-					//echo "cheque";
-				}
-				else if($TransactionData['ModeOfReceipt']  == "Online")
-				{
-					$TrabsactionMsgAmount='Amount';
-					$TrabsactionMsgDate='Date';
-					$TrabsactionMsgID='Transaction ID';
-					//$TrabsactionMsgHeader ='Online';
-					//echo "Online";
-				}
-				else if($TransactionData['ModeOfReceipt']  == "Cash")
-				{
-					$TrabsactionMsgAmount='Amount';
-					$TrabsactionMsgDate='Date';
-					$TrabsactionMsgID='NA';
-				}
-				else
-				{
-					$TrabsactionMsgAmount='Transaction Amount';
-					$TrabsactionMsgDate='Transaction Date';
-					$TrabsactionMsgID='Transaction ID';
-				}
-				//creating email subject
-				$AmountRecd = number_format($TransactionData['Amount'],2);
-				
-				$mailSubject = $TransactionData['ModeOfReceipt'].$TrabsactionMsgHeader." Payment of Rs. ". $AmountRecd ." for ".$strUnitType." ".$TransactionData['PaidByName']." is received.";
-				
-				$memberDetails = $obj_fetch->GetMemberDetails($TransactionData['PaidBy']);
-				$societyDetails = $obj_fetch->GetSocietyDetails($obj_fetch->GetSocietyID($TransactionData['PaidBy']));
-				$mailToEmail = $obj_fetch->objMemeberDetails->sEmail;
-				$mailToName = $obj_fetch->objMemeberDetails->sMemberName;
-				
-				//creating email body
-				$mailBody = $this->m_objUtility->GetEmailHeader();
-				//if($TransactionData['PaidByName'] <> "")
-				//{
-					//$mailSubject .= " #".$TransactionData['PaidByName'];
-				//}
-				
-				$mailBody .= '<tr><td>Dear  '.$mailToName.',<br /></td></tr>
-							  <tr><td><br /></td></tr>';
-				//echo "mode:".$TransactionData['ModeOfReceipt'];				
-				//die();
-				$mailBody .= '<tr><td>Thank You. We have received your '.$TransactionData['ModeOfReceipt'].$TrabsactionMsgHeader.' payment for '.$strUnitType.' :'.$TransactionData['PaidByName'].'. Transaction details are :<br /></td></tr>
-							 <tr><td><br /></td></tr>';
-							
-	$mailBody .='<table style="border-collapse: collapse; border: 1px solid black;">
-	  <tr>
-		<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$strUnitType.'</th>
-		<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['PaidByName'].'</td>
-	  </tr>';
-	  if($TransactionData['ModeOfReceipt']  != "Cash" && $TransactionData['ModeOfReceipt']  != "Online")
-		{
-			$mailBody .=  
+				$mailBody .=  
+			  '<tr>
+				<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Deposited In Account:</th>
+				<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['SocietyAccountName'].'</td>
+			  </tr>';
+			  
+			
+		 $mailBody .= 
 		  '<tr>
-			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Deposited In Account:</th>
-			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['SocietyAccountName'].'</td>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Payer Bank Name:</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['BankName'].'</td>
+		  </tr>
+		  <tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Payer Branch Name:</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['BranchName'].'</td>
+		  </tr>';
+			}
+		   if($TransactionData['ModeOfReceipt']  == "Online")
+		   {
+				   $mailBody .= 
+		  '<tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Payment Gateway Name:</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['BankName'].'</td>
+		  </tr>';
+		   }
+		  $mailBody .= '<tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TrabsactionMsgAmount.':</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$AmountRecd.'			   </td>
+		  </tr>
+		  
+		   <tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TrabsactionMsgDate.':</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.getDisplayFormatDate($TransactionData['Date']).'</td>
 		  </tr>';
 		  
+		   if($TransactionData['ModeOfReceipt']  != "Cash")
+			{
+		   $mailBody .= '<tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TrabsactionMsgID.':</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['TransationNo'].'</td>
+		  </tr>';
+			}
+		  if($TransactionData['ModeOfReceipt']  == "Online")
+		   {
+				   $mailBody .= 
+		  '<tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Transaction Status:</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['Status'].'</td>
+		  </tr>';
+		   }
+		   $mailBody .= '<tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Payment For:</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['BillType'].'</td>
+		  </tr>
+		  
+		  <tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Comments:</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['Comments'].'</td>
+		  </tr>
 		
-	 $mailBody .= 
-	  '<tr>
-		<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Payer Bank Name:</th>
-		<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['BankName'].'</td>
-	  </tr>
-	  <tr>
-		<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Payer Branch Name:</th>
-		<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['BranchName'].'</td>
-	  </tr>';
-		}
-	   if($TransactionData['ModeOfReceipt']  == "Online")
-	   {
-	   		$mailBody .= 
-	  '<tr>
-		<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Payment Gateway Name:</th>
-		<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['BankName'].'</td>
-	  </tr>';
-	   }
-	  $mailBody .= '<tr>
-		<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TrabsactionMsgAmount.':</th>
-		<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$AmountRecd.'			   </td>
-	  </tr>
-	  
-	   <tr>
-		<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TrabsactionMsgDate.':</th>
-		<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.getDisplayFormatDate($TransactionData['Date']).'</td>
-	  </tr>';
-	  
-	   if($TransactionData['ModeOfReceipt']  != "Cash")
-		{
-	   $mailBody .= '<tr>
-		<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TrabsactionMsgID.':</th>
-		<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['TransationNo'].'</td>
-	  </tr>';
-		}
-	  if($TransactionData['ModeOfReceipt']  == "Online")
-	   {
-	   		$mailBody .= 
-	  '<tr>
-		<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Transaction Status:</th>
-		<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['Status'].'</td>
-	  </tr>';
-	   }
-	   $mailBody .= '<tr>
-		<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Payment For:</th>
-		<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['BillType'].'</td>
-	  </tr>
-	  
-	  <tr>
-		<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Comments:</th>
-		<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['Comments'].'</td>
-	  </tr>
-	
-	</table>';
-	
-				$mailBody .= "<br/><b>Note: Above deposit is subject to clearance/reconciliation.</b>";
-				$mailBody .= $this->m_objUtility->GetEmailFooter();
-				
-				
-				if($mailToEmail == '')
-				{
-					return "Email ID Missing";
-				}
-				else if(filter_var($mailToEmail, FILTER_VALIDATE_EMAIL) == false)
-				{
-					return "Incorrect Email ID  ".$mailToEmail." ";
-				}
-				
-				$societyEmail = $obj_fetch->objSocietyDetails->sSocietyEmail;
-				$societyName = $obj_fetch->objSocietyDetails->sSocietyName;
-				$society_CCEmail = $obj_fetch->objSocietyDetails->sSocietyCC_Email;
-				
-				$EMailIDToUse = $this->m_objUtility->GetEmailIDToUse(false, 0, 0, 0, 0, 0, $socID);
-				//print_r($EMailIDToUse);
-			
-				if($EMailIDToUse['status'] == 0)
-				{
-					$EMailID = $EMailIDToUse['email'];
-					$Password = $EMailIDToUse['password'];
+		</table>';
+		
+					$mailBody .= "<br/><b>Note: Above deposit is subject to clearance/reconciliation.</b>";
+					$mailBody .= $this->m_objUtility->GetEmailFooter();
 					
-					// Create the mail transport configuration
-					//$transport = Swift_SmtpTransport::newInstance('103.50.162.146', 465, "ssl")
-					//$transport = Swift_SmtpTransport::newInstance('103.50.162.146',587)	
-						  //->setUsername($EMailID)
-						  //->setSourceIp('0.0.0.0')
-						  //->setPassword($Password) ;
-					$AWS_Config = CommanEmailConfig();
-				 			$transport = Swift_SmtpTransport::newInstance($AWS_Config[0]['Endpoint'],$AWS_Config[0]['Port'] , $AWS_Config[0]['Security'])
-				 					 ->setUsername($AWS_Config[0]['Username'])
-				  					 ->setPassword($AWS_Config[0]['Password']);						
-					// Create the message
-					$message = Swift_Message::newInstance();
-					$message->setTo(array(
-					  $mailToEmail => $mailToName
-					 ));
-					 
-					$message->setSubject($mailSubject);
-					$message->setBody($mailBody);
-					$message->setFrom($EMailID, $obj_fetch->objSocietyDetails->sSocietyName);
 					
-					if($society_CCEmail <> "")
+					if($mailToEmail == '')
 					{
-						$message->setCc(array($society_CCEmail => $societyName));
+						return "Email ID Missing";
+					}
+					else if(filter_var($mailToEmail, FILTER_VALIDATE_EMAIL) == false)
+					{
+						return "Incorrect Email ID  ".$mailToEmail." ";
 					}
 					
-					$message->setContentType("text/html");	
-					// Send the email
-					$mailer = Swift_Mailer::newInstance($transport);
-					//echo "sending email";
-					$result = $mailer->send($message);
-					//echo "res:".$result;
+					$societyEmail = $obj_fetch->objSocietyDetails->sSocietyEmail;
+					$societyName = $obj_fetch->objSocietyDetails->sSocietyName;
+					$society_CCEmail = $obj_fetch->objSocietyDetails->sSocietyCC_Email;
+					
+					$EMailIDToUse = $this->m_objUtility->GetEmailIDToUse(false, 0, 0, 0, 0, 0, $socID);
+					//print_r($EMailIDToUse);
+				
+					if($EMailIDToUse['status'] == 0)
+					{
+						$EMailID = $EMailIDToUse['email'];
+						$Password = $EMailIDToUse['password'];
+						
+						// Create the mail transport configuration
+						//$transport = Swift_SmtpTransport::newInstance('103.50.162.146', 465, "ssl")
+						//$transport = Swift_SmtpTransport::newInstance('103.50.162.146',587)	
+							  //->setUsername($EMailID)
+							  //->setSourceIp('0.0.0.0')
+							  //->setPassword($Password) ;
+						$AWS_Config = CommanEmailConfig();
+								 $transport = Swift_SmtpTransport::newInstance($AWS_Config[0]['Endpoint'],$AWS_Config[0]['Port'] , $AWS_Config[0]['Security'])
+										  ->setUsername($AWS_Config[0]['Username'])
+										   ->setPassword($AWS_Config[0]['Password']);						
+						// Create the message
+						$message = Swift_Message::newInstance();
+						$message->setTo(array(
+						  $mailToEmail => $mailToName
+						 ));
+						 
+						$message->setSubject($mailSubject);
+						$message->setBody($mailBody);
+						$message->setFrom($EMailID, $obj_fetch->objSocietyDetails->sSocietyName);
+						
+						if($society_CCEmail <> "")
+						{
+							$message->setCc(array($society_CCEmail => $societyName));
+						}
+						
+						$message->setContentType("text/html");	
+						// Send the email
+						$mailer = Swift_Mailer::newInstance($transport);
+						//echo "sending email";
+						$result = $mailer->send($message);
+						//echo "res:".$result;
+					}
+					
+					
 				}
+			}
+			else{
+				$sqlnotify_by_email = "SELECT `neft_notify_by_email` from `society` where `status` = 'Y' ";
+				$resnotify_by_email = $this->m_dbConn->select($sqlnotify_by_email);
+				//echo "trace1";
+				$strUnitType = $this->m_objFetchDetails->getUnitPresentation($TransactionData['PaidBy']);		
+				//echo "trace2";	
+				if($resnotify_by_email[0]['neft_notify_by_email'] == 1)
+				{
+					//echo "trace3";
+					//notify members by email flag is set
+					require_once("include/fetch_data.php");
+					$baseDir = dirname( dirname(__FILE__) );
+					require_once($baseDir.'/swift/swift_required.php');
+					$obj_fetch = new FetchData($this->m_dbConn);
+					if($TransactionData['ModeOfReceipt']!= "NEFT" && $TransactionData['ModeOfReceipt']  != "Cash" && $TransactionData['ModeOfReceipt']  != "Online")
+					{
+						$TrabsactionMsgAmount='Cheque Amount';
+						$TrabsactionMsgDate='Cheque Date';
+						$TrabsactionMsgID='Cheque Number';
+						$TrabsactionMsgHeader ='Cheque';
+						//echo "cheque";
+					}
+					else if($TransactionData['ModeOfReceipt']  == "Online")
+					{
+						$TrabsactionMsgAmount='Amount';
+						$TrabsactionMsgDate='Date';
+						$TrabsactionMsgID='Transaction ID';
+						//$TrabsactionMsgHeader ='Online';
+						//echo "Online";
+					}
+					else if($TransactionData['ModeOfReceipt']  == "Cash")
+					{
+						$TrabsactionMsgAmount='Amount';
+						$TrabsactionMsgDate='Date';
+						$TrabsactionMsgID='NA';
+					}
+					else
+					{
+						$TrabsactionMsgAmount='Transaction Amount';
+						$TrabsactionMsgDate='Transaction Date';
+						$TrabsactionMsgID='Transaction ID';
+					}
+					//creating email subject
+					$AmountRecd = number_format($TransactionData['Amount'],2);
+					
+					$mailSubject = $TransactionData['ModeOfReceipt'].$TrabsactionMsgHeader." Payment of Rs. ". $AmountRecd ." for ".$strUnitType." ".$TransactionData['PaidByName']." is received.";
+					
+					$memberDetails = $obj_fetch->GetMemberDetails($TransactionData['PaidBy']);
+					$societyDetails = $obj_fetch->GetSocietyDetails($obj_fetch->GetSocietyID($TransactionData['PaidBy']));
+					$mailToEmail = $obj_fetch->objMemeberDetails->sEmail;
+					$mailToName = $obj_fetch->objMemeberDetails->sMemberName;
+					
+					//creating email body
+					$mailBody = $this->m_objUtility->GetEmailHeader();
+					//if($TransactionData['PaidByName'] <> "")
+					//{
+						//$mailSubject .= " #".$TransactionData['PaidByName'];
+					//}
+					
+					$mailBody .= '<tr><td>Dear  '.$mailToName.',<br /></td></tr>
+								  <tr><td><br /></td></tr>';
+					//echo "mode:".$TransactionData['ModeOfReceipt'];				
+					//die();
+					$mailBody .= '<tr><td>Thank You. We have received your '.$TransactionData['ModeOfReceipt'].$TrabsactionMsgHeader.' payment for '.$strUnitType.' :'.$TransactionData['PaidByName'].'. Transaction details are :<br /></td></tr>
+								 <tr><td><br /></td></tr>';
+								
+		$mailBody .='<table style="border-collapse: collapse; border: 1px solid black;">
+		  <tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$strUnitType.'</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['PaidByName'].'</td>
+		  </tr>';
+		  if($TransactionData['ModeOfReceipt']  != "Cash" && $TransactionData['ModeOfReceipt']  != "Online")
+			{
+				$mailBody .=  
+			  '<tr>
+				<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Deposited In Account:</th>
+				<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['SocietyAccountName'].'</td>
+			  </tr>';
+			  
+			
+		 $mailBody .= 
+		  '<tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Payer Bank Name:</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['BankName'].'</td>
+		  </tr>
+		  <tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Payer Branch Name:</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['BranchName'].'</td>
+		  </tr>';
+			}
+		   if($TransactionData['ModeOfReceipt']  == "Online")
+		   {
+				   $mailBody .= 
+		  '<tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Payment Gateway Name:</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['BankName'].'</td>
+		  </tr>';
+		   }
+		  $mailBody .= '<tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TrabsactionMsgAmount.':</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$AmountRecd.'			   </td>
+		  </tr>
+		  
+		   <tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TrabsactionMsgDate.':</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.getDisplayFormatDate($TransactionData['Date']).'</td>
+		  </tr>';
+		  
+		   if($TransactionData['ModeOfReceipt']  != "Cash")
+			{
+		   $mailBody .= '<tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TrabsactionMsgID.':</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['TransationNo'].'</td>
+		  </tr>';
+			}
+		  if($TransactionData['ModeOfReceipt']  == "Online")
+		   {
+				   $mailBody .= 
+		  '<tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Transaction Status:</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['Status'].'</td>
+		  </tr>';
+		   }
+		   $mailBody .= '<tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Payment For:</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['BillType'].'</td>
+		  </tr>
+		  
+		  <tr>
+			<th style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">Comments:</th>
+			<td style="border-collapse: collapse; border: 1px solid black;text-align:left;padding:8px;">'.$TransactionData['Comments'].'</td>
+		  </tr>
+		
+		</table>';
+		
+					$mailBody .= "<br/><b>Note: Above deposit is subject to clearance/reconciliation.</b>";
+					$mailBody .= $this->m_objUtility->GetEmailFooter();
+					
+					
+					if($mailToEmail == '')
+					{
+						return "Email ID Missing";
+					}
+					else if(filter_var($mailToEmail, FILTER_VALIDATE_EMAIL) == false)
+					{
+						return "Incorrect Email ID  ".$mailToEmail." ";
+					}
+					
+					$societyEmail = $obj_fetch->objSocietyDetails->sSocietyEmail;
+					$societyName = $obj_fetch->objSocietyDetails->sSocietyName;
+					$society_CCEmail = $obj_fetch->objSocietyDetails->sSocietyCC_Email;
+					
+					$EMailIDToUse = $this->m_objUtility->GetEmailIDToUse(false, 0, 0, 0, 0, 0, $socID);
+					//print_r($EMailIDToUse);
 				
-				
+					if($EMailIDToUse['status'] == 0)
+					{
+						$EMailID = $EMailIDToUse['email'];
+						$Password = $EMailIDToUse['password'];
+						
+						// Create the mail transport configuration
+						//$transport = Swift_SmtpTransport::newInstance('103.50.162.146', 465, "ssl")
+						//$transport = Swift_SmtpTransport::newInstance('103.50.162.146',587)	
+							  //->setUsername($EMailID)
+							  //->setSourceIp('0.0.0.0')
+							  //->setPassword($Password) ;
+						$AWS_Config = CommanEmailConfig();
+								 $transport = Swift_SmtpTransport::newInstance($AWS_Config[0]['Endpoint'],$AWS_Config[0]['Port'] , $AWS_Config[0]['Security'])
+										  ->setUsername($AWS_Config[0]['Username'])
+										   ->setPassword($AWS_Config[0]['Password']);						
+						// Create the message
+						$message = Swift_Message::newInstance();
+						$message->setTo(array(
+						  $mailToEmail => $mailToName
+						 ));
+						 
+						$message->setSubject($mailSubject);
+						$message->setBody($mailBody);
+						$message->setFrom($EMailID, $obj_fetch->objSocietyDetails->sSocietyName);
+						
+						if($society_CCEmail <> "")
+						{
+							$message->setCc(array($society_CCEmail => $societyName));
+						}
+						
+						$message->setContentType("text/html");	
+						// Send the email
+						$mailer = Swift_Mailer::newInstance($transport);
+						//echo "sending email";
+						$result = $mailer->send($message);
+						//echo "res:".$result;
+					}
+					
+					
+				}
 			}
 		}
 		catch(Exception $exp)

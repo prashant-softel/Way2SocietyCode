@@ -3,75 +3,124 @@
 		include_once("changelog.class.php");
 		include_once("include/dbop.class.php");
 		include_once("email_format.class.php");
-		
+		$dbConn = new dbop();
+		$dbConnRoot = new dbop(true);
+		$landLordDB = new dbop(false,false,false,false,true);
 		class latestCount
 		{
 			public $m_dbConn;
-			public $m_landLordDB;
+			public $m_dbConnRoot;
 			public $m_objLog;
-			private $Conn;
+			private $Conn; //Making new connection to insert log if voucher counter not found.
+			public $landLordDB;
 			public $isLandLordDB;
-			 //Making new connection to insert log if voucher counter not found.
 			
-			function __construct($dbConn, $dbConnRoot = "", $landLordDB = "")
+			function __construct($dbConn ,$landLordDB)
 			{
 				$this->Conn = new dbop();
 				$this->m_dbConn = $dbConn;
-				$this->m_landLordDB = $landLordDB;
-				$this->m_objLog = new changeLog($this->Conn);
+				$this->m_dbConnRoot = $dbConnRoot;
+				$this->m_objLog = new changeLog($this->Conn, $this->m_dbConnRoot = "", $this->landLordDB);
+				$this->landLordDB = $landLordDB;
 				if($_SESSION['landLordDB']){
 					$this->isLandLordDB = true;
-				}
-				
+				}	
 			}
 			
 			function getLatestVoucherNo($society_id, $bAutoIncrement = true/*Sets next voucher id to DB */, $periodID = '')
 			{
+				if($this->isLandLordDB){
+					$sqlSelect = "Select voucher_no from counter where society_id='" . $society_id . "'";
 				
-				$sqlSelect = "Select voucher_no from counter where society_id='" . $society_id . "'";
-				
-				$sqlResult = $this->m_dbConn->select($sqlSelect);
-				
-				$sqlCounter = $sqlResult[0]['voucher_no'];
-				
-				if(empty($sqlCounter) || $sqlCounter == 0)
-				{
-					 $this->m_objLog->setLog("Voucher Number Not Found during Trasncation", $_SESSION['login_id'], 'VOUCHER', '--');
-					 die();
-				}
-				
-				// Check Voucher No is not already exits in voucher Table
-				if($this->checkVoucherNoIsNotExits($sqlCounter))
-				{
-					if($bAutoIncrement == true)
+					$sqlResult = $this->landLordDB->select($sqlSelect);
+					
+					$sqlCounter = $sqlResult[0]['voucher_no'];
+					
+					if(empty($sqlCounter) || $sqlCounter == 0)
 					{
-						$this->updateLatestVoucherNo($society_id, ($sqlCounter + 1));
+						 $this->m_objLog->setLog("Voucher Number Not Found during Trasncation", $_SESSION['login_id'], 'VOUCHER', '--');
+						 die();
 					}
-					return $sqlCounter;
-				}
-				else
-				{
-					sendDuplicateVoucherNoNotification($sqlCounter);
-					$vQuery = "SELECT MAX(voucherNo) as maxVoucher FROM voucher";
-					$result = $this->m_dbConn->select($vQuery);
-					$maxVoucher = $result[0]['maxVoucher'];
-					if($bAutoIncrement == true)
+					
+					// Check Voucher No is not already exits in voucher Table
+					if($this->checkVoucherNoIsNotExits($sqlCounter))
 					{
-						$this->updateLatestVoucherNo($society_id, ($maxVoucher + 2));
+						if($bAutoIncrement == true)
+						{
+							$this->updateLatestVoucherNo($society_id, ($sqlCounter + 1));
+						}
+						return $sqlCounter;
 					}
-					return $maxVoucher+1;
+					else
+					{
+						sendDuplicateVoucherNoNotification($sqlCounter);
+						$vQuery = "SELECT MAX(voucherNo) as maxVoucher FROM voucher";
+						$result = $this->landLordDB->select($vQuery);
+						$maxVoucher = $result[0]['maxVoucher'];
+						if($bAutoIncrement == true)
+						{
+							$this->updateLatestVoucherNo($society_id, ($maxVoucher + 2));
+						}
+						return $maxVoucher+1;
+					}
+				}
+				else{
+					$sqlSelect = "Select voucher_no from counter where society_id='" . $society_id . "'";
+				
+					$sqlResult = $this->m_dbConn->select($sqlSelect);
+					
+					$sqlCounter = $sqlResult[0]['voucher_no'];
+					
+					if(empty($sqlCounter) || $sqlCounter == 0)
+					{
+						 $this->m_objLog->setLog("Voucher Number Not Found during Trasncation", $_SESSION['login_id'], 'VOUCHER', '--');
+						 die();
+					}
+					
+					// Check Voucher No is not already exits in voucher Table
+					if($this->checkVoucherNoIsNotExits($sqlCounter))
+					{
+						if($bAutoIncrement == true)
+						{
+							$this->updateLatestVoucherNo($society_id, ($sqlCounter + 1));
+						}
+						return $sqlCounter;
+					}
+					else
+					{
+						sendDuplicateVoucherNoNotification($sqlCounter);
+						$vQuery = "SELECT MAX(voucherNo) as maxVoucher FROM voucher";
+						$result = $this->m_dbConn->select($vQuery);
+						$maxVoucher = $result[0]['maxVoucher'];
+						if($bAutoIncrement == true)
+						{
+							$this->updateLatestVoucherNo($society_id, ($maxVoucher + 2));
+						}
+						return $maxVoucher+1;
+					}
 				}
 			}
 			
 			function checkVoucherNoIsNotExits($sqlCounter){
-
-				$vQuery = "SELECT * FROM voucher WHERE VoucherNo = '".$sqlCounter."'";
-				$vResult = $this->m_dbConn->select($vQuery);
-				if(empty($vResult)){
-					return true;
+				if($this->isLandLordDB){
+					$vQuery = "SELECT * FROM voucher WHERE VoucherNo = '".$sqlCounter."'";
+					$vResult = $this->landLordDB->select($vQuery);
+					if(empty($vResult)){
+						return true;
+					}
+					else{
+						return false;
+					}
 				}
 				else{
-					return false;
+					$vQuery = "SELECT * FROM voucher WHERE VoucherNo = '".$sqlCounter."'";
+					$vResult = $this->m_dbConn->select($vQuery);
+					if(empty($vResult)){
+						return true;
+					}
+					else{
+						return false;
+					}
 				}
 			} 
 			
@@ -97,8 +146,14 @@
 			
 			function updateLatestVoucherNo($society_id, $nextVoucherNo, $periodID = '')
 			{
-				$sqlUpdate = "UPDATE `counter` SET `voucher_no`='"  . $nextVoucherNo . "' WHERE society_id='" . $society_id . "'";
-				$sqlResult = $this->m_dbConn->update($sqlUpdate);
+				if($this->isLandLordDB){
+					$sqlUpdate = "UPDATE `counter` SET `voucher_no`='"  . $nextVoucherNo . "' WHERE society_id='" . $society_id . "'";
+					$sqlResult = $this->landLordDB->update($sqlUpdate);
+				}
+				else{
+					$sqlUpdate = "UPDATE `counter` SET `voucher_no`='"  . $nextVoucherNo . "' WHERE society_id='" . $society_id . "'";
+					$sqlResult = $this->m_dbConn->update($sqlUpdate);
+				}
 			}
 			
 			function updateLatestBillNo($society_id, $nextBillNo, $periodID = '')
@@ -115,15 +170,7 @@
 			function getLatestRequestNo($society_id)
 			{
 				$sqlSelect = "select MAX(`request_no`) as max from `service_request` where `society_id`='" .$society_id."'" ;	
-
-				if($this->isLandLordDB && $this->m_landLordDB){
-					$sqlResult = $this->m_landLordDB->select($sqlSelect);	
-
-				}else{
-					$sqlResult = $this->m_dbConn->select($sqlSelect);	
-				}
-
-				
+				$sqlResult = $this->m_dbConn->select($sqlSelect);	
 				//$length = sizeof($sqlResult);
 				//echo "length: ".$length;
 				$sqlCounter = $sqlResult[0]['max'];			

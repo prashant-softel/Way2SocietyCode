@@ -1,6 +1,7 @@
 <?php
 // comment
 	//error_reporting(7);
+	include_once("include/dbop.class.php");
 	include_once "dbconst.class.php";	
 	include_once "adduser.class.php";
 	include_once "initialize.class.php";
@@ -15,7 +16,10 @@
 		public $obj_initialize;
 		//public $obj_utility;
 		public $m_bShowTrace;
-		function __construct($dbConn, $dbConnRoot = "")
+		public $landLordDB;
+		public $isLandLordDB;
+
+		function __construct($dbConn, $dbConnRoot = "", $landLordDB)
 		{
 			//echo "ctor";
 			$this->m_bShowTrace = 0;
@@ -24,6 +28,10 @@
 			$this->obj_addduser = new adduser($this->m_dbConnRoot,$this->m_dbConn);
 			$this->obj_initialize = new initialize($this->m_dbConnRoot);
 			//$this->obj_utility = new utility($this->m_dbConn, $this->m_dbConnRoot);
+			$this->landLordDB = $landLordDB;
+			if($_SESSION['landLordDB']){
+				$this->isLandLordDB = true;
+			}
 		}
 		
 		function AddMappingAndSendActivationEmail($role, $unit_id, $society_id, $code, $NewUserEmailID, $name)
@@ -45,14 +53,20 @@
 		private $m_dbConn;
 		public $m_dbConnRoot;
 		public $m_changelog;
+		public $landLordDB;
+		public $isLandLordDB;
 		
-		function __construct($dbConn, $dbConnRoot = "")
+		function __construct($dbConn, $dbConnRoot = "", $landLordDB)
 		{
 			//echo "ctor";
 			$this->m_dbConn = $dbConn;
 			$this->m_dbConnRoot = $dbConnRoot;
 			$this->m_changelog = new changeLog($this->m_dbConn);
 			//$this->obj_fetch = new FetchData($this->m_dbConn);
+			$this->landLordDB = $landLordDB;
+			if($_SESSION['landLordDB']){
+				$this->isLandLordDB = true;
+			}
 		}
 		
 
@@ -964,9 +978,16 @@
 	
 		public function UpdateExVCounter($voucherType, $ExVoucherNo, $LedgerID = 0)
 		{
-			$NextCounter = $ExVoucherNo + 1;
-			$updateVoucherCounter = "UPDATE `vouchercounter` SET CurrentCounter = '".$NextCounter."' where VoucherType = '".$voucherType."' AND YearID = '".$_SESSION['default_year']."' AND LedgerID = '".$LedgerID."'";
-			$Result = $this->m_dbConn->update($updateVoucherCounter);	
+			if($this->isLandLordDB){
+				$NextCounter = $ExVoucherNo + 1;
+				$updateVoucherCounter = "UPDATE `vouchercounter` SET CurrentCounter = '".$NextCounter."' where VoucherType = '".$voucherType."' AND YearID = '".$_SESSION['default_year']."' AND LedgerID = '".$LedgerID."'";
+				$Result = $this->landLordDB->update($updateVoucherCounter);	
+			}
+			else{
+				$NextCounter = $ExVoucherNo + 1;
+				$updateVoucherCounter = "UPDATE `vouchercounter` SET CurrentCounter = '".$NextCounter."' where VoucherType = '".$voucherType."' AND YearID = '".$_SESSION['default_year']."' AND LedgerID = '".$LedgerID."'";
+				$Result = $this->m_dbConn->update($updateVoucherCounter);
+			}	
 			
 		}
 		 
@@ -1267,8 +1288,6 @@
 			return $result;	
 		}
 	
-		
-		
 		public function getParentOfLedger($ledgerID)
 		{
 			$sqlSelect = "select categorytbl.group_id, categorytbl.category_name, ledgertbl.categoryid,ledgertbl.ledger_name from ledger As ledgertbl JOIN account_category As categorytbl ON ledgertbl.categoryid = categorytbl.category_id where ledgertbl.id = '" . $ledgerID . "'";
@@ -1282,6 +1301,35 @@
 			//print_r($aryParent);			
 			//return json_encode($aryParent);
 			return $aryParent;
+		}
+		
+		public function getParentOfLedger1($ledgerID)
+		{
+				if($this->isLandLordDB){
+				$sqlSelect = "select categorytbl.group_id, categorytbl.category_name, ledgertbl.categoryid,ledgertbl.ledger_name from ledger As ledgertbl JOIN account_category As categorytbl ON ledgertbl.categoryid = categorytbl.category_id where ledgertbl.id = '" . $ledgerID . "'";
+				$result = $this->landLordDB->select($sqlSelect);
+				$aryParent = array();
+				$aryParent['group'] = $result[0]['group_id'];
+				$aryParent['group_name'] = $this->getGroupName($result[0]['group_id']);
+				$aryParent['category'] = $result[0]['categoryid'];
+				$aryParent['category_name'] = $result[0]['category_name'];
+				$aryParent['ledger_name'] = $result[0]['ledger_name'];
+				//print_r($aryParent);			
+				//return json_encode($aryParent);
+				return $aryParent;
+			}else{
+				$sqlSelect = "select categorytbl.group_id, categorytbl.category_name, ledgertbl.categoryid,ledgertbl.ledger_name from ledger As ledgertbl JOIN account_category As categorytbl ON ledgertbl.categoryid = categorytbl.category_id where ledgertbl.id = '" . $ledgerID . "'";
+				$result = $this->m_dbConn->select($sqlSelect);
+				$aryParent = array();
+				$aryParent['group'] = $result[0]['group_id'];
+				$aryParent['group_name'] = $this->getGroupName($result[0]['group_id']);
+				$aryParent['category'] = $result[0]['categoryid'];
+				$aryParent['category_name'] = $result[0]['category_name'];
+				$aryParent['ledger_name'] = $result[0]['ledger_name'];
+				//print_r($aryParent);			
+				//return json_encode($aryParent);
+				return $aryParent;
+			}
 		}
 		public function getParentOfLedgerGroup($ledgerID)
 		{
@@ -1394,24 +1442,46 @@
 		
 		public function getLedgerName($LedgerID)
 		{
-			$sql="select ledger_name from `ledger` where id=".$LedgerID." ";
-			$result = $this->m_dbConn->select($sql);	
-			$ledger = $result[0]['ledger_name'];
-			$arParentDetails = $this->getParentOfLedger($LedgerID);
-			if(!(empty($arParentDetails)))
-			{			
-				$categoryID = $arParentDetails['category'];
-				if($categoryID == DUE_FROM_MEMBERS)
-				{
-					$sqlQuery = "SELECT `owner_name` FROM `member_main` WHERE `unit` = '".$LedgerID."' and  `ownership_status` = 1";
-					$memberName = $this->m_dbConn->select($sqlQuery);
-					if(sizeof($memberName) > 0)
+			if($this->isLandLordDB){
+				$sql="select ledger_name from `ledger` where id=".$LedgerID." ";
+				$result = $this->landLordDB->select($sql);	
+				$ledger = $result[0]['ledger_name'];
+				$arParentDetails = $this->getParentOfLedger($LedgerID);
+				if(!(empty($arParentDetails)))
+				{			
+					$categoryID = $arParentDetails['category'];
+					if($categoryID == DUE_FROM_TENANTS)
 					{
-						$ledger .= " - ".$memberName[0]['owner_name'];	
-					}
-				}			
-			}		
-			return $ledger;	
+						$sqlQuery = "SELECT `tenant_name` FROM `tenant_module` WHERE `ledger_id` = '".$LedgerID."' and  `status` = 'Y'";
+						$memberName = $this->landLordDB->select($sqlQuery);
+						if(sizeof($memberName) > 0)
+						{
+							$ledger .= " - ".$memberName[0]['owner_name'];	
+						}
+					}			
+				}		
+				return $ledger;	
+			}
+			else{
+				$sql="select ledger_name from `ledger` where id=".$LedgerID." ";
+				$result = $this->m_dbConn->select($sql);	
+				$ledger = $result[0]['ledger_name'];
+				$arParentDetails = $this->getParentOfLedger($LedgerID);
+				if(!(empty($arParentDetails)))
+				{			
+					$categoryID = $arParentDetails['category'];
+					if($categoryID == DUE_FROM_MEMBERS)
+					{
+						$sqlQuery = "SELECT `owner_name` FROM `member_main` WHERE `unit` = '".$LedgerID."' and  `ownership_status` = 1";
+						$memberName = $this->m_dbConn->select($sqlQuery);
+						if(sizeof($memberName) > 0)
+						{
+							$ledger .= " - ".$memberName[0]['owner_name'];	
+						}
+					}			
+				}		
+				return $ledger;	
+			}
 		}
 		
 		
@@ -3651,26 +3721,48 @@ echo "<BR>";
 		
 		function GetLedgerDetails($LedgerID = 0)
 		{
+			if($this->isLandLordDB){
+				$LedgerDetails = array();
 
-			$LedgerDetails = array();
-
-			if($LedgerID == 0)
-			{
-				$sql = "SELECT * from `ledger`";		
+				if($LedgerID == 0)
+				{
+					$sql = "SELECT * from `ledger`";		
+				}
+				else
+				{
+					$sql = "SELECT * from `ledger` WHERE `id` = '" . $LedgerID . "'";  
+				}
+	
+				$result = $this->landLordDB->select($sql);
+	
+				for($iCnt = 0; $iCnt < sizeof($result); $iCnt++)
+				{
+					$LedgerDetails[$result[$iCnt]['id']]['General'] = $result[$iCnt];
+				}
+	
+				return $LedgerDetails;
 			}
-			else
-			{
-				$sql = "SELECT * from `ledger` WHERE `id` = '" . $LedgerID . "'";  
+			else{
+				$LedgerDetails = array();
+
+				if($LedgerID == 0)
+				{
+					$sql = "SELECT * from `ledger`";		
+				}
+				else
+				{
+					$sql = "SELECT * from `ledger` WHERE `id` = '" . $LedgerID . "'";  
+				}
+	
+				$result = $this->m_dbConn->select($sql);
+	
+				for($iCnt = 0; $iCnt < sizeof($result); $iCnt++)
+				{
+					$LedgerDetails[$result[$iCnt]['id']]['General'] = $result[$iCnt];
+				}
+	
+				return $LedgerDetails;
 			}
-
-			$result = $this->m_dbConn->select($sql);
-
-			for($iCnt = 0; $iCnt < sizeof($result); $iCnt++)
-			{
-				$LedgerDetails[$result[$iCnt]['id']]['General'] = $result[$iCnt];
-			}
-
-			return $LedgerDetails;
 		}
 
 		function GetMemberPersonalDetails($UnitID)
@@ -3731,9 +3823,16 @@ echo "<BR>";
         }
         function GetPaymentGatewayTransactionStatus($TransactionID)
         {
-        	$result = $this->m_dbConn->select("select * from `paymentgatewaytransactions` where TranxID='".$TransactionID."'");
-        	//echo $result[0]['PGBeneficiaryBank'];
-        	return $result[0]['Status'];
+			if($this->isLandLordDB){
+				$result = $this->landLordDB->select("select * from `paymentgatewaytransactions` where TranxID='".$TransactionID."'");
+				//echo $result[0]['PGBeneficiaryBank'];
+				return $result[0]['Status'];
+			}
+			else{
+				$result = $this->m_dbConn->select("select * from `paymentgatewaytransactions` where TranxID='".$TransactionID."'");
+        		//echo $result[0]['PGBeneficiaryBank'];
+        		return $result[0]['Status'];
+			}
         }
 		function GetGDriveDetails()
 		{
@@ -4702,26 +4801,48 @@ function getPaymentOption()
 	}
 
 	public function getDepositName($depositID){
+		if($this->isLandLordDB){
+			if($depositID == DEPOSIT_NEFT){
 
-		if($depositID == DEPOSIT_NEFT){
-
-			$depositGroupName = 'NEFT';
-		}
-		else if($depositID == DEPOSIT_CASH){
-
-			$depositGroupName = 'Cash';
-		}
-		else if($depositID == DEPOSIT_ONLINE){
-			
-			$depositGroupName = 'Online';
+				$depositGroupName = 'NEFT';
+			}
+			else if($depositID == DEPOSIT_CASH){
+	
+				$depositGroupName = 'Cash';
+			}
+			else if($depositID == DEPOSIT_ONLINE){
+				
+				$depositGroupName = 'Online';
+			}
+			else{
+	
+				$qry = "SELECT `desc` FROM `depositgroup` where id = '$depositID'";
+				$result = $this->landLordDB->select($qry);
+				$depositGroupName = $result[0]['desc'];
+			}
+			return $depositGroupName;
 		}
 		else{
+			if($depositID == DEPOSIT_NEFT){
 
-			$qry = "SELECT `desc` FROM `depositgroup` where id = '$depositID'";
-			$result = $this->m_dbConn->select($qry);
-			$depositGroupName = $result[0]['desc'];
+				$depositGroupName = 'NEFT';
+			}
+			else if($depositID == DEPOSIT_CASH){
+	
+				$depositGroupName = 'Cash';
+			}
+			else if($depositID == DEPOSIT_ONLINE){
+				
+				$depositGroupName = 'Online';
+			}
+			else{
+	
+				$qry = "SELECT `desc` FROM `depositgroup` where id = '$depositID'";
+				$result = $this->m_dbConn->select($qry);
+				$depositGroupName = $result[0]['desc'];
+			}
+			return $depositGroupName;
 		}
-		return $depositGroupName;
 	}
 
 	public function getLeftName($LeafID){

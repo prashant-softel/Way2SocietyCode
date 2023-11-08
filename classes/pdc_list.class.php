@@ -27,11 +27,11 @@ class pdc_list
 		$this->m_dbConnRoot = $dbConnRoot;
 		$dbopRoot = new dbop(true);
 		$this->landLordDB = $landLordDB;
-		$this->obj_ChequeDetails=new ChequeDetails($this->m_dbConn);
+		$this->obj_ChequeDetails=new ChequeDetails($this->m_dbConn, $this->landLordDB);
 
 		$this->m_register = new regiser($dbConn);
 		$this->m_voucher = new voucher($dbConn);
-		$this->obj_utility = new utility($this->m_dbConn, $dbopRoot);
+		$this->obj_utility = new utility($this->m_dbConn, $dbopRoot, $landLordDB);
 		$this->display_pg = new display_table($this->m_dbConn);
 		$this->obj_activation = new activation_email($this->m_dbConn, $dbopRoot);
 		//dbop::__construct();
@@ -311,63 +311,131 @@ class pdc_list
 		}
 	}
 
-	function insertData($data){
-		$ChequeLeafBook=array();
-        $dataid=0;
-		$DepositeID=0;
-
-        $banksSQL = "SELECT ledger.id AS BankID, ledger.ledger_name as BankName FROM ledger JOIN bank_master ON ledger.id = bank_master.BankID";
-		$banks = $this->m_dbConn->select($banksSQL);
-        $bankID= $_SESSION['default_bank_id'];
-        $bankNames = array();
-
-        $Counter = $this->obj_utility->GetCounter(VOUCHER_RECEIPT, $bankID,false);
-        $vNo = $Counter[0]['CurrentCounter'];
-
-        $systemVoucherNo = $vNo;
-
-        // for ($i = 0; $i < count($banks); $i++)
-		// {
-		// 	$bankID[$i] = $banks[$i]['BankID'];
-		// 	$bankNames[$i] = $banks[$i]['BankName'];
-		// }
-		// echo "<pre>";
-		// print_r($data);
-		// echo "</pre>";
-		$desc = 'DATA IMPORTED'.date('Y-m-d H:i:sa');
-		$queryII = "select `society_creation_yearid` FROM `society` where `society_id` = '".$_SESSION['society_id']."'";
-		$resII = $this->m_dbConn->select($queryII);
-								  
-		$insert_query1="insert into depositgroup (`bankid`,`createby`,`depositedby`,`status`,`desc`,`DepositSlipCreatedYearID`) values ('".$bankID."','".$_SESSION['login_id']."','PDC','0','".$desc."','".$resII[0]['society_creation_yearid']."')";
-		$dataid = $this->m_dbConn->insert($insert_query1);
-		$DepositeID=$dataid;
-		foreach($data as $k => $v)
-		{
-            $voucherDate = $data[$k]['cheque_date'];
-            $cheque_no = $data[$k]['cheque_no'];
-            $cheque_date = $data[$k]['cheque_date'];
-			// echo "Date" .getDBFormatDate($cheque_date);
-            $amount = $data[$k]['amount'];
-			$tenant_id = $data[$k]['tenant_id'];
-            $ledger_id = $data[$k]['ledger_id'];
-			$security_id = $data[$k]['security_id'];
-            $bank_name = $data[$k]['bank_name'];
-            $bank_branch = $data[$k]['bank_branch'];
-            $remark = $data[$k]['remark'];
-			$type = $data[$k]['cheque_type'];
-			if($type == 'Security Deposit'){
-				$sql = "update postdated_cheque set status = 1 where tenant_id = '".$tenant_id."' and type = '".$type."' and cheque_no = '".$cheque_no."'";
-				$res = $this->m_dbConn->update($sql); 
-            	$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$security_id,$bankID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0);	
+	public function insertData($data){
+		// echo "test2";
+		if($this->isLandLordDB){
+			// echo "test";
+			$ChequeLeafBook=array();
+			$dataid=0;
+			$DepositeID=0;
+	
+			$banksSQL = "SELECT ledger.id AS BankID, ledger.ledger_name as BankName FROM ledger JOIN bank_master ON ledger.id = bank_master.BankID";
+			$banks = $this->landLordDB->select($banksSQL);
+			$bankID= $_SESSION['default_bank_id'];
+			echo "ID: " .$bankID;
+			$bankNames = array();
+	
+			$Counter = $this->obj_utility->GetCounter(VOUCHER_RECEIPT, $bankID,false);
+			$vNo = $Counter[0]['CurrentCounter'];
+	
+			$systemVoucherNo = $vNo;
+	
+			// for ($i = 0; $i < count($banks); $i++)
+			// {
+			// 	$bankID[$i] = $banks[$i]['BankID'];
+			// 	$bankNames[$i] = $banks[$i]['BankName'];
+			// }
+			// echo "<pre>";
+			// print_r($data);
+			// echo "</pre>";
+			$desc = 'DATA IMPORTED'.date('Y-m-d H:i:sa');
+			$queryII = "select `society_creation_yearid` FROM `society` where `society_id` = '".$_SESSION['landLordSocID']."'";
+			$resII = $this->landLordDB->select($queryII);
+									  
+			$insert_query1="insert into depositgroup (`bankid`,`createby`,`depositedby`,`status`,`desc`,`DepositSlipCreatedYearID`) values ('".$bankID."','".$_SESSION['login_id']."','PDC','0','".$desc."','".$resII[0]['society_creation_yearid']."')";
+			$dataid = $this->landLordDB->insert($insert_query1);
+			$DepositeID=$dataid;
+	
+			foreach($data as $k => $v)
+			{
+				$voucherDate = $data[$k]['cheque_date'];
+				$cheque_no = $data[$k]['cheque_no'];
+				$cheque_date = $data[$k]['cheque_date'];
+				// echo "Date" .getDBFormatDate($cheque_date);
+				$amount = $data[$k]['amount'];
+				$tenant_id = $data[$k]['tenant_id'];
+				$ledger_id = $data[$k]['ledger_id'];
+				$security_id = $data[$k]['security_id'];
+				$bank_name = $data[$k]['bank_name'];
+				$bank_branch = $data[$k]['bank_branch'];
+				$remark = $data[$k]['remark'];
+				$type = $data[$k]['cheque_type'];
+				
+				if($type == 'Security Deposit'){
+					$sql = "update postdated_cheque set status = 1 where tenant_id = '".$tenant_id."' and type = '".$type."' and cheque_no = '".$cheque_no."'";
+					$res = $this->landLordDB->update($sql); 
+					$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$security_id,$bankID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0);	
+				}
+				else{
+					$sql = "update postdated_cheque set status = 1 where tenant_id = '".$tenant_id."' and type = '".$type."' and cheque_no = '".$cheque_no."'";
+					$res = $this->landLordDB->update($sql); 
+					$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$ledger_id,$bankID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0);	
+				}
+				// $ErrorLog = $obj_pdc_list->errorLog;
+				// echo $wing;
 			}
-			else{
-				$sql = "update postdated_cheque set status = 1 where tenant_id = '".$tenant_id."' and type = '".$type."' and cheque_no = '".$cheque_no."'";
-				$res = $this->m_dbConn->update($sql); 
-            	$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$ledger_id,$bankID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0);	
+		}
+		else{
+
+			$ChequeLeafBook=array();
+			$dataid=0;
+			$DepositeID=0;
+
+			$banksSQL = "SELECT ledger.id AS BankID, ledger.ledger_name as BankName FROM ledger JOIN bank_master ON ledger.id = bank_master.BankID";
+			$banks = $this->m_dbConn->select($banksSQL);
+			$bankID= $_SESSION['default_bank_id'];
+			$bankNames = array();
+
+			$Counter = $this->obj_utility->GetCounter(VOUCHER_RECEIPT, $bankID,false);
+			$vNo = $Counter[0]['CurrentCounter'];
+
+			$systemVoucherNo = $vNo;
+
+			// for ($i = 0; $i < count($banks); $i++)
+			// {
+			// 	$bankID[$i] = $banks[$i]['BankID'];
+			// 	$bankNames[$i] = $banks[$i]['BankName'];
+			// }
+			// echo "<pre>";
+			// print_r($data);
+			// echo "</pre>";
+			$desc = 'DATA IMPORTED'.date('Y-m-d H:i:sa');
+			$queryII = "select `society_creation_yearid` FROM `society` where `society_id` = '".$_SESSION['society_id']."'";
+			$resII = $this->m_dbConn->select($queryII);
+									
+			$insert_query1="insert into depositgroup (`bankid`,`createby`,`depositedby`,`status`,`desc`,`DepositSlipCreatedYearID`) values ('".$bankID."','".$_SESSION['login_id']."','PDC','0','".$desc."','".$resII[0]['society_creation_yearid']."')";
+			$dataid = $this->m_dbConn->insert($insert_query1);
+			$DepositeID=$dataid;
+
+			foreach($data as $k => $v)
+			{
+				$voucherDate = $data[$k]['cheque_date'];
+				$cheque_no = $data[$k]['cheque_no'];
+				$cheque_date = $data[$k]['cheque_date'];
+				// echo "Date" .getDBFormatDate($cheque_date);
+				$amount = $data[$k]['amount'];
+				$tenant_id = $data[$k]['tenant_id'];
+				$ledger_id = $data[$k]['ledger_id'];
+				$security_id = $data[$k]['security_id'];
+				$bank_name = $data[$k]['bank_name'];
+				$bank_branch = $data[$k]['bank_branch'];
+				$remark = $data[$k]['remark'];
+				$type = $data[$k]['cheque_type'];
+				
+				if($type == 'Security Deposit'){
+					$sql = "update postdated_cheque set status = 1 where tenant_id = '".$tenant_id."' and type = '".$type."' and cheque_no = '".$cheque_no."'";
+					$res = $this->m_dbConn->update($sql); 
+					$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$security_id,$bankID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0);	
+				}
+				else{
+					$sql = "update postdated_cheque set status = 1 where tenant_id = '".$tenant_id."' and type = '".$type."' and cheque_no = '".$cheque_no."'";
+					$res = $this->m_dbConn->update($sql); 
+					$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$ledger_id,$bankID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0);	
+				}
+				// $ErrorLog = $obj_pdc_list->errorLog;
+				// echo $wing;
 			}
-		    // $ErrorLog = $obj_pdc_list->errorLog;
-            // echo $wing;
-        }
+		}
 	}
 
 }

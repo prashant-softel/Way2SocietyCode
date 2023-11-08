@@ -227,9 +227,6 @@ class tenant
 						}
 						$insert_mapping = "INSERT INTO `mapping`(`society_id`, `unit_id`, `desc`, `code`, `role`, `created_by`, `view`) VALUES ('" . $_SESSION['society_id'] . "', '" . $unitLedgerName . "', '" . $unitLedgerName . "', '" . getRandomUniqueCode() . "', '" . ROLE_MEMBER . "', '" . $_SESSION['login_id'] . "', 'MEMBER')";
 						$result_mapping = $this->m_dbConnRoot->insert($insert_mapping);
-
-						$sql = "update unit set status = 'N' where unit_id = '".$unitLedgerName."'";
-						$res = $this->landLordDB->update($sql);
 								
 						$this->actionPage="../tenant.php";
 					}
@@ -600,9 +597,6 @@ class tenant
 						}
 						$insert_mapping = "INSERT INTO `mapping`(`society_id`, `unit_id`, `desc`, `code`, `role`, `created_by`, `view`) VALUES ('" . $_SESSION['society_id'] . "', '" . $unitLedgerName . "', '" . $unitLedgerName . "', '" . getRandomUniqueCode() . "', '" . ROLE_MEMBER . "', '" . $_SESSION['login_id'] . "', 'MEMBER')";
 						$result_mapping = $this->m_dbConnRoot->insert($insert_mapping);
-
-						$sql = "update unit set status = 'N' where unit_id = '".$unitLedgerName."'";
-						$res = $this->m_dbConn->update($sql);
 								
 						$this->actionPage="../tenant.php";
 					}
@@ -975,9 +969,6 @@ class tenant
 								}
 								$insert_mapping = "INSERT INTO `mapping`(`society_id`, `unit_id`, `desc`, `code`, `role`, `created_by`, `view`) VALUES ('" . $_SESSION['society_id'] . "', '" . $unitLedgerName . "', '" . $unitLedgerName . "', '" . getRandomUniqueCode() . "', '" . ROLE_MEMBER . "', '" . $_SESSION['login_id'] . "', 'MEMBER')";
 								$result_mapping = $this->m_dbConnRoot->insert($insert_mapping);
-
-								$sql = "update unit set status = 'N' where unit_id = '".$unitLedgerName."'";
-								$res = $this->m_dbConn->update($sql);
 								
 								$this->actionPage="../tenant.php";
 							}

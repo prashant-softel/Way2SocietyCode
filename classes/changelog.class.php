@@ -4,6 +4,9 @@ include_once("include/display_table.class.php");
 include_once('dbconst.class.php');
 include_once('utility.class.php');
 
+$dbConn = new dbop();
+$dbConnRoot = new dbop(true);
+$landLordDB = new dbop(false,false,false,false,true);
 ?>
 <?php
 	
@@ -11,25 +14,44 @@ include_once('utility.class.php');
 	{
 		public $m_dbConn;
 		public $m_dbConnRoot;
+		public $landLordDB;
+		public $isLandLordDB;
 		
-		function __construct($dbConn, $dbConnRoot = "")
+		function __construct($dbConn, $dbConnRoot = "", $landLordDB)
 		{
 			$this->m_dbConn = $dbConn;
 			$this->m_dbConnRoot = $dbConnRoot;
 			$this->display_pg=new display_table($this->m_dbConn);
+			$this->landLordDB = $landLordDB;
+			if($_SESSION['landLordDB']){
+				$this->isLandLordDB = true;
+			}	
 		}
 		
 		function setLog($desc, $changedBy, $changedTable, $changedKey, $Changed_Mode = "", $LastChangeId = 0)
 		{
-			$logID = 0;
+			if($this->isLandLordDB){
+				$logID = 0;
 
-			$currentTimeStamp = getCurrentTimeStamp(); 
-			
-			$sqlLog = "INSERT INTO `change_log`(`ChangedLogDec`, `ChangedBy`, `ChangedTable`, `ChangedKey`, `Changed_Mode`, `LastChangeId`, `ChangeTS`) VALUES ('" . $this->m_dbConn->escapeString($desc) . "', '" . $this->m_dbConn->escapeString($changedBy) . "', '" . $this->m_dbConn->escapeString($changedTable) . "', '" . $this->m_dbConn->escapeString($changedKey) . "', '" . $this->m_dbConn->escapeString($Changed_Mode) . "', '" . $this->m_dbConn->escapeString($LastChangeId) . "', '". $currentTimeStamp['DateTime']."')";
-			
-			$logID = $this->m_dbConn->insert($sqlLog);
-			
-			return $logID;
+				$currentTimeStamp = getCurrentTimeStamp(); 
+				
+				$sqlLog = "INSERT INTO `change_log`(`ChangedLogDec`, `ChangedBy`, `ChangedTable`, `ChangedKey`, `Changed_Mode`, `LastChangeId`, `ChangeTS`) VALUES ('" . $this->m_dbConn->escapeString($desc) . "', '" . $this->m_dbConn->escapeString($changedBy) . "', '" . $this->m_dbConn->escapeString($changedTable) . "', '" . $this->m_dbConn->escapeString($changedKey) . "', '" . $this->m_dbConn->escapeString($Changed_Mode) . "', '" . $this->m_dbConn->escapeString($LastChangeId) . "', '". $currentTimeStamp['DateTime']."')";
+				
+				$logID = $this->landLordDB->insert($sqlLog);
+				
+				return $logID;
+			}
+			else{
+				$logID = 0;
+
+				$currentTimeStamp = getCurrentTimeStamp(); 
+				
+				$sqlLog = "INSERT INTO `change_log`(`ChangedLogDec`, `ChangedBy`, `ChangedTable`, `ChangedKey`, `Changed_Mode`, `LastChangeId`, `ChangeTS`) VALUES ('" . $this->m_dbConn->escapeString($desc) . "', '" . $this->m_dbConn->escapeString($changedBy) . "', '" . $this->m_dbConn->escapeString($changedTable) . "', '" . $this->m_dbConn->escapeString($changedKey) . "', '" . $this->m_dbConn->escapeString($Changed_Mode) . "', '" . $this->m_dbConn->escapeString($LastChangeId) . "', '". $currentTimeStamp['DateTime']."')";
+				
+				$logID = $this->m_dbConn->insert($sqlLog);
+				
+				return $logID;
+			}
 		}
 		
 		function getLog($logID)
