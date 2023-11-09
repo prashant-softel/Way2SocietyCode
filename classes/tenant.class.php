@@ -1983,17 +1983,18 @@ class tenant
 						
 	}
 
-	public function getTenantUnit($id)
+	public function getTenantUnit($id, $wing_id)
 	{
-		$query = "select unit_id,unit_no from unit as u JOIN society as s ON u.society_id = s.society_id where u.status = 'Y'";
+		echo $query = "select unit_id,unit_no from unit as u JOIN wing as w ON u.wing_id = w.wing_id where u.status = 'Y' and u.wing_id = '".$wing_id."'";
+		
 		if($_SESSION['landLordDB']){
 			$isLandLordDB = true;
 		}
-		return $this->combobox($query, $id, $isLandLordDB);
+		return $this->combobox($query, $id, $wing_id, $isLandLordDB);
 						
 	}
 
-	public function combobox($query, $id, $dbselected= false)
+	public function combobox($query, $id, $wing_id="",$dbselected= false)
 	{
 		$str.="<option value='0'>Please Select</option>";
 		if($dbselected){

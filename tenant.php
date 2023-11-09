@@ -186,6 +186,12 @@ $(document).ready(function(){
 		document.getElementById('mapid').value = socID;
 	}
 });
+$(document).ready(function(){
+	var wingID = '<?php echo $_SESSION['default_wing_id']; ?>' ;
+	if(wingID) {
+		document.getElementById('wing_id').value = wingID;
+	}
+});
 
 	function selectDB(){
 		let dbname = document.getElementById('mapid').value;
@@ -1199,7 +1205,7 @@ function loadchanges()
 						<td style = "text-align:right"><?php echo $star;?>&nbsp;<b>Building</b></td>
 						<td>&nbsp;&nbsp; : &nbsp;&nbsp;</td>
 						<td>
-                			<select name="wing_id" id="wing_id" style="width:142px;" onChange="clear_unit(this.value);" value="<?php echo $_REQUEST['wing_id'];?>"<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN) { }else{echo 'disabled';} ?> >
+                			<select name="wing_id" id="wing_id" style="width:142px;" onChange=" fetchUnits(this.value); " value="<?php echo $_REQUEST['wing_id'];?>"<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN) { }else{echo 'disabled';} ?> >
 							<?php echo $combo_wing =  $obj_tenant->getTenantWing( $_SESSION['unit_id']); ?>
 							</select>
             			</td>
@@ -1211,7 +1217,7 @@ function loadchanges()
 						<td>
                 			<select name="unit_no" id="unit_no" style="width:142px;" onChange="clear_unit(this.value);" value="<?php echo $_REQUEST['unit_no'];?>"<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN) { }else{echo 'disabled';} ?> >
 							<?php $dbName = $_SESSION['rentalDb']?>
-							<?php echo $combo_unit = $obj_tenant->getTenantUnit( $_SESSION['unit_id']); ?>
+							<?php echo $combo_unit = $obj_tenant->getTenantUnit( $_SESSION['unit_id'], $_SESSION['default_wing_id']) ?>
 							</select>
             			</td>
 					</tr>
@@ -1584,8 +1590,7 @@ function loadchanges()
             <td><b>Enter document name</b></td>
             <td><b>&nbsp;&nbsp;Select file to upload</b></td>
 			<td></td>
-			<td><b>License No</b></td>
-			<td><b>&nbsp;&nbsp;License Authority</b></td>
+
 			<td></td>
             </tr>
             <?php if(!isset($_REQUEST['edit']))
@@ -1594,8 +1599,6 @@ function loadchanges()
             	<td><input type="text" id="doc_name_1" name="doc_name_1" placeholder="Emirate Front ID"></td>
             	<td align="left"><input type="file" name="userfile1" id="userfile1"/></td>
 				<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
-            	<td align="left"><input type="text" name="license_no" id="license_no" placeholder="License No" /></td>
-            	<td align="left"><input type="text" name="license_authority" id="license_authority" placeholder="License Authority" /></td>
             </tr>
 			<tr align="left">
             	<td><input type="text" id="doc_name_2" name="doc_name_2" placeholder="Emirate Back ID"></td>

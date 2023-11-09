@@ -182,8 +182,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
          
           <button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='import_invoice.php?Note=<?php echo DEBIT_NOTE; ?>'">Import Debit Note</button>
          <button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='import_vehicleParking.php?Note'">Import Vehicle Data</button>
-
-		 <button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='import_tenant_data.php?Note'">Import Tenant Data</button>
+		 <?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1) { ?>
+			<button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='import_rc_tenant_data.php?Note'">Import Tenant Data</button>
+			<?php
+		} else{ ?>
+			<button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='import_tenant_data.php?Note'">Import Tenant Data</button>
+		<?php
+			}?>
     </td>
     
     <td>

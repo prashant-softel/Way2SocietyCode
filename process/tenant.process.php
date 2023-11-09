@@ -26,6 +26,15 @@
 		exit;
 
 	}
+	if (isset($_POST['wing_id'])) 
+	{
+		$wing_id = $_POST['wing_id'];
+		// echo"wingid: ".$wing_id;
+	    echo "ID: ".$wing_id;
+		$_SESSION['default_wing_id'] = $wing_id;
+        exit;
+		
+	}
 
 	$validator = $obj_tenant->startProcess();
 	 // echo $validator;
