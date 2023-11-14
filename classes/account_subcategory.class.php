@@ -595,7 +595,14 @@ class account_subcategory
 	{
 		//echo "inside pagination";
 		//$sql1 = "select ledger_table.id,ledger_table.society_id,Account.category_name,ledger_table.ledger_name,ledger_table.show_in_bill,ledger_table.taxable,ledger_table.sale,ledger_table.purchase,ledger_table.income,ledger_table.expense,ledger_table.payment,ledger_table.receipt,ledger_table.opening_type,ledger_table.opening_balance,ledger_table.note from `account_category` as `Account` Join `ledger` as `ledger_table` where Account.category_id = ledger_table.categoryid";
-		$sql11= "SELECT `APP_DEFAULT_DUE_FROM_MEMBERS`,`APP_DEFAULT_DUE_FROM_TENANTS`,`APP_DEFAULT_MAYANK_PATEL_TENANTS`,`APP_DEFAULT_JUMA_ SUHAIL_TENANTS`, `APP_DEFAULT_BANK_ACCOUNT`,`APP_DEFAULT_CASH_ACCOUNT` FROM `appdefault` WHERE `APP_DEFAULT_SOCIETY`='".$_SESSION['society_id']."'";
+		if($_SESSION['res_flag'] == 1){
+		$sql11= "SELECT `APP_DEFAULT_DUE_FROM_MEMBERS`,`APP_DEFAULT_DUE_FROM_TENANTS`,`APP_DEFAULT_MAYANK_PATEL_TENANTS`,`APP_DEFAULT_JUMA_SUHAIL_TENANTS`, `APP_DEFAULT_BANK_ACCOUNT`,`APP_DEFAULT_CASH_ACCOUNT` FROM `appdefault` WHERE `APP_DEFAULT_SOCIETY`='".$_SESSION['society_id']."'";
+		}
+		else
+		{
+			$sql11= "SELECT `APP_DEFAULT_DUE_FROM_MEMBERS`,`APP_DEFAULT_BANK_ACCOUNT`,`APP_DEFAULT_CASH_ACCOUNT` FROM `appdefault` WHERE `APP_DEFAULT_SOCIETY`='".$_SESSION['society_id']."'";
+			
+			}
 		$result1 = $this->m_dbConn->select($sql11);
 		/*$sql1 = "select ledger_table.id,CONCAT(Account.category_name,CONCAT('(',Account.category_id,')')) as 'Category Name',CONCAT(ledger_table.ledger_name, CONCAT('(',ledger_table.id,')')) as 'ledger',ledger_table.opening_balance,IF(ledger_table.opening_type = '0', 'None',IF(ledger_table.opening_type = '1', 'Credit',IF(ledger_table.opening_type = '2', 'Debit',''))) as opening_type, ledger_table.show_in_bill,ledger_table.taxable,ledger_table.sale,ledger_table.purchase,ledger_table.income,ledger_table.expense,ledger_table.payment,ledger_table.receipt,ledger_table.note,DATE(DATE_ADD(ledger_table.opening_date, INTERVAL 1 DAY)) as opening_date from `account_category` as `Account`,`ledger` as `ledger_table`, `society` as `society_table` where Account.category_id = ledger_table.categoryid and society_table.society_id = ledger_table.society_id and society_table.society_id =".$_SESSION['society_id']; */
 		// $sql1 = "select ledger_table.id,CONCAT(Account.category_name,CONCAT('(',Account.category_id,')')) as 'Category Name',CONCAT(ledger_table.ledger_name, CONCAT('(',ledger_table.id,')')) as 'ledger',FORMAT(ledger_table.opening_balance,2) as opening_balance,IF(ledger_table.opening_type = '0', 'None',IF(ledger_table.opening_type = '1', 'Credit',IF(ledger_table.opening_type = '2', 'Debit',''))) as opening_type, ledger_table.show_in_bill,ledger_table.note,DATE_FORMAT(DATE(DATE_ADD(ledger_table.opening_date, INTERVAL 1 DAY)),'%d-%m-%Y') as opening_date from `account_category` as `Account`,`ledger` as `ledger_table`, `society` as `society_table` where Account.category_id = ledger_table.categoryid and society_table.society_id = ledger_table.society_id and society_table.society_id =".$_SESSION['society_id'];
