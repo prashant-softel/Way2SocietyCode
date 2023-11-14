@@ -24,17 +24,18 @@ class createVoucher
 	public $obj_ChequeDetails;
 	public $EDITEntryTracker;
 	public $request_mode;
-
-	function __construct($dbConn)
+	public $landLordDB;
+	public $isLandLordDB;
+	function __construct($dbConn,$landLordDB)
 	{
 		$this->m_dbConn = $dbConn;
-		$this->m_voucher = new voucher($dbConn);
-		$this->obj_PaymentDetails = new PaymentDetails($dbConn);
-		$this->obj_ChequeDetails = new ChequeDetails($dbConn);
-		$this->m_latestcount = new latestCount($dbConn);
-		$this->m_register = new regiser($dbConn);
-		$this->m_objUtility = new utility($dbConn);
-		$this->changeLog = new changeLog($dbConn);
+		$this->m_voucher = new voucher($dbConn,$landLordDB);
+		$this->obj_PaymentDetails = new PaymentDetails($dbConn,$landLordDB);
+		$this->obj_ChequeDetails = new ChequeDetails($dbConn,$landLordDB);
+		$this->m_latestcount = new latestCount($dbConn,$landLordDB);
+		$this->m_register = new regiser($dbConn,$landLordDB);
+		$this->m_objUtility = new utility($dbConn,$dbConnRoot, $landLordDB);
+		$this->changeLog = new changeLog($dbConn,$landLordDB);
 	}			
 	
 	public function startProcess()

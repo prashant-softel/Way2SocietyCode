@@ -7,7 +7,7 @@ include_once("includes/head_s.php");
 include_once ("check_default.php");
 
 include_once("classes/PaymentDetails.class.php");
-$obj_PaymentDetails = new PaymentDetails($m_dbConn);
+$obj_PaymentDetails = new PaymentDetails($m_dbConn,$m_landLordDB);
 include_once("classes/ChequeDetails.class.php");
 include_once("classes/dbconst.class.php");
 include_once("classes/home_s.class.php");

@@ -31,8 +31,10 @@ class PaymentDetails extends dbop
 	private $multEntryID;
 	private $prevMultEntryDetails;
 	public $debug_trace;
+	public $landLordDB;
+	public $isLandLordDB;
 	
-	function __construct($dbConn)
+	function __construct($dbConn,$landLordDB)
 	{
 		$this->m_dbConn = $dbConn;
 		$this->m_dbConnRoot = new dbop(true);
@@ -43,12 +45,13 @@ class PaymentDetails extends dbop
 		//$this->curdate_show	= $this->display_pg->curdate_show();
 		//$this->curdate_time	= $this->display_pg->curdate_time();
 		//$this->ip_location	= $this->display_pg->ip_location($_SERVER['REMOTE_ADDR']);*/
-		$this->m_voucher = new voucher($dbConn);
-		$this->m_latestcount = new latestCount($dbConn);
+		$this->m_voucher = new voucher($dbConn, $landLordDB);
+		$this->m_latestcount = new latestCount($dbConn, $landLordDB);
 		$this->m_register = new regiser($dbConn);
-		$this->m_objUtility = new utility($dbConn,$this->m_dbConnRoot);
+		$this->m_objUtility = new utility($dbConn,$this->m_dbConnRoot, $landLordDB);
 		$_POST['EnteredBy'] = $_SESSION['login_id'];
-		$this->m_objLog = new changeLog($dbConn);
+		$this->m_objLog = new changeLog($dbConn, $landLordDB);
+		$this->landLordDB = $landLordDB;
 		$this->prevRefForMultEntry = 0;
 		$this->m_PrevDataVoucher = 0;
 		$this->m_PrevLatestVoucher = 0;
@@ -56,6 +59,9 @@ class PaymentDetails extends dbop
 		$this->prevMultEntryDetails = array();
 		$this->debug_trace = 0;
 		//dbop::__construct();
+		
+		
+		
 	}
 
 /*	public function startProcess()

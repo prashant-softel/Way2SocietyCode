@@ -2,8 +2,8 @@
 	include_once("../classes/createvoucher.class.php");
 	  $validator = " ";
 	  $dbConn = new dbop();
-	  
-	  $obj_createvoucher = new createVoucher($dbConn);
+	  $landLordDB = new dbop(false,false,false,false,true);	
+	  $obj_createvoucher = new createVoucher($dbConn,$landLordDB);
 	  if($_REQUEST["method"] == "delete")
 	  {
 		  
