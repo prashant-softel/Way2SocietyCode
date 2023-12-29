@@ -402,6 +402,10 @@ if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
         	<td valign="left"><span style="margin-left: 4%;">&nbsp;</span><span  style="margin-left: 3%;">Show QR Code on bill</span><span  style="margin-left: 40px;">&nbsp; : &nbsp;</span>
 		<span  style="margin-left: 4%;"><input type="checkbox" name="show_QR_code" id="show_QR_code" value="1" style="margin:0"></span></td>
 		</tr>
+        <tr>
+        	<td valign="left"><span style="margin-left: 4%;">&nbsp;</span><span  style="margin-left: 3%;">Print Voucher Portrait</span><span  style="margin-left: 40px;">&nbsp;&nbsp; : &nbsp;</span>
+			<span  style="margin-left: 4%;"><input type="checkbox" name="print_voucher_portrait" id="print_voucher_portrait" value="1" style="margin:0"></span></td>
+		</tr>
        
 	<tr><td><br></td></tr>
         

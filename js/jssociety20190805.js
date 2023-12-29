@@ -159,6 +159,7 @@ function loadchanges()
 		document.getElementById('show_address_in_email').checked = (response.show_address_in_email == 1) ? true : false;
 		document.getElementById('show_logo').checked = (response.show_logo == 1) ? true : false;	
 		document.getElementById('show_QR_code').checked = (response.show_QR_code == 1) ? true : false;	
+		document.getElementById('print_voucher_portrait').checked = (response.print_voucher_portrait == 1) ? true : false;	
 		document.getElementById('apply_service_tax').checked = (response.apply_service_tax == 1) ? true : false;
 		document.getElementById('service_tax_threshold').value = response.service_tax_threshold;
 		document.getElementById('igst_tax_rate').value = response.igst_tax_rate;
@@ -284,6 +285,7 @@ function loadchanges()
 		document.getElementById('show_address_in_email').checked = (response.show_address_in_email == 1) ? true : false;
 		document.getElementById('show_logo').checked = (response.show_logo == 1) ? true : false;	
 		document.getElementById('show_QR_code').checked = (response.show_QR_code == 1) ? true : false;	
+		document.getElementById('print_voucher_portrait').checked = (response.print_voucher_portrait == 1) ? true : false;	
 		document.getElementById('apply_service_tax').checked = (response.apply_service_tax == 1) ? true : false;
 		document.getElementById('service_tax_threshold').value = response.service_tax_threshold;
 		//document.getElementById('service_tax_rate').value = arr2[51];
@@ -394,6 +396,7 @@ function loadchanges()
 			$('#show_in_email_bill_header').attr('disabled', true);
 			$('#show_logo').attr('disabled', true);
 			$('#show_QR_code').attr('disabled', true);
+			$('#print_voucher_portrait').attr('disabled', true);
 			$('#apply_rounded_amt').attr('disabled', true);
 			$('#reco_date_same_as_voucher').attr('disabled', true);
 			$('#virtual').attr('disabled', true);

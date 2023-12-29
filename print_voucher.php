@@ -102,6 +102,10 @@ if(!empty($prefix))
 	$prefix = $prefix.'-';
 }
 $prefix .= $VoucherArray[0]['ExternalCounter'];
+
+$printQuery = "SELECT `print_voucher_portrait` FROM `society` WHERE society_id=".$_SESSION['society_id'];
+$printPortrait = $dbConn->select($printQuery);
+$print_voucher_portrait = $printPortrait[0]['print_voucher_portrait'];
 ?>
 
 <html>
@@ -157,7 +161,7 @@ $prefix .= $VoucherArray[0]['ExternalCounter'];
 
 	function PrintPage() {
 
-		var printPortrait = "<?php  echo $_SESSION['print_voucher_portrait']?>";
+		var printPortrait = "<?php  echo $print_voucher_portrait ?>";
 		// Get the print button and put it into a variable
 		var btnPrint = document.getElementById("Print");
 		

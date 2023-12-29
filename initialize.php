@@ -63,8 +63,6 @@
 			$_SESSION['landLordDB'] = '';
 			$_SESSION['landLordSocID'] = '';
 			
-			$print_voucher_portrait = $mapDetails[0]['print_voucher_portrait'];
-			$_SESSION['print_voucher_portrait'] = $print_voucher_portrait;
 
 			// $landLordDB = $mapDetails[0]['landLordDB'];
 			// $_SESSION['landLordDB'] = $landLordDB;
