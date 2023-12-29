@@ -8,8 +8,8 @@
 	include_once("classes/defaults.class.php");
 	include_once("classes/utility.class.php");
 	include_once("classes/dbconst.class.php");
-	$obj_createvoucher=new createVoucher($m_dbConn);
-	$obj_utility = new utility($m_dbConn,$m_dbConnRoot );
+	$obj_createvoucher=new createVoucher($m_dbConn,$m_landLordDB);
+	$obj_utility = new utility($m_dbConn,$m_dbConnRoot,$m_landLordDB );
 	//print_r($_SESSION);
 	$datepicker=$obj_createvoucher->StartEndDate($_SESSION['default_year']);
 	$minDate=$datepicker[0]['BeginingDate'];

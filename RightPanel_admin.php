@@ -40,7 +40,7 @@ $bIsHide = bIsReportOrValidationPage($scriptName);?>
           
           <a href="#" OnClick="window.open('view_ledger_details.php?lid=<?=$_SESSION['default_suspense_account']?>&gid=<?=LIABILITY?>','QuickLedgerLink','type=fullWindow,fullscreen,scrollbars=yes')" id="suspenseSideId"><span class="fa fa-S fa-5x" style="font-size:10px;font-size:2.5vw;float:left;margin-left: 2%;"></span><span style="float: left;">&nbsp;&nbsp;&nbsp;&nbsp;Suspense Ledger</span></a>
 
-          <a href="#" OnClick="window.open('view_ledger_details.php?lid=<?=$_SESSION['default_tds_payable']?>&gid=<?=LIABILITY?>','QuickLedgerLink','type=fullWindow,fullscreen,scrollbars=yes')" id="tdsSideId"><span class="fa fa-T fa-5x" style="font-size:10px;font-size:2.5vw;float:left;margin-left: 2%;"></span><span style="float: left;">&nbsp;&nbsp;&nbsp;&nbsp;TDS Payable</span></a>
+          <a href="#" OnClick="window.open('Invoice.php?add=<?=$_SESSION['unit_id']?>','QuickLedgerLink','type=fullWindow,fullscreen,scrollbars=yes')" id="tdsSideId"><span class="fa fa-I fa-5x" style="font-size:10px;font-size:2.5vw;float:left;margin-left: 4%;"></span><span style="float: left;">&nbsp;&nbsp;&nbsp;&nbsp;Generate Invoice</span></a>
   <?php }?>
   <?php if(($_SESSION["role"] == ROLE_MANAGER) && $_SESSION['profile'][PROFILE_GENERATE_BILL] == 1)
   {?>

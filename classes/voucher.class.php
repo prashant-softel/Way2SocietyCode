@@ -7,12 +7,18 @@
 		public $m_dbConn;
 		public $obj_utility;
 		private $ShowDebugTrace;
+		public $landLordDB;
+		public $isLandLordDB;
 		
-		function __construct($dbConn)
+		function __construct($dbConn,$landLordDB)
 		{
 			$this->m_dbConn = $dbConn;
 			$this->obj_utility = new utility($this->m_dbConn);
 			$this->ShowDebugTrace = 0;
+			$this->landLordDB = $landLordDB;
+			if($_SESSION['landLordDB']){
+				$this->isLandLordDB = true;
+			}
 		}
 		
 		public function SetVoucherDetails($BillDate, $RefNo, $RefTableID, $VoucherNo, $SrNo, $VoucherTypeID, $LedgerID, $TransactionType, $Amount, $note = "",$ExVoucherNo)
@@ -20,8 +26,9 @@
 			$GUID = "";
 			return $this->SetVoucherDetails_WithGUID($BillDate, $RefNo, $RefTableID, $VoucherNo, $SrNo, $VoucherTypeID, $LedgerID, $TransactionType, $Amount, $note,$ExVoucherNo, $GUID);
 		}
+
 		public function SetVoucherDetails_WithGUID($BillDate, $RefNo, $RefTableID, $VoucherNo, $SrNo, $VoucherTypeID, $LedgerID, $TransactionType, $Amount, $note = "",$ExVoucherNo, $GUID)
-		{	
+		{
 			if($SrNo <> 1)
 			{
 				$GUID = "";
@@ -37,6 +44,50 @@
 			$sqlResult = $this->m_dbConn->insert($sqlInsert);
 			
 			return $sqlResult;
+		}
+
+		public function SetVoucherDetails_pdc($BillDate, $RefNo, $RefTableID, $VoucherNo, $SrNo, $VoucherTypeID, $LedgerID, $TransactionType, $Amount, $note = "",$ExVoucherNo)
+		{			
+			$GUID = "";
+			return $this->SetVoucherDetails_WithGUID_pdc($BillDate, $RefNo, $RefTableID, $VoucherNo, $SrNo, $VoucherTypeID, $LedgerID, $TransactionType, $Amount, $note,$ExVoucherNo, $GUID);
+		}
+
+		public function SetVoucherDetails_WithGUID_pdc($BillDate, $RefNo, $RefTableID, $VoucherNo, $SrNo, $VoucherTypeID, $LedgerID, $TransactionType, $Amount, $note = "",$ExVoucherNo, $GUID)
+		{	
+			if($_SESSION['res_flag'] == 1){
+				if($SrNo <> 1)
+				{
+					$GUID = "";
+				}		
+				$ColName = 'By';
+				if($TransactionType == TRANSACTION_CREDIT)
+				{
+					$ColName = 'To';
+				}
+				
+				 $sqlInsert = "INSERT INTO `voucher`(`Date`, `RefNo`, `RefTableID`, `VoucherNo`, `SrNo`, `VoucherTypeID`, `" . $ColName . "`, `" . $TransactionType . "`,`Note`,`ExternalCounter`,`GUID`) VALUES ('" . getDBFormatDate($BillDate) . "', '" . $RefNo .  "', '" . $RefTableID . "', '" .  $VoucherNo .  "', '" . $SrNo . "', '" . $VoucherTypeID . "' , '" . $LedgerID .  "', '" . $Amount . "', '" . $this->m_dbConn->escapeString($note) ."','".$ExVoucherNo."','".$GUID."')";
+				//echo $sqlInsert;
+				$sqlResult = $this->landLordDB->insert($sqlInsert);
+				
+				return $sqlResult;
+			}
+			else{
+				if($SrNo <> 1)
+				{
+					$GUID = "";
+				}		
+				$ColName = 'By';
+				if($TransactionType == TRANSACTION_CREDIT)
+				{
+					$ColName = 'To';
+				}
+				
+				 $sqlInsert = "INSERT INTO `voucher`(`Date`, `RefNo`, `RefTableID`, `VoucherNo`, `SrNo`, `VoucherTypeID`, `" . $ColName . "`, `" . $TransactionType . "`,`Note`,`ExternalCounter`,`GUID`) VALUES ('" . getDBFormatDate($BillDate) . "', '" . $RefNo .  "', '" . $RefTableID . "', '" .  $VoucherNo .  "', '" . $SrNo . "', '" . $VoucherTypeID . "' , '" . $LedgerID .  "', '" . $Amount . "', '" . $this->m_dbConn->escapeString($note) ."','".$ExVoucherNo."','".$GUID."')";
+				//echo $sqlInsert;
+				$sqlResult = $this->m_dbConn->insert($sqlInsert);
+				
+				return $sqlResult;
+			}
 		}
 		
 		public function GetVoucherDetails($voucherNo , $voucherType , $GetTransactionsDetails = false)

@@ -488,7 +488,7 @@ function  FetchTenantHistory(society_id)
 	var TenantList = document.getElementById('TenantList').value;
 	//alert(TenantList);
 	$.ajax({
-			url : "ajax/tenant.ajax.php",
+			url : "ajax/rentaltenant.ajax.php",
 			type : "POST",
 			data : {"method" : 'fetch',"societyID" : society_id,"TenantList" : TenantList},
 			beforeSend: function()

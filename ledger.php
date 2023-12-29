@@ -12,11 +12,13 @@
 <?php //include_once "ses_set_s.php"; ?>
 <?php
 	include_once("includes/head_s.php");
+	include_once("classes/initialize.class.php");
 
 ?>
 <?php
 include_once("classes/account_subcategory.class.php");
-$obj_account_subcategory = new account_subcategory($m_dbConn);
+$obj_initialize = new initialize($m_dbConnRoot);
+$obj_account_subcategory = new account_subcategory($m_dbConn,$landLordDB);
 $startdate = $obj_account_subcategory->FetchDate($_SESSION['default_year']); 
 include_once("classes/dbconst.class.php");
 ?>
@@ -56,6 +58,21 @@ include_once("classes/dbconst.class.php");
 			$("#error").fadeOut("slow");
 		});
     }
+
+	function selectDB(){
+		let dbname = document.getElementById('mapid').value;
+		console.log(dbname);
+		$.ajax({
+		url: "process/account_subcategory.process.php",
+		type:"POST",
+		data: {'selSocID':dbname},
+		success: function(data)
+		{
+			location.reload();
+		}
+	});
+	}
+
 	
 	</script>
     <script>
@@ -88,7 +105,7 @@ include_once("classes/dbconst.class.php");
 </style>
 <?php if(isset($_POST['ShowData']) || isset($_REQUEST['msg'])){ ?>
 <body onLoad="go_error();">
-<?php } ?>
+<?php  } ?>
 
 <body>
 <br>
@@ -118,7 +135,8 @@ else{}
 <button type="button" class="btn btn-primary" onClick="window.open('multiple_ledger_print.php');"  id="btnPrintAll">Print Multiple Ledger</button>
 <?php if($_SESSION['profile'][PROFILE_MANAGE_MASTER] == 1 && $_SESSION['is_year_freeze'] == 0){ ?>
 <button type="button" class="btn btn-primary" onClick="window.open('account_category.php', '_blank')" id="">Manage Categories</button>
-<?php }?>
+<?php }
+?>
 
 
 
@@ -127,7 +145,6 @@ else{}
 <div id="new_entry" style="display:none;">
 <form name="account_subcategory" id="account_subcategory" method="post" action="process/account_subcategory.process.php" onSubmit="return val();">
  <input type="hidden" name="edit" id="edit" value="<?php echo $_REQUEST['edt']; ?>" />
-
 <table align='center'>
 <?php
 if(isset($msg))

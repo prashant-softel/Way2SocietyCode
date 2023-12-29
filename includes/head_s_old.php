@@ -283,7 +283,7 @@ if(sizeof($TipsDetails) > 0)
 $script   = $_SERVER['SCRIPT_NAME'];
 $pos = strrpos($script, '/');
 	$scriptName = substr($script, ($pos + 1));
-	if($scriptName=='home_s.php' || $scriptName=='Dashboard.php' )
+	if($scriptName=='home_s.php' || $scriptName=='Dashboard.php' || $scriptName=='home_res.php')
 	{
   if($_SESSION['View']==ADMIN)
   {?>
@@ -367,9 +367,11 @@ else {?>
 	}
 	function ShowAdminView(SelectedTab)
 	{
-		
-		
-		window.location.href = "home_s.php?View=ADMIN";
+		if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+            window.location.href = "home_res.php?View=ADMIN";
+        }else{
+            window.location.href = "home_s.php?View=ADMIN";
+        }
 		
 		//location.reload(true);
 	}

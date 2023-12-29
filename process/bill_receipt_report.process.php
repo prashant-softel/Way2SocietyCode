@@ -1,7 +1,8 @@
 <?php	include_once("../classes/bill_receipt_report.class.php");
 		include_once("../classes/include/dbop.class.php");
 	 	$dbConn = new dbop();
-		$obj_unit=new bill_receipt_report($dbConn);
+		$landLordDB = new dbop(false,false,false,false,true);
+		$obj_unit=new bill_receipt_report($dbConn,$landLordDB);
 		$wing_id = $_POST['wing_id'];
 		$year_id = $_POST['year_id'];
 		$period_id = $_POST['period_id'];

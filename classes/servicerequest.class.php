@@ -17,17 +17,23 @@ class servicerequest
 	//public $actionPage = "../addnotice.php";
 	public $m_dbConn;
 	public $m_dbConnRoot;	
+	public $m_landLordDB;	
 	public $objFetchData;
 	public $m_objUtility;
+	public $isLandLordDB;
 	
-	function __construct($dbConn,$dbConnRoot)
+	function __construct($dbConn, $dbConnRoot, $landLordDB)
 	{
 		$this->m_dbConn = $dbConn;		
 		$this->m_dbConnRoot = $dbConnRoot;		
+		$this->m_landLordDB = $landLordDB;		
 		$this->objFetchData = new FetchData($dbConn);
 		$this->objFetchData->GetSocietyDetails($_SESSION['society_id']);	
 		$this->m_objUtility = new utility($dbConn,$this->m_dbConnRoot);
-	}		
+		if($_SESSION['landLordDB']){
+			$this->isLandLordDB = true;
+		}
+	}
 	
 	public function startProcess()
 	{
@@ -36,6 +42,7 @@ class servicerequest
 	{
 		date_default_timezone_set('Asia/Kolkata');	
 		$image_list=array(); 
+
 		for($i=0; $i<count($_FILES['img']['name']); $i++)
 			{
 				//print_r($_FILES);
@@ -90,9 +97,17 @@ class servicerequest
 		//  echo $image_collection;
 		//echo "in startprocess".$_SESSION['society_id']."<br />";	
 		//echo $_POST['reportedby'];
-		$obj_LatestCount = new latestCount($this->m_dbConn);
-		$request_no = $obj_LatestCount->getLatestRequestNo($_SESSION['society_id']);
-		
+		if($this->isLandLordDB)
+		{
+			$obj_LatestCount = new latestCount($this->m_dbConn, $this->m_dbConnRoot, $this->m_landLordDB);
+			$request_no = $obj_LatestCount->getLatestRequestNo($_SESSION['landLordSocID']);
+		}
+		else
+		{
+			$obj_LatestCount = new latestCount($this->m_dbConn);
+			$request_no = $obj_LatestCount->getLatestRequestNo($_SESSION['society_id']);
+		}
+
 		if($_POST['category'] == $_SESSION['RENOVATION_DOC_ID'])
 		{
 			$details = "This is Renovation Request.";
@@ -107,9 +122,34 @@ class servicerequest
 		}
 		//$request_no = $request_no + 1;
 		// change to  $_POST['unit_no'] to $_POST['unit_no2']; in insert statment
-		  $sql = "INSERT INTO `service_request` (`request_no`, `society_id`, `reportedby`, `dateofrequest`, `email`, `phone`, `priority`, `category`, `summery`,`img`, `details`, `status`, `unit_id`) VALUES ('".$request_no."', '".$_SESSION['society_id']."', '".$_POST['reported_by']."', '".getDBFormatDate(date('d-m-Y'))."', '".$_POST['email']."', '".$_POST['phone']."', '".$_POST['priority']."', '".$_POST['category']."', '".$_POST['summery']."','$image_collection', '".$details."', 'Raised', '".$_POST['unit_no2']."')";					
-		//echo "query:".$sql;  	
-		$result = $this->m_dbConn->insert($sql);
+		//echo "query:".$sql; 
+		$society_id = $this->isLandLordDB ? $_SESSION['landLordSocID'] : $_SESSION['society_id'];
+
+		if($this->isLandLordDB)
+		{
+			$sql = "INSERT INTO `service_request` (`request_no`, `society_id`, `reportedby`, `dateofrequest`, `email`, `phone`, `priority`, `category`, `summery`,`img`, `details`, `status`, `unit_id`) VALUES ('".$request_no."', '".$society_id."', '".$_POST['reported_by']."', '".getDBFormatDate(date('d-m-Y'))."', '".$_POST['email']."', '".$_POST['phone']."', '".$_POST['priority']."', '".$_POST['category']."', '".$_POST['summery']."','$image_collection', '".$details."', 'Raised', '".$_POST['unit_no2']."')";					
+			
+			$result = $this->m_landLordDB->insert($sql);
+		}
+		else
+		{
+			$sql = "INSERT INTO `service_request` (`request_no`, `society_id`, `reportedby`, `dateofrequest`, `email`, `phone`, `priority`, `category`, `summery`,`img`, `details`, `status`, `unit_id`) VALUES ('".$request_no."', '".$society_id."', '".$_POST['reported_by']."', '".getDBFormatDate(date('d-m-Y'))."', '".$_POST['email']."', '".$_POST['phone']."', '".$_POST['priority']."', '".$_POST['category']."', '".$_POST['summery']."','$image_collection', '".$details."', 'Raised', '".$_POST['unit_no2']."')";					
+		
+			$result = $this->m_dbConn->insert($sql);
+		}
+
+		//echo "query:".$sql;
+		if($this->isLandLordDB)
+		{
+			$sql1 = "INSERT INTO `service_request_history` (`request_no`, `society_id`, `reportedby`, `email`, `summery`, `status`, `unit_id`, `img`) VALUES ('".$request_no."', '".$society_id."', '".$_POST['reported_by']."', '".$_POST['email']."', '".$_POST['summery']."', 'Raised', '".$_POST['unit_no2']."', '".$image_collection."')";					
+			$result1 = $this->m_landLordDB->insert($sql1);
+		} 
+		else
+		{
+			$sql1 = "INSERT INTO `service_request_history` (`request_no`, `society_id`, `reportedby`, `email`, `summery`, `status`, `unit_id`, `img`) VALUES ('".$request_no."', '".$society_id."', '".$_POST['reported_by']."', '".$_POST['email']."', '".$_POST['summery']."', 'Raised', '".$_POST['unit_no2']."', '".$image_collection."')";					
+			$result1 = $this->m_dbConn->insert($sql1);
+		}
+
 		if($_POST['category'] == $_SESSION['RENOVATION_DOC_ID'] || $_POST['category'] == $_SESSION['ADDRESS_PROOF_ID'])
 		{
 			$_SESSION['renovation_service_request_id'] = $result;
@@ -136,7 +176,11 @@ class servicerequest
 			//echo $id;
 			$image_list=array(); 
 			$select = "select `img` FROM `service_request` WHERE request_id='".$id."'";
-			$res2 =$this->m_dbConn->select($select);
+			if($this->isLandLordDB){
+				$res2 =$this->m_landLordDB->select($select);
+			}else{
+				$res2 =$this->m_dbConn->select($select);
+			}
 				//print_r($res2);
 				 $image=$res2[0]['img'];
 				if($image <> "")
@@ -198,7 +242,11 @@ class servicerequest
 		
 		 $up_query="update `service_request` set `email`='".$_POST['email']."',`phone`='".$_POST['phone']."',`priority`='".$_POST['priority']."',`category`='".$_POST['category']."',`summery`='".$_POST['summery']."', `details`='".$_POST['details']."' ,`img`='$image_collection' where  `request_id`='".$id."' and `society_id`=".$_SESSION['society_id']." ";
 			//die();
-			$data = $this->m_dbConn->update($up_query);
+			if($this->isLandLordDB){
+				$data = $this->m_landLordDB->update($up_query);
+			} else {
+				$data = $this->m_dbConn->update($up_query);
+			}
 		
 			//$this->ServiceRequestSMS($_POST['phone'], $request_no, $_POST['summery'], $_POST['category'], $_POST['unit_no'],$EmailIDOfCategory, $CCEmailIDOfCategory);
 			//echo $data;
@@ -219,18 +267,92 @@ class servicerequest
 		
 		
 }
-	public function insertComments($request_no,$email, $ccEmails)
+	public function insertComments($request_no,$email, $ccEmails, $soc_id = '')
 	{
 		if($_SESSION['role'] && $_SESSION['role']==ROLE_ADMIN)
 		{
-			$updateReqPriority="update `service_request` set `priority`='".$_POST['priority']."' where  `request_no`=".$request_no." and `society_id`=".$_SESSION['society_id']." ";
-			$priority = $this->m_dbConn->update($updateReqPriority);
+			$updateReqPriority="update `service_request` set `priority`='".$_POST['priority']."' where  `request_no`=".$request_no." and `society_id`=".$soc_id." ";
+			if($soc_id != $_SESSION['society_id'])
+			{
+				// $landLordDBHis = new dbop(false,false,false,false,true);
+				$priority = $this->m_landLordDB->update($updateReqPriority);
+			}
+			else{
+				$priority = $this->m_dbConn->update($updateReqPriority);
+			}
 		}
+
+		$image_list=array(); 
+
+		for($i=0; $i<count($_FILES['img']['name']); $i++)
+			{	
+				
+				$file_type=$_FILES['img']['type'][$i];
+				$file_size=$_FILES['img']['size'][$i];
+				$file_tmp=$_FILES['img']['tmp_name'][$i];
+				list($txt, $ext) = explode(".", $file);
+				$randon_name = $file.".".$ext;
+				$kaboom = explode(".", $_FILES['img']['name'][$i]); // Split file name into an array using the dot
+				 $fileExt = end($kaboom);
+				 $random_name= rand();
+				//echo $random_name;
+			
+				if($_FILES["img"]['name'][$i]<>'')
+				{
+				if ($_FILES["img"]["size"][$i] > 10240*1024) 
+				{
+					 $error="Sorry, your file is too large.";
+					 $this->table .= "Sorry, your file is too large.";
+				}
+				else if (($_FILES["img"]["type"][$i] == "image/gif") || 
+						($_FILES["img"]["type"][$i] == "image/jpeg") || 
+						($_FILES["img"]["type"][$i]== "image/png") || 
+						($_FILES["img"]["type"][$i] == "image/pjpeg")) 
+				{
+					//echo "2";
+			
+					if ($_FILES["img"]["type"][$i] == "image/jpeg")
+					{ //echo"jpeg type";
+						$url =$random_name.'.'.$fileExt;
+					}
+					else if($_FILES["img"]["type"][$i] == "image/png")
+					{//echo"png type";
+						$url =$random_name.'.'.$fileExt;
+					}
+					else if ($_FILES["img"]["type"][$i] == "image/gif")
+					{
+						$url =$random_name.'.'.$fileExt;
+					}
+					// echo $random_name.'.'.$fileExt;
+
+					$manipulator = new ImageManipulator($_FILES['img']['tmp_name'][$i]);
+					
+					$newImage = $manipulator->resample(1024, 683);
+				
+					$manipulator->save('../upload/main/' . $random_name.'.'.$fileExt);
+					
+					array_push($image_list,$random_name.'.'.$fileExt);
+				}
+			}
+			}
+		 $image_collection = implode(',', $image_list);
+		//  echo "debug collection";
+		//  echo $image_collection;
+		//  exit;
 		
-		$sql = "INSERT INTO `service_request` (`request_no`, `society_id`, `reportedby` , `summery`, `status`, `unit_id`,`email`) VALUES ('".$request_no."', '".$_SESSION['society_id']."', '".$_POST['changedby']."', '".$_POST['comments']."', '".$_POST['status']."', '".$_POST['unit']."', '".$_POST['emailID']."')";						
-		//echo $sql;		
-		$result = $this->m_dbConn->insert($sql);
-		$this->sendEmail($request_no, $_POST['changedby'], $_POST['status'], $_POST['comments'], $email, $ccEmails, $_POST['unit']);
+		$sql = "INSERT INTO `service_request_history` (`request_no`, `society_id`, `reportedby` , `summery`, `status`, `unit_id`,`email`, `img`) VALUES ('".$request_no."', '".$soc_id."', '".$_POST['changedby']."', '".$_POST['comments']."', '".$_POST['status']."', '".$_POST['unit']."', '".$_POST['emailID']."', '".$image_collection."')";						
+		//echo $sql;
+		if($soc_id != $_SESSION['society_id'])
+		{
+			$result = $this->m_landLordDB->insert($sql);
+		}
+		else
+		{
+			$result = $this->m_dbConn->insert($sql);
+		}
+		echo "prashant debug after";
+
+		// $this->sendEmail($request_no, $_POST['changedby'], $_POST['status'], $_POST['comments'], $email, $ccEmails, $_POST['unit']);
 		return;		
 	}
 	
@@ -275,8 +397,14 @@ class servicerequest
 	
 	public function getRecords($id, $type="")
 	{
+
+		$dblistsql = "Select societytbl.dbname from mapping as maptbl JOIN society as societytbl ON maptbl.society_id = societytbl.society_id JOIN dbname as db ON db.society_id = societytbl.society_id WHERE maptbl.login_id = '" . $_SESSION['login_id'] . "' and societytbl.status = 'Y' and maptbl.status = '2' ORDER BY societytbl.society_name ASC ";
+
+		$data = $this->m_dbConnRoot->select($dblistsql);
+		$dblist = array_column($data, 'dbname');
+
 		
-		 $sqlSelect="select mof.mem_other_family_id,mof.other_name,mm.unit from mem_other_family as mof JOIN member_main as mm ON mm.member_id = mof.member_id JOIN `servicerequest_category` as sc ON sc.member_id=mof.mem_other_family_id where mm.unit= '".$_SESSION['unit_id']."'";
+		$sqlSelect="select mof.mem_other_family_id,mof.other_name,mm.unit from mem_other_family as mof JOIN member_main as mm ON mm.member_id = mof.member_id JOIN `servicerequest_category` as sc ON sc.member_id=mof.mem_other_family_id where mm.unit= '".$_SESSION['unit_id']."'";
 		$MemberID = $this->m_dbConn->select($sqlSelect);
 		
 		if($MemberID <> '')
@@ -359,21 +487,41 @@ class servicerequest
 			
 			$sql .= '  ORDER BY m1.request_no DESC';
 		//echo $sql;
-			$result = $this->m_dbConn->select($sql);
-		
-		for($i=0;$i<count($result);$i++)
+		if($_SESSION['res_flag'])
 		{
-			$sql="select * from service_request where request_no='".$result[$i]['request_no']."' order by timestamp DESC";
-			$res1 = $this->m_dbConn->select($sql);
-			$result[$i]['status']=$res1[0]['status'];
-			$result[$i]['dateofrequest'] = $res1[(sizeof($res1)-1)]['dateofrequest']; 
-			$result[$i]['priority'] = $res1[(sizeof($res1)-1)]['priority']; 
-			$result[$i]['category'] = $res1[(sizeof($res1)-1)]['category']; 
-			$result[$i]['summery'] = $res1[(sizeof($res1)-1)]['summery']; 
-			$result[$i]['unit_id'] = $res1[(sizeof($res1)-1)]['unit_id']; 
-			$result[$i]['reportedby'] = $res1[(sizeof($res1)-1)]['reportedby']; 
+			// $result = [];
+			foreach($dblist as $DB) {
+				$mysqlicon = mysqli_connect(DB_HOST_SER_REQ, DB_USER_SER_REQ, DB_PASSWORD_SER_REQ, $DB);
+				$allresobj = mysqli_query($mysqlicon, $sql);
+				$allres[] = mysqli_fetch_all($allresobj, MYSQLI_ASSOC);
 				
+				mysqli_close($mysqlicon);
+			}
+			foreach ($allres as $subArray) {
+				foreach ($subArray as $item) {
+					$result[] = $item;
+				}
+			}
+			// $result = $allres;
 		}
+		else{
+			$result = $this->m_dbConn->select($sql);
+		}
+		// $landLordDB = new dbop(false,false,false,false,true);
+
+		// for($i=0;$i<count($result);$i++)
+		// {
+		// 	$sql="select * from service_request where request_no='".$result[$i]['request_no']."' order by timestamp DESC";
+		// 	$res1 = $this->m_dbConn->select($sql);
+		// 	$result[$i]['status']=$res1[0]['status'];
+		// 	$result[$i]['dateofrequest'] = $res1[(sizeof($res1)-1)]['dateofrequest']; 
+		// 	$result[$i]['priority'] = $res1[(sizeof($res1)-1)]['priority']; 
+		// 	$result[$i]['category'] = $res1[(sizeof($res1)-1)]['category']; 
+		// 	$result[$i]['summery'] = $res1[(sizeof($res1)-1)]['summery']; 
+		// 	$result[$i]['unit_id'] = $res1[(sizeof($res1)-1)]['unit_id']; 
+		// 	$result[$i]['reportedby'] = $res1[(sizeof($res1)-1)]['reportedby']; 
+				
+		// }
 	//}
 		//var_dump($result);	
 		return $result;
@@ -478,7 +626,7 @@ class servicerequest
 	}
 
 	
-	public function getViewDetails($request_no,$isview=false)
+	public function getViewDetails($request_no,$isview=false, $soc_id='')
 	{ 
 		$fieldname='request_id';
 		if($isview==true)
@@ -488,14 +636,20 @@ class servicerequest
 		if($_SESSION['role'] && ($_SESSION['role']==ROLE_ADMIN || $_SESSION['role']==ROLE_SUPER_ADMIN || $_SESSION['role']==ROLE_ADMIN_MEMBER || $_SESSION['unit_id']==0))
 		{
 			//SELECT service_request.*,`unit`.unit_no FROM `service_request` join `unit` on `service_request`.unit_id=`unit`.unit_id WHERE service_request.`society_id` = '156' AND `request_no` = '19' and `visibility`='1'
-			$sql = "SELECT service_request.* FROM `service_request` WHERE service_request.`society_id` = '".$_SESSION['society_id']."' AND `".$fieldname."` = '".$request_no."'  and  `visibility`='1'";	
+			$sql = "SELECT service_request.* FROM `service_request` WHERE service_request.`society_id` = '".$soc_id."' AND `".$fieldname."` = '".$request_no."'  and  `visibility`='1'";	
 		}
 		else
 		{
-			$sql = "SELECT service_request.* FROM `service_request` WHERE service_request.`society_id` = '".$_SESSION['society_id']."' AND `".$fieldname."` = '".$request_no."'  and  `visibility`='1'";	
+			$sql = "SELECT service_request.* FROM `service_request` WHERE service_request.`society_id` = '".$soc_id."' AND `".$fieldname."` = '".$request_no."'  and  `visibility`='1'";	
 		}
-		
-		$result = $this->m_dbConn->select($sql);
+		if($soc_id != $_SESSION['society_id'])
+		{
+			$result = $this->m_landLordDB->select($sql);
+		}
+		else
+		{
+			$result = $this->m_dbConn->select($sql);
+		}
 		$result[0]['raisedDate'] = getDisplayFormatDate($result[0]['dateofrequest']);
 		for($i = 0;$i < sizeof($result);$i++)
 		{
@@ -519,18 +673,73 @@ class servicerequest
 		}
 		return $result;
 	}
+
+	public function getreqhistory($request_no, $isview=false, $soc_id)
+	{ 
+
+		$fieldname='request_id';
+		if($isview==true)
+		{
+				$fieldname='request_no';
+		}
+
+		if($_SESSION['role'] && ($_SESSION['role']==ROLE_ADMIN || $_SESSION['role']==ROLE_SUPER_ADMIN || $_SESSION['role']==ROLE_ADMIN_MEMBER || $_SESSION['unit_id']==0))
+		{
+			//SELECT service_request.*,`unit`.unit_no FROM `service_request` join `unit` on `service_request`.unit_id=`unit`.unit_id WHERE service_request.`society_id` = '156' AND `request_no` = '19' and `visibility`='1'
+			$sql = "SELECT service_request_history.* FROM `service_request_history` WHERE service_request_history.`society_id` = '".$soc_id."' AND `".$fieldname."` = '".$request_no."'  and  `visibility`='1'";	
+		}
+		else
+		{
+			$sql = "SELECT service_request_history.* FROM `service_request_history` WHERE service_request_history.`society_id` = '".$soc_id."' AND `".$fieldname."` = '".$request_no."'  and  `visibility`='1'";	
+		}
+
+		$DBName = $this->m_objUtility->getDBName($soc_id);
+		
+		if($soc_id != $_SESSION['society_id'])
+		{
+			$_SESSION['landLordDB'] = $DBName;
+			$_SESSION['landLordSocID'] = $soc_id;
+			$landLordDBHis = new dbop(false,false,false,false,true);
+			
+			$result = $landLordDBHis->select($sql);
+		}
+		else
+		{
+			$_SESSION['landLordSocID'] = $soc_id;
+			$_SESSION['landLordDB'] = '';
+			$result = $this->m_dbConn->select($sql);
+		}
+		
+		$result[0]['raisedDate'] = getDisplayFormatDate($result[0]['dateofrequest']);
+
+		return $result;
+	}
 	
-	public function getUpdatedStatus($requestNo)
+	public function getUpdatedStatus($requestNo, $soc_id)
 	{
-		$sql = "SELECT `status` FROM `service_request` WHERE `visibility`='1' and `request_no` = '".$requestNo."'  ";
+		if($_SESSION['society_id'] != $soc_id)
+		{
+			$DBName = $this->m_objUtility->getDBName($soc_id);
+		}
+		$sql = "SELECT `status` FROM `service_request_history` WHERE `visibility`='1' and `request_no` = '".$requestNo."'  ";
 		$result = $this->m_dbConn->select($sql);
 		return $result[sizeof($result) - 1]['status'];	
 	}
 		
-	public function comboboxEx($query,$id)
+	public function comboboxEx($query, $id, $dbselected = false)
 	{ //$str.="<option value=''>All</option>";
+
+	
+		
 		$str.="<option value='0'>Please Select</option>";
-		$data = $this->m_dbConn->select($query);
+		if($dbselected){
+
+			$data = $this->m_landLordDB->select($query);
+		}else{
+			$data = $this->m_dbConn->select($query);
+		}
+		
+		
 		if(!is_null($data))
 		{
 			foreach($data as $key => $value)
@@ -646,6 +855,17 @@ class servicerequest
 			}
 		}
 		return $str;
+	}
+
+	public function getCreatedUnit($id)
+	{
+
+		$query = "SELECT u.unit_id, concat_ws(' - ', u.`unit_no`, m.`owner_name`) FROM `member_main` as m join `unit` as u on u.`unit_id` = m.`unit`";
+		if($_SESSION['landLordDB']){
+			$serReqDB = true;
+		}
+		return $this->comboboxEx($query, $id, $serReqDB);
+						
 	}
 	
 //***--------------------------Service Request Mobile Notificatiion---------------------------------

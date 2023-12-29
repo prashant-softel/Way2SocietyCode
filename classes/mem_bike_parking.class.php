@@ -4,16 +4,22 @@ include_once("include/display_table.class.php");
 include_once("dbconst.class.php");
 include_once("utility.class.php");
 
-class mem_bike_parking extends dbop
+$dbConn = new dbop();
+$dbConnRoot = new dbop(true);
+$landLordDB = new dbop(false, false, false, false, true);
+
+class mem_bike_parking
 {
 	public $actionPage = "../mem_vehicle_new.php";
 	public $m_dbConn;
+	public $landLordDB;
 	public $obj_utility;
 	
-	function __construct($dbConn)
+	function __construct($dbConn, $landLordDB)
 	{
 		$this->m_dbConn = $dbConn;
 		$this->m_dbConnRoot = new dbop(true);
+		$this->landLordDB = $landLordDB;
 		$this->display_pg=new display_table($this->m_dbConn);
 		$this->obj_utility = new utility($this->m_dbConn, $this->m_dbConnRoot);
 		//dbop::__construct();
@@ -25,47 +31,93 @@ class mem_bike_parking extends dbop
 		{
 			if($_POST['member_id']<>"" && $_POST['car_reg_no']<>"" && $_POST['car_owner']<>"" && $_POST['car_make']<>"" && $_POST['car_color']<>"")
 			{
-				$sql = "select count(*)as cnt from mem_bike_parking where member_id='".$_POST['member_id']."' and bike_reg_no='".addslashes(trim(strtoupper($_POST['bike_reg_no'])))."' and status='Y'";
-				$res = $this->m_dbConn->select($sql);
-				
-				if($res[0]['cnt']==0)
-				{
-					$insert_query="insert into mem_bike_parking (`member_id`,`parking_slot`,`bike_reg_no`,`bike_owner`,`bike_model`,`bike_make`,`bike_color`,`parking_sticker`) values ('".$_POST['member_id']."','".addslashes(trim(ucwords($_POST['parking_slot'])))."','".addslashes(trim(strtoupper($_POST['car_reg_no'])))."','".addslashes(trim(ucwords($_POST['car_owner'])))."','".addslashes(trim(ucwords($_POST['car_model'])))."','".addslashes(trim(ucwords($_POST['car_make'])))."','".addslashes(trim(ucwords($_POST['car_color'])))."','".addslashes(trim(ucwords($_POST['parking_sticker'])))."')";
-					$data = $this->m_dbConn->insert($insert_query);
-					$this->obj_utility->sendVehicleAddEmail($data,$_POST['member_id'],$_POST['unit_no'], VEHICLE_BIKE);
+				if($_SESSION['res_flag'] == 1){
+					$sql = "select count(*)as cnt from mem_bike_parking where member_id='".$_POST['member_id']."' and bike_reg_no='".addslashes(trim(strtoupper($_POST['bike_reg_no'])))."' and status='Y'";
+					$res = $this->landLordDB->select($sql);
 					
-				if(isset($_SESSION['role']) && $_SESSION['role']==ROLE_MEMBER)
-				{
-					?>
-					<script>window.location.href = '../view_member_profile.php?prf&id=<?php echo $_POST['member_id'];?>';</script>
-				<?php
-                }
-				else
-				{
-				  if($_POST['mkm']=='mkm')
+					if($res[0]['cnt']==0)
 					{
-					?>
-					<script>window.location.href = '../view_member_profile.php?scm&id=<?php echo $_POST['member_id'];?>&tikon=<?php echo time();?>';</script>
+						$insert_query="insert into mem_bike_parking (`member_id`,`parking_slot`,`bike_reg_no`,`bike_owner`,`bike_model`,`bike_make`,`bike_color`,`parking_sticker`) values ('".$_POST['member_id']."','".addslashes(trim(ucwords($_POST['parking_slot'])))."','".addslashes(trim(strtoupper($_POST['car_reg_no'])))."','".addslashes(trim(ucwords($_POST['car_owner'])))."','".addslashes(trim(ucwords($_POST['car_model'])))."','".addslashes(trim(ucwords($_POST['car_make'])))."','".addslashes(trim(ucwords($_POST['car_color'])))."','".addslashes(trim(ucwords($_POST['parking_sticker'])))."')";
+						$data = $this->landLordDB->insert($insert_query);
+						$this->obj_utility->sendVehicleAddEmail($data,$_POST['member_id'],$_POST['unit_no'], VEHICLE_BIKE);
+						
+					if(isset($_SESSION['role']) && $_SESSION['role']==ROLE_MEMBER)
+					{
+						?>
+						<script>window.location.href = '../view_tenant_profile.php?prf&id=<?php echo $_POST['member_id'];?>';</script>
 					<?php
-					}
-					else if($_POST['mrs']=='mrs')
-					{
-					?>
-					<script>window.location.href = '../mem_rem_data.php?scm';</script>
-					<?php	
 					}
 					else
 					{
-					return "Insert";
+					  if($_POST['mkm']=='mkm')
+						{
+						?>
+						<script>window.location.href = '../view_tenant_profile.php?scm&id=<?php echo $_POST['member_id'];?>&tikon=<?php echo time();?>';</script>
+						<?php
+						}
+						else if($_POST['mrs']=='mrs')
+						{
+						?>
+						<script>window.location.href = '../mem_rem_data.php?scm';</script>
+						<?php	
+						}
+						else
+						{
+						return "Insert";
+						}
+					
+					
+						
 					}
-                
-				
-                	
+					}
+					else
+					{
+						return "Already exist";
+					}	
 				}
-				}
-				else
-				{
-					return "Already exist";
+				else{
+					$sql = "select count(*)as cnt from mem_bike_parking where member_id='".$_POST['member_id']."' and bike_reg_no='".addslashes(trim(strtoupper($_POST['bike_reg_no'])))."' and status='Y'";
+					$res = $this->m_dbConn->select($sql);
+					
+					if($res[0]['cnt']==0)
+					{
+						$insert_query="insert into mem_bike_parking (`member_id`,`parking_slot`,`bike_reg_no`,`bike_owner`,`bike_model`,`bike_make`,`bike_color`,`parking_sticker`) values ('".$_POST['member_id']."','".addslashes(trim(ucwords($_POST['parking_slot'])))."','".addslashes(trim(strtoupper($_POST['car_reg_no'])))."','".addslashes(trim(ucwords($_POST['car_owner'])))."','".addslashes(trim(ucwords($_POST['car_model'])))."','".addslashes(trim(ucwords($_POST['car_make'])))."','".addslashes(trim(ucwords($_POST['car_color'])))."','".addslashes(trim(ucwords($_POST['parking_sticker'])))."')";
+						$data = $this->m_dbConn->insert($insert_query);
+						$this->obj_utility->sendVehicleAddEmail($data,$_POST['member_id'],$_POST['unit_no'], VEHICLE_BIKE);
+						
+					if(isset($_SESSION['role']) && $_SESSION['role']==ROLE_MEMBER)
+					{
+						?>
+						<script>window.location.href = '../view_member_profile.php?prf&id=<?php echo $_POST['member_id'];?>';</script>
+					<?php
+					}
+					else
+					{
+					  if($_POST['mkm']=='mkm')
+						{
+						?>
+						<script>window.location.href = '../view_member_profile.php?scm&id=<?php echo $_POST['member_id'];?>&tikon=<?php echo time();?>';</script>
+						<?php
+						}
+						else if($_POST['mrs']=='mrs')
+						{
+						?>
+						<script>window.location.href = '../mem_rem_data.php?scm';</script>
+						<?php	
+						}
+						else
+						{
+						return "Insert";
+						}
+					
+					
+						
+					}
+					}
+					else
+					{
+						return "Already exist";
+					}
 				}
 			}
 			else

@@ -92,7 +92,7 @@ $m_objHead_S = new head($m_dbConnRoot,$m_dbConn);
              <div class="navbar-default sidebar" role="navigation"  <?php if($bIsHide == true){ echo 'style="display:none;"';}else{echo 'style="font-size:10px;font-size:1.00vw;"';} ?>>
                     <div class="sidebar-nav navbar-collapse" style="line-height:4px;line-height:1.3vw;vertical-align:middle;">
                         <ul class="nav" id="side-menu">
-                        <li>
+                            <li>
                                 <a href="client.php"><i class="fa fa-th-list fa-fw"></i> Client List</a>
                             </li>
                             <li>

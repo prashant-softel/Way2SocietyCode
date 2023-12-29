@@ -121,12 +121,12 @@ $arBankDetails = $obj_AdminPanel->GetBankAccountAndBalance();
 	{
 		var fromDate = document.getElementById('from_date').value;
 		var toDate = document.getElementById('to_date').value;		
-		var isFromDateValid = jsdateValidator('from_date',fromDate,minGlobalCurrentYearStartDate,maxGlobalCurrentYearEndDate);
-		var isToDateValid = jsdateValidator('to_date',toDate,minGlobalCurrentYearStartDate,maxGlobalCurrentYearEndDate);
-		if(isFromDateValid == false || isToDateValid == false)
-		{
-			return false;	
-		}
+		// var isFromDateValid = jsdateValidator('from_date',fromDate,minGlobalCurrentYearStartDate,maxGlobalCurrentYearEndDate);
+		// var isToDateValid = jsdateValidator('to_date',toDate,minGlobalCurrentYearStartDate,maxGlobalCurrentYearEndDate);
+		// if(isFromDateValid == false || isToDateValid == false)
+		// {
+		// 	return false;	
+		// }
 		return true;
 	}
 	
@@ -138,8 +138,8 @@ $arBankDetails = $obj_AdminPanel->GetBankAccountAndBalance();
 			showOn: "both", 
 			buttonImage: "images/calendar.gif", 
 			buttonImageOnly: true,
-			minDate: minGlobalCurrentYearStartDate,
-			maxDate: maxGlobalCurrentYearEndDate
+			yearRange : '-1:+2'
+			
 		})});
 	
 	window.onfocus = function() {

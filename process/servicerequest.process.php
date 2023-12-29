@@ -1,14 +1,31 @@
 <?php	
 	include_once("../classes/include/dbop.class.php");
 	include_once("../classes/servicerequest.class.php");
-	include_once("../classes/dbconst.class.php");		
+	include_once("../classes/dbconst.class.php");
+	include_once("../classes/utility.class.php");
+
 	$dbConn = new dbop();
-	$obj_servicerequest=new servicerequest($dbConn,$dbConnRoot);
-	$actionPage = "";
+	$dbConnRoot = new dbop(true);
+	$landLordDB = new dbop(false,false,false,false,true);
+	$obj_servicerequest=new servicerequest($dbConn, $dbConnRoot, $landLordDB);
+	$m_objUtility = new utility($dbConn, $dbConnRoot);
+
+	if(isset($_POST['selSocID']))
+	{	
+		$DBName = $m_objUtility->getDBName($_POST['selSocID']);		
+		$_SESSION['landLordDB'] = $DBName;
+		$_SESSION['landLordSocID'] = $_POST['selSocID'];
+		if($_SESSION['dbname'] === $_SESSION['landLordDB']){
+			$_SESSION['landLordDB'] = '';
+		}
+		exit;
+	}
+
 	if(isset($_REQUEST['vr']))
 	{			
-		$validator = $obj_servicerequest->insertComments($_REQUEST['vr'], $_POST['emailID'],$_POST['SREmailIDs']);
-		$actionPage = "../viewrequest.php?rq=".$_REQUEST['vr'];
+		$validator = $obj_servicerequest->insertComments($_REQUEST['vr'], $_POST['emailID'],$_POST['SREmailIDs'], $_SESSION['landLordSocID']);
+	
+		$actionPage = "../viewrequest.php?rq=".$_REQUEST['vr']."&socid=".$_SESSION['landLordSocID'];
 	}
 	else
 	{		

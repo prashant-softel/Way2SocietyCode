@@ -367,6 +367,7 @@ function ApplyValues()
 		window.alert("Please select Dues From Members option");
 		return false;
 	}
+	
 	var contributionfrommember = document.getElementById('default_contribution_from_member').value;
 	if(contributionfrommember  == "0" || contributionfrommember  == "")
 	{
@@ -393,6 +394,7 @@ function ApplyValues()
 		window.alert("Please select Suspense A/C option");
 		return false;
 	}
+	var dueFromTenant = document.getElementById('default_due_from_tenant').value;
 	var defaultLedgerRoundOff = document.getElementById('default_ledger_round_off').value;
 	var igstServiceTax = document.getElementById('igst_service_tax').value;
 	var cgstServiceTax = document.getElementById('cgst_service_tax').value;
@@ -404,6 +406,8 @@ function ApplyValues()
 	var Sundrycreditor = document.getElementById('default_Sundry_creditor').value;
 	var defaultSinkingFund  =  document.getElementById('default_sinking_fund').value;
 	var defaultInvestmentRegister =  document.getElementById('default_investment_register').value;
+	var default_sd_category  =  document.getElementById('default_sd_category').value;
+	var default_bank_id =  document.getElementById('default_bank_id').value;
 
 	
 	if(defaultSociety == 0 /*|| !EmailValidation*/)
@@ -446,6 +450,9 @@ function ApplyValues()
 					'Sundrycreditor':Sundrycreditor, 
 					'defaultSinkingFund'    : defaultSinkingFund,
 					'defaultInvestmentRegister'    : defaultInvestmentRegister,
+					'dueFromTenant': dueFromTenant,
+					'default_sd_category': default_sd_category,
+					'default_bank_id': default_bank_id
 					};
 					
 		remoteCallNew(sURL, obj, 'defaultsApplied');

@@ -9,8 +9,11 @@
 ?>
 <?php
 include_once("classes/list_member.class.php");
+include_once("classes/initialize.class.php");
 
 $obj_list_member = new list_member($m_dbConn);
+$obj_initialize = new initialize($m_dbConnRoot);
+// print_r($_SESSION);
 ?>
 <link rel="stylesheet" type="text/css" href="css/pagination.css" >
 	<link href="css/messagebox.css" rel="stylesheet" type="text/css" />
@@ -180,6 +183,31 @@ if(localStorage.getItem("client_id") != "" && localStorage.getItem("client_id") 
 //alert("End of function");
 });		
 
+$(document).ready(function(){
+	var socID = '<?php echo $_SESSION['landLordSocID']; ?>' ;
+	if(socID) {
+		document.getElementById('mapid').value = socID;
+	}
+//console.log("demo3");
+});
+
+
+function selectDB(){
+		let dbname = document.getElementById('mapid').value;
+		console.log(dbname);
+		$.ajax({
+		url: "process/list_member.process.php",
+		type:"POST",
+		data: {'selSocID':dbname},
+		success: function(data)
+		{
+			location.reload();
+
+		}
+	});
+	}
+
+
 </script>
 
 <?php if(isset($_REQUEST['del'])){ ?>
@@ -191,21 +219,69 @@ if(localStorage.getItem("client_id") != "" && localStorage.getItem("client_id") 
 <!--<center><h2><font color="#43729F"><b><?php //echo $obj_list_member->display_society_name($_SESSION['society_id']);?></b></font></h2>-->
 <br><center>
 <div class="panel panel-info" id="panel" style="display:none">
-<div class="panel-heading" id="pageheader">List of Members</div>
-
+	
+<?php if($_SESSION['res_flag']==1)
+{
+	?>
+     <div class="panel-heading" id="pageheader">List of Properties</div>
+	<?php
+	}else if($_SESSION['rental_flag'] == 1){ ?>
+		<div class="panel-heading" id="pageheader">List of Units</div>
+<?php
+	}else{ ?>
+		<div class="panel-heading" id="pageheader">List of Members</div>
+<?php
+	}
+?>
 <center>
 	<br>
 <!--<a href="unit.php?imp&ssid=<?php echo $_SESSION['society_id'];?>&idd=<?php echo time();?>"><input type="button" value="Add Unit"></a>-->
 <?php if($_SESSION['role']==ROLE_SUPER_ADMIN || $_SESSION['profile'][PROFILE_MANAGE_MASTER] == 1) 
 { ?>
-<button type="button" class="btn btn-primary" onClick="window.location.href='unit.php?imp&ssid=<?php echo $_SESSION['society_id'];?>&idd=<?php echo time();?>'" style="float:center;margin-right:2%">Add New Unit</button>
-<button type="button" class="btn btn-primary"  onClick="window.open('list_member.php?scm')" style="float:center;margin-right:2%" >Member Reports</button>
-<?php } ?>
+		<?php if($_SESSION['res_flag'] == 1){ 
+				if($_SESSION['landLordDB'] <> ''){?>
+					<button type="button" class="btn btn-primary" id = "add_unit" onClick="window.location.href='rentalunit.php?imp&ssid=<?php echo $_SESSION['society_id'];?>&idd=<?php echo time();?>'" style="float:center;margin-right:2%">Add New Unit</button>
+				<?php }else{ ?>
+					<button type="button" class="btn btn-primary" disabled id = "add_unit" onClick="window.location.href='rentalunit.php?imp&ssid=<?php echo $_SESSION['society_id'];?>&idd=<?php echo time();?>'" style="float:center;margin-right:2%">Add New Unit</button>
+				<?php }
+			}else if($_SESSION['rental_flag'] == 1)
+			{ ?>
+				<button type="button" class="btn btn-primary" onClick="window.location.href='rentalunit.php?imp&ssid=<?php echo $_SESSION['society_id'];?>&idd=<?php echo time();?>'" style="float:center;margin-right:2%">Add New Unit</button>
+			<?php }
+			else
+			{ ?>
+				<button type="button" class="btn btn-primary" onClick="window.location.href='unit.php?imp&ssid=<?php echo $_SESSION['society_id'];?>&idd=<?php echo time();?>'" style="float:center;margin-right:2%">Add New Unit</button>
+			<?php } ?> 
+        <?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+			
+		<?php }
+		else
+		{ ?>
+			<button type="button" class="btn btn-primary"  onClick="window.open('list_member.php?scm')" style="float:center;margin-right:2%" >Member Report</button>	
+		<?php } 
+
+
+	if($_SESSION['res_flag'] == 1) {?>
+		<br/><br/>
+		<span style="font-size: 14px; font-style: revert;">
+			<label>Select Landlords: </label>
+		</span>
+		<select id="mapid" name="mapid" style="width:142px;" onChange= "selectDB(this.value);" value="<?php echo $_REQUEST['mapid']; ?>">
+			<?php  echo $mapList = $obj_initialize->combobox("Select societytbl.society_id, concat_ws(' - ',societytbl.society_id, societytbl.society_name) from mapping as maptbl JOIN society as societytbl ON maptbl.society_id = societytbl.society_id JOIN dbname as db ON db.society_id = societytbl.society_id WHERE maptbl.login_id = '" . $_SESSION['login_id'] . "' and societytbl.rental_flag = 1 and societytbl.status = 'Y' and maptbl.status = '2' ORDER BY societytbl.society_name ASC ", $_SESSION['current_mapping']);?>		
+			<input type="hidden" name="mode" value="set" />
+		</select>
+		<?php 
+		} 
+}?>
+
+
 
 <table align="center" border="0" style="width:100%">
+
 <tr>
 	<td valign="top" align="center"><font color="red"><?php if(isset($_GET['del'])){echo "<b id=error_del>Record deleted Successfully</b>";}else{echo '<b id=error_del></b>';} ?></font></td>
 </tr>
+
 <tr>
 <td>
 <?php

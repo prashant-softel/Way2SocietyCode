@@ -674,7 +674,7 @@
 				$sBillTypeText  = '';
 				if($_REQUEST['BT'] == Maintenance)
 				{
-					//$sBillTypeText = 'Reminder Maintenance ';
+					//$sBillTypeText = 'Revised Maintenance ';
 					$sBillTypeText = 'Maintenance ';
 				}
 				else if($_REQUEST['BT'] == Supplementry)

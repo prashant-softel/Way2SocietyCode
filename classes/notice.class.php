@@ -1612,6 +1612,11 @@ union Select CONCAT('T-',u.`unit_id`) as MemberId,CONCAT(u.`unit_no`,'-',t.`mem_
 		{
 			$sql = "Select mm.unit as MemberId, mof.other_name as other_name from tenant_module as tm join member_main as mm on mm.unit=tm.unit_id join mem_other_family as mof on mof.member_id = mm.member_id group by mm.unit";
 			$memId = $this->m_dbConn->select($sql);
+		}
+		else if($gId == "1BHK")
+		{
+			$sql = "Select u.`unit_id` as MemberId, CONCAT(u.`unit_no`,'-',m.`primary_owner_name`,'') as other_name from member_main as m, unit as u where m.ownership_status = '1' and m.`unit` = u.`unit_id` and u.flat_configuration='1BHK' order by u.unit_no" ;
+			$memId = $this->m_dbConn->select($sql);
 		} 
 		else
 		{

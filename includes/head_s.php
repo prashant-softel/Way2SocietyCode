@@ -3,6 +3,7 @@ if(!isset($_SESSION)){ session_start(); }
 //include_once("classes/include/dbop.class.php");
 include_once("classes/include/check_session.php");
 include_once("classes/head_s.class.php");
+include_once("../datatable_script.php");
 include_once("header.php");
 include_once("classes/tips.class.php");
 $obj_tips=new tips($m_dbConnRoot,$m_dbConn);
@@ -286,7 +287,7 @@ if(sizeof($TipsDetails) > 0)
 $script   = $_SERVER['SCRIPT_NAME'];
 $pos = strrpos($script, '/');
 	$scriptName = substr($script, ($pos + 1));
-	if($scriptName=='home_s.php' || $scriptName=='Dashboard.php' )
+	if($scriptName=='home_s.php' || $scriptName=='Dashboard.php' || $scriptName=='home_res.php')
 	{
   if($_SESSION['View']==ADMIN)
   {?>
@@ -370,10 +371,11 @@ else {?>
 	}
 	function ShowAdminView(SelectedTab)
 	{
-		
-		
-		window.location.href = "home_s.php?View=ADMIN";
-		
+		if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+            window.location.href = "home_res.php?View=ADMIN";
+        }else{
+            window.location.href = "home_s.php?View=ADMIN";
+		}
 		//location.reload(true);
 	}
 </script>

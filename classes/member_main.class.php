@@ -225,22 +225,53 @@ class member_main extends dbop
 		$res = $this->m_dbConn->select($sql);	
 		
 		$ownerNameArr = array();
-		$sqlQuery = "SELECT `unit`, `owner_name` FROM `member_main`";
+		$TLedgerArr = array();
+		if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1)
+		{
+			$sqlQuery = "SELECT `unit_id` as unit, `tenant_name` as owner_name FROM `tenant_module` where end_date >= NOW()";
+			//$sqlQuery = "SELECT `ledger_id` as unit, `tenant_name` as owner_name FROM `tenant_module` where end_date >= NOW()";
+		}
+		else
+		{
+			$sqlQuery = "SELECT `unit`, `owner_name` FROM `member_main`";
+		}
+	
 		$ownerName = $this->m_dbConn->select($sqlQuery);
+		
 		for($i = 0; $i < sizeof($ownerName); $i++)
 		{
-			$ownerNameArr[$ownerName[$i]['unit']] = $ownerName[$i]['owner_name'];	
+			$ownerNameArr[$ownerName[$i]['unit']] = $ownerName[$i]['owner_name'];
+			//$TLedgerArr[$ownerName[$i]['unit']] = $ownerName[$i]['ledger_id'];	
 		}
-		
+	//print_r($TLedgerArr);
 		if($res<>"")
 		{
 			$aryResult = array();
 			array_push($aryResult,array('success'=>'0'));
+			$cnt =1;
+			//echo "flag".$_SESSION['res_flag'];
+			//echo "flag r".$_SESSION['rental_flag'];
 			foreach($res as $k => $v)
-			{
-			 	$show_dtl = array("id"=>$res[$k]['unit_id'], "unit"=>$res[$k]['unit_no']." ".$ownerNameArr[$res[$k]['unit_id']], "wing"=>$res[$k]['wing'], "area"=>$res[$k]['area']);
-				array_push($aryResult,$show_dtl);
+			{  
+		 	    if(($ownerNameArr[$res[$k]['unit_id']] <> "") && ($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1))
+				{
+					$sql = "SELECT `ledger_id` FROM `tenant_module` where unit_id ='".$res[$k]['unit_id']."' and end_date >= NOW()";
+					
+					$tLedger = $this->m_dbConn->select($sql);
+					
+					$show_dtl = array("id"=>$res[$k]['unit_id'], "unit"=>$res[$k]['unit_no']." ".$ownerNameArr[$res[$k]['unit_id']], "wing"=>$res[$k]['wing'], "area"=>$res[$k]['area'],"unit_no"=>$res[$k]['unit_no'],"TLedgerID"=>$tLedger[0]['ledger_id'] );
+					array_push($aryResult,$show_dtl);
+				}
+				else if($_SESSION['res_flag'] == 0 && $_SESSION['rental_flag'] == 0)
+				{
+					//echo "In else";
+					$show_dtl = array("id"=>$res[$k]['unit_id'], "unit"=>$res[$k]['unit_no']." ".$ownerNameArr[$res[$k]['unit_id']], "wing"=>$res[$k]['wing'], "area"=>$res[$k]['area'],"unit_no"=>$res[$k]['unit_no'],"TLedgerID"=>0);
+					array_push($aryResult,$show_dtl);
+					}
+			 	
+				
 			}
+			
 			echo json_encode($aryResult);
 		}
 		else

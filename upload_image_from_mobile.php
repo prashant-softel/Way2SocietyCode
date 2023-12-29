@@ -1,4 +1,5 @@
 <?php
+	echo "test";
 	$errorfile_name = 'image_upload_errorlog.txt';
 	//$this->errorLog = $this->errorfile_name;
 	$errorfile = fopen($errorfile_name, "a");
@@ -60,6 +61,7 @@
 		}
 		else if($_REQUEST['feature'] == 2) //Feature Service Request
 		{
+echo "Test";
 			include_once ("classes/include/dbop.class.php");
 
 			$target_path = "upload/main/";
@@ -258,7 +260,65 @@
 		    	echo "There was an error uploading the file, please try again!";
 			}
 		}
-		else if($_REQUEST['feature'] == 6) //Renovation documents
+else if($_REQUEST['feature'] == 6) //Feature Task
+		{
+
+			include_once ("classes/include/dbop.class.php");
+
+			$society_id = $_REQUEST['society_id'];
+			$task_id = $_REQUEST['task_id'];
+			$target_path = "../Uploaded_Documents/Tasks/".$society_id."/Task_id_".$task_id."/"; 
+			if(!file_exists($target_path))
+			{
+				mkdir($target_path, 0777, true);
+			}
+			else
+			{
+				chmod($target_path, 0777,true);
+			}
+		 
+			$target_path = $target_path . basename($_FILES['file']['name']);
+		 	//$file_path = $target_path.basename($_FILES['file']['name']);  
+			if (move_uploaded_file($_FILES['file']['tmp_name'], $target_path))
+			{
+				$dbName = getDBName($_REQUEST['token'], $_REQUEST['tkey']);
+				$dbConn = new dbop(false, $dbName);
+				
+				$update_query = "UPDATE tasklist SET Attachment = '".$target_path."' where id = '".$task_id."'";
+				$Update_result = $this->m_dbConn->update($update_query);
+				
+				/*$selectServiceRequest = "Select * from `service_request` where `request_id` = '" . $service_request_id . "'";
+				$selectResult = $dbConn->select($selectServiceRequest);
+
+				if($selectResult <> '')
+				{
+					$img = $selectResult[0]['img'];
+
+					if($img <> '')
+					{
+						$imgArray = explode(',', $img);
+
+						array_push($imgArray, basename($_FILES['file']['name']));
+
+						$updateServiceRequest = "Update `service_request` SET `img` = '" . implode(',', $imgArray) . "' where `request_id` = '" . $service_request_id . "'";
+					}
+					else
+					{
+						$updateServiceRequest = "Update `service_request` SET `img` = '" . basename($_FILES['file']['name']) . "' where `request_id` = '" . $service_request_id . "'";
+					}
+
+					$updateResult = $dbConn->update($updateServiceRequest);
+				}*/
+
+		    	echo "Upload and move success";
+			} 
+			else 
+			{
+				echo $target_path;
+		    	echo "There was an error uploading the file, please try again!";
+			}
+		}
+		else if($_REQUEST['feature'] == 7) //Renovation documents
 		{
 			try{
 				//$errormsg = "starting image upload from Renovation";

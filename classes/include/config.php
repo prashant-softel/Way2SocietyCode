@@ -23,6 +23,16 @@ if($_SERVER['HTTP_HOST']=="localhost")
 	define("DB_USER_SMROOT","root");
 	define("DB_PASSWORD_SMROOT","");
 	define("DB_DATABASE_SMROOT","security_rootdb");
+
+	define("DB_HOST_SER_REQ","localhost");
+	define("DB_USER_SER_REQ","root");
+	define("DB_PASSWORD_SER_REQ","");
+	define("DB_DATABASE_SER_REQ",$_SESSION['landLordDB']);
+
+	define("DB_HOST_SER_REQ_ROOT","localhost");
+	define("DB_USER_SER_REQ_ROOT","root");
+	define("DB_PASSWORD_SER_REQ_ROOT","");
+	define("DB_DATABASE_SER_REQ_ROOT","hostmjbt_society265");
 }
 else
 {
@@ -63,6 +73,16 @@ else
 		define("DB_USER_SMROOT","root");
 		define("DB_PASSWORD_SMROOT","aws123");
 		define("DB_DATABASE_SMROOT","security_rootdb");
+
+		define("DB_HOST_SER_REQ","localhost");
+		define("DB_USER_SER_REQ","root");
+		define("DB_PASSWORD_SER_REQ","aws123");
+		define("DB_DATABASE_SER_REQ",$_SESSION['landLordDB']);
+		
+		define("DB_HOST_SER_REQ_ROOT","localhost");
+		define("DB_USER_SER_REQ_ROOT","root");
+		define("DB_PASSWORD_SER_REQ_ROOT","aws123");
+		define("DB_DATABASE_SER_REQ_ROOT","hostmjbt_society265");
 	}
 }
 ?>

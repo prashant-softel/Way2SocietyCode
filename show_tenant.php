@@ -8,11 +8,13 @@ include_once("includes/head_s.php");
 //include_once("classes/home_s.class.php");
 include_once "classes/include/dbop.class.php";
 include_once("classes/dbconst.class.php");
+include_once("classes/initialize.class.php");
 include_once("classes/tenant.class.php");
 include_once("classes/include/fetch_data.php");
 include_once("classes/utility.class.php");
 
 $obj_Utility =  new utility($m_dbConn);
+$obj_initialize = new initialize($m_dbConnRoot);
 $objFetchData = new FetchData($m_dbConn);
 $objFetchData->GetSocietyDetails($_SESSION['society_id']);
 $obj_tenant = new tenant($m_dbConn);
@@ -38,6 +40,7 @@ $details = $obj_tenant->getRecords();
 	 {
 		page-break-inside: avoid;
 	}
+}
 </style>
 <script type="text/javascript" src="js/tenant_20190424.js"></script>
 <script type="text/javascript" src="js/ajax.js"></script>
@@ -49,6 +52,25 @@ function Expoort()
 	window.open('data:application/vnd.ms-excel,' + encodeURIComponent( $("#showTable").html()));
 	document.getElementById('societyname').style.display ='none';	
 }
+$(document).ready(function(){
+	var socID = '<?php if($_SESSION['rental_flag'] == 1){echo $_SESSION['society_id'];} else{echo $_SESSION['landLordSocID'];}  ?>' ;
+	if(socID) {
+		document.getElementById('mapid').value = socID;
+	}
+});
+function selectDB(){
+		let dbname = document.getElementById('mapid').value;
+		console.log(dbname);
+		$.ajax({
+		url: "process/rentaltenant.process.php",
+		type:"POST",
+		data: {'selSocID':dbname},
+		success: function(data)
+		{
+			location.reload();
+		}
+	});
+	}
 </script>
 </head>
 
@@ -64,13 +86,24 @@ function Expoort()
             <tr> <td colspan="3"> <br /> </td> </tr>
             <tr align="left">
                 <td valign="middle"></td>
+                <?php if($_SESSION['res_flag'] == 1){ ?>
+                    <td valign="middle"><b>Select LandLords </b></td>
+                    <td valign="middle">&nbsp; : &nbsp;</td>
+                    <td valign="middle">
+                        <select id="mapid" name="mapid" style="width:8vw;" onChange= "selectDB(this.value);" value="<?php echo $_REQUEST['mapid']; ?>"<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN && $_SESSION['res_flag'] == 1) { }else{echo 'disabled';} ?>>
+                        <?php echo $mapList = $obj_initialize->combobox("Select societytbl.society_id, concat_ws(' - ', societytbl.society_id,societytbl.society_name) from mapping as maptbl JOIN society as societytbl ON maptbl.society_id = societytbl.society_id JOIN dbname as db ON db.society_id = societytbl.society_id WHERE maptbl.login_id = '" . $_SESSION['login_id'] . "' and societytbl.rental_flag = 1 and societytbl.status = 'Y' and maptbl.status = '2' ORDER BY societytbl.society_name ASC ", $_SESSION['current_mapping']);?>		
+                        <input type="hidden" name="mode" value="set" />
+                        </select>
+                    </td>
+                    <br/><br/><br/>
+                <?php }?>
                 <td valign="middle"><b>Select</b></td>
                 <td valign="middle">&nbsp; : &nbsp;</td>
                 <td valign="middle"><select id="TenantList" name="TenantList" style="width:8vw;" value= <?php echo $_REQUEST['TenantList']?>>
                 <option value="0">All</option>
                 <option value="1">Lease Active </option>
                 <option value="2">Lease Expired </option>
-                <option value="3">Lease Expiring in one month</option>
+                <option value="3">Lease Expiring in Three month</option>
                	<option value="4">Waiting For Approval</option>
                 <option value="5">Lease Expired but not renewed</option>
              	
@@ -78,7 +111,11 @@ function Expoort()
                
                 <td  align="center">                               	                         
                     &nbsp;&nbsp;
-                    <input type="button" name="Fetch" id="Fetch" value="Fetch"  class="btn btn-primary"  onclick="FetchTenantHistory(<?php echo $_SESSION['society_id']?>);" /> 
+                    <?php if($_SESSION['res_flag'] == 1){ ?> 
+                        <input type="button" name="Fetch" id="Fetch" value="Fetch"  class="btn btn-primary"  onclick="FetchTenantHistory(<?php echo $_SESSION['landLordSocID']?>);" /> 
+                    <?php }else{ ?>
+                        <input type="button" name="Fetch" id="Fetch" value="Fetch"  class="btn btn-primary"  onclick="FetchTenantHistory(<?php echo $_SESSION['society_id']?>);" /> 
+                    <?php }?>
                  </td>
                 <td>
                 	

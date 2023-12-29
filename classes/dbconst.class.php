@@ -63,6 +63,7 @@
 	define('PRIMARY', 1); //1
 	define('CURRENT_ASSET', $_SESSION['default_current_asset']);	//2
 	define('DUE_FROM_MEMBERS', $_SESSION['default_due_from_member']);	//3
+	define('DUE_FROM_TENANTS', $_SESSION['default_due_from_tenant']);	//3
 	define('BANK_ACCOUNT', $_SESSION['default_bank_account']);	//6
 	define('CASH_ACCOUNT', $_SESSION['default_cash_account']);	//6
 	define('FIXED_ASSET', $_SESSION['default_fixed_asset']);
@@ -196,6 +197,7 @@
 	
 	//UserProfiles
 	define('PROFILE_HOME', 'home_s.php');
+	define('PROFILE_HOME_RES', 'home_res.php');
 	define('PROFILE_GENERATE_BILL', 'genbill.php');
 	define('PROFILE_CREATE_INVOICE', 'sale_invoice_list.php');
 	define('PROFILE_EDIT_BILL', 'Maintenance_bill.php');
@@ -338,6 +340,13 @@
 	define("PRIORITY_HIGH", 3);
 	define("PRIORITY_CRITICAL", 4);
 	
+	define("RAISED", "#337ab7");
+	define("ASSIGNED", "#ffc107");
+	define("IN_PROCESS", "#31b0d5");
+	define("RESOLVED", "#4caf50");
+	define("CLOSED", "#f44336");
+	define("REOPEN", "#6c757d");
+	define("WAITING_FOR_DETAILS", "#e1e7ed");
 	
 	//Module Type Id in appdefault_new table
 	
@@ -353,7 +362,7 @@
 	define("LIEN_DELETE","deleted");
 	
 	//Notification WarFile Constant	
-	define("WAR_FILE","W2S");
+	define("WAR_FILE","W2S1");
 	
 	//These settings are for AWS TLS. But not working
 	define("SMTP_Username","AKIAWORPNMPGX76CCAPQ");

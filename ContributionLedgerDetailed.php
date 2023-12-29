@@ -8,15 +8,21 @@ include_once "ses_set_s.php";
 include_once("includes/head_s.php");  
 include_once "classes/include/dbop.class.php";
 $dbConn = new dbop();
+$landLordDB = new dbop(false,false,false,false,true);
 include_once "classes/dbconst.class.php";
 include_once("classes/include/fetch_data.php");
 include_once("classes/genbill.class.php");
 include_once("classes/utility.class.php");
-$obj_Utility =  new utility($dbConn);
-$obj_genbill = new genbill($dbConn);
+include_once("classes/initialize.class.php");
+$obj_Utility =  new utility($dbConn,null,$landLordDB);
+$obj_genbill = new genbill($dbConn,null,$landLordDB);
 $objFetchData = new FetchData($dbConn);
-	$objFetchData->GetSocietyDetails($_SESSION['society_id']);
-$memberIDS = $obj_Utility->getMemberIDs($_SESSION['default_year_end_date']);	
+$obj_initialize = new initialize($m_dbConnRoot);
+$objFetchData->GetSocietyDetails($_SESSION['society_id']);
+$memberIDS = $obj_Utility->getMemberIDs($_SESSION['default_year_end_date']);
+$tenantIDS = $obj_Utility->getTenantIDs($_SESSION['default_year_end_date']);
+
+
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -52,8 +58,9 @@ select.dropdown {
 		 {
 			page-break-inside: avoid;
 		}
+	}
 </style>
-<script type="text/javascript" src="js/jsContributionLedgerDetailed.js?08092023"></script>
+<script type="text/javascript" src="js/jsContributionLedgerDetailed.js"></script>
 <script type="text/javascript" src="js/ajax.js"></script>
 <script type="text/javascript" src="js/ajax_new.js"></script>
     
@@ -98,6 +105,29 @@ function uncheckDefaultCheckBox(id)
 	}
 	
 }
+
+$(document).ready(function(){
+	var socID = '<?php echo $_SESSION['landLordSocID']; ?>' ;
+	if(socID) {
+		document.getElementById('mapid').value = socID;
+	}
+//console.log("demo3");
+});
+
+
+function selectDB(){
+		let dbname = document.getElementById('mapid').value;
+		console.log(dbname);
+		$.ajax({
+		url: "process/list_member.process.php",
+		type:"POST",
+		data: {'selSocID':dbname},
+		success: function(data)
+		{
+			location.reload();
+		}
+	});
+	}
 	</script>
 <script>
 function Expoort()
@@ -121,16 +151,21 @@ function Expoort()
 <br />
 	<form name="accounting_report" id="accounting_report" method="post">
         <table>
-        <tr> <td valign="middle"></td>
-                <td><b>Bill Type</b></td>
-                <td>&nbsp; : &nbsp;</td>
-                <td>
-                <select id="billType" name="billType">
-                <option value="0">Maintenace</option>
-                <option value="1">Supplymentry</option>
-                <option value="2">Invoces</option>
-                </select></td> </tr>
-            <tr> <td colspan="3"> <br /> </td> </tr>
+            <tr> <td colspan="2"> <br /> </td> </tr>
+			<?php if($_SESSION['res_flag'] == 1){ ?>
+				<tr align="left">
+					<td valign="middle"></td>
+					<td><b>LandLords</b></td>
+					<td>&nbsp; : &nbsp;</td>
+					<td>
+					<select id="mapid" name="mapid" style="width:142px;" onChange= "selectDB(this.value);" value="<?php echo $_REQUEST['mapid']; ?>">
+						<?php  echo $mapList = $obj_initialize->combobox("Select societytbl.society_id, concat_ws(' - ',societytbl.society_id, societytbl.society_name) from mapping as maptbl JOIN society as societytbl ON maptbl.society_id = societytbl.society_id JOIN dbname as db ON db.society_id = societytbl.society_id WHERE maptbl.login_id = '" . $_SESSION['login_id'] . "' and societytbl.rental_flag = 1 and societytbl.status = 'Y' and maptbl.status = '2' ORDER BY societytbl.society_name ASC ", $_SESSION['current_mapping']);?>		
+						<input type="hidden" name="mode" value="set" />
+					</select>
+					</td>
+					<td><br /><br /><br /></td>
+				</tr>
+			<?php } ?>
             <tr align="left">
                 <td valign="middle"></td>
                 <td><b>Unit No</b></td>
@@ -148,21 +183,44 @@ function Expoort()
             	<div style="overflow-y:scroll;overflow-x:hidden;width:355px; height:150px; border:solid #CCCCCC 2px;" name="unit_no[]" id="unit_no" >
                 	<p id="msgDiv" style="display:none;"></p>
                 	<?php //echo $combo_unit = $obj_genbill->comboboxForLedgerReport("select unit.unit_id, CONCAT_WS(' - ',unit.unit_no,member_main.owner_name) as name from `unit` JOIN `member_main` on unit.unit_id = member_main.unit where unit.society_id = '" . $_SESSION['society_id'] . "'    and  member_main.member_id IN (SELECT `member_id` FROM (select  `member_id` from `member_main` where ownership_date <= '" .$_SESSION['default_year_end_date']. "'  ORDER BY ownership_date desc) as member_id Group BY unit) Group BY unit.unit_id ORDER BY unit.sort_order ASC",0,'All','0');
-					echo $combo_unit = $obj_genbill->comboboxForLedgerReport("select unit.unit_id, CONCAT_WS(' - ',unit.unit_no,member_main.owner_name) as name from `unit` JOIN `member_main` on unit.unit_id = member_main.unit where unit.society_id = '" . $_SESSION['society_id'] . "'    and  member_main.member_id IN ($memberIDS) ORDER BY unit.sort_order ASC",0,'All','0');?>
+					if($_SESSION['res_flag'] == 1){
+						echo $combo_unit = $obj_genbill->comboboxForLedgerReport("select unit.unit_id, CONCAT_WS(' - ',unit.unit_no,tenant_module.tenant_name) as name from `unit` JOIN `tenant_module` on unit.unit_id = tenant_module.unit_id where unit.society_id = '" . $_SESSION['landLordSocID'] . "'    and  tenant_module.tenant_id IN ($tenantIDS) ORDER BY unit.sort_order ASC",0,'All','0');
+					}elseif($_SESSION['rental_flag'] == 1){
+						echo $combo_unit = $obj_genbill->comboboxForLedgerReport("select unit.unit_id, CONCAT_WS(' - ',unit.unit_no,tenant_module.tenant_name) as name from `unit` JOIN `tenant_module` on unit.unit_id = tenant_module.unit_id where unit.society_id = '" . $_SESSION['society_id'] . "'    and  tenant_module.tenant_id IN ($tenantIDS) ORDER BY unit.sort_order ASC",0,'All','0');
+					}else{
+						echo $combo_unit = $obj_genbill->comboboxForLedgerReport("select unit.unit_id, CONCAT_WS(' - ',unit.unit_no,member_main.owner_name) as name from `unit` JOIN `member_main` on unit.unit_id = member_main.unit where unit.society_id = '" . $_SESSION['society_id'] . "'    and  member_main.member_id IN ($memberIDS) ORDER BY unit.sort_order ASC",0,'All','0');
+					}?>
 				</div>
             </td>
                 <td  align="center">    
                   &nbsp;&nbsp;                                   	                         
                      <input type="checkbox" name="ignore_zero" id="ignore_zero" value="1" />
                        &nbsp;&nbsp;        
-              </td>
+              	</td>
                <td  align="center"   style="padding-top:3px;"> 
                  <b>Ignore Zero Values</b>
                 &nbsp;&nbsp;
               </td>
+			  <td  align="center">    
+                  &nbsp;&nbsp;                                   	                         
+                     <input type="hidden" name="billType" id="billType" value="1" />
+                       &nbsp;&nbsp;        
+              	</td>
                 <td  align="center">                               	                         
                     &nbsp;&nbsp;
-                    <input type="button" name="Fetch" id="Fetch" value="Fetch"  class="btn btn-primary"  onclick="FetchBillRegisterSummary(<?php echo $_SESSION['society_id']?>);" /> 
+					<?php if($_SESSION['res_flag'] == 1)
+					{  
+						if($_SESSION['landLordDB'] <> ''){?>
+							<input type="button" name="Fetch" id="Fetch" value="Fetch"  class="btn btn-primary"  onclick="FetchBillRegisterSummary_res(<?php echo $_SESSION['landLordSocID']?>);" /> 
+						<?php }else{ ?>
+							<input type="button" name="Fetch" id="Fetch" disabled value="Fetch"  class="btn btn-primary"  onclick="FetchBillRegisterSummary_res(<?php echo $_SESSION['landLordSocID']?>);" /> 
+						<?php } 
+					}elseif($_SESSION['rental_flag'] == 1){ ?>
+							<input type="button" name="Fetch" id="Fetch" value="Fetch"  class="btn btn-primary"  onclick="FetchBillRegisterSummary_res(<?php echo $_SESSION['society_id']?>);" /> 
+						<?php 
+					}else{?>
+							<input type="button" name="Fetch" id="Fetch" value="Fetch"  class="btn btn-primary"  onclick="FetchBillRegisterSummary(<?php echo $_SESSION['society_id']?>);" /> 
+						<?php } ?>
                  </td>
                 <td>
                 	

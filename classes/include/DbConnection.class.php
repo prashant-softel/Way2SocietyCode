@@ -7,7 +7,7 @@ class DbConnection
 	public $isConnected = true;
 	public $connErrorMsg ='';
 	
-	function __construct($bAccessRoot = false , $dbName = "", $AccessSM = false, $AccessSMRoot = false)
+	function __construct($bAccessRoot = false , $dbName = "", $AccessSM = false, $AccessSMRoot = false, $AccessSerReq = false, $AccessSerReqRoot = false)
 	{
 		if($bAccessRoot == true)
 		{
@@ -20,6 +20,14 @@ class DbConnection
 		else if($AccessSMRoot == true)
 		{
 			$this->mMysqli = new mysqli(DB_HOST_SMROOT, DB_USER_SMROOT, DB_PASSWORD_SMROOT, DB_DATABASE_SMROOT);
+		}
+		else if($AccessSerReq == true)
+		{
+			$this->mMysqli = new mysqli(DB_HOST_SER_REQ, DB_USER_SER_REQ, DB_PASSWORD_SER_REQ, DB_DATABASE_SER_REQ);
+		}
+		else if($AccessSerReqRoot == true)
+		{
+			$this->mMysqli = new mysqli(DB_HOST_SER_REQ_ROOT, DB_USER_SER_REQ_ROOT, DB_PASSWORD_SER_REQ_ROOT, DB_DATABASE_SER_REQ_ROOT);
 		}
 		else
 		{

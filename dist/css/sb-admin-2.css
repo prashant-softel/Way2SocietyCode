@@ -53,17 +53,18 @@ body {
     content: 'T';
 }
 
+.fa-I:before {
+    font-family: Times New Roman; /* your font family here! */
+    font-weight: bold;
+    content: 'I';
+}
+
 .fa-downcase-a:before {
     font-family: Times New Roman; /* your font family here! */
     font-weight: bold;
     content: 'T';
 }
 
-.fa-T:before {
-    font-family: Times New Roman; /* your font family here! */
-    font-weight: bold;
-    content: 'T';
-}
 #page-wrapper {
     padding: 0 15px;
     min-height: 568px;

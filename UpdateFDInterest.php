@@ -14,11 +14,13 @@ $data = $obj_FixedDeposit->get_details_for_renew($_REQUEST['edt']);
     <link href="css/messagebox.css" rel="stylesheet" type="text/css" />
     <script type="text/javascript" src="js/ajax.js"></script>
    	<script type="text/javascript" src="js/ajax_new.js"></script>
-	<script type="text/javascript" src="js/jsFixedDeposit.js?20230812"></script>
+	<script type="text/javascript" src="js/jsFixedDeposit.js?202300923"></script>
     <script type="text/javascript" src="js/jsViewLedgerDetails.js"></script>
     <script type="text/javascript" src="js/validate.js"></script>
       <script type="text/javascript" src="js/populateData.js"></script>
 	<script language="javascript" type="application/javascript">
+        minStartDate = '<?php  echo getDisplayFormatDate($_SESSION['default_year_start_date']);?>';
+	maxEndDate = '<?php  echo getDisplayFormatDate($_SESSION['default_year_end_date']);?>';
 	$(function()
         {
             $.datepicker.setDefaults($.datepicker.regional['']);

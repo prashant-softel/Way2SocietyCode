@@ -5,9 +5,10 @@ include_once("../classes/utility.class.php");
 include_once("../classes/latestcount.class.php");
 include_once("../classes/changelog.class.php");
 $dbConn = new dbop();
-$obj_PaymentDetails = new PaymentDetails($dbConn);
+$landLordDB = new dbop(false,false,false,false,true);	
+$obj_PaymentDetails = new PaymentDetails($dbConn,$landLordDB);
 $objUtility = new utility($dbConn);
-$m_latestcount = new latestCount($dbConn);
+$m_latestcount = new latestCount($dbConn,$landLordDB);
 $changeLog = new changeLog($dbConn);
 
 echo $_REQUEST["method"]."@@@";

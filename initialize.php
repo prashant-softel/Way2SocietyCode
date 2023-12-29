@@ -53,7 +53,22 @@
 			
 			$unit_id = $mapDetails[0]['unit_id'];
 			$_SESSION["unit_id"] = $unit_id;
+
+			$res_flag = $mapDetails[0]['res_flag'];
+			$_SESSION['res_flag'] = $res_flag;
+
+			$rental_flag = $mapDetails[0]['rental_flag'];
+			$_SESSION['rental_flag'] = $rental_flag;
+
+			$_SESSION['landLordDB'] = '';
+			$_SESSION['landLordSocID'] = '';
 			
+			$print_voucher_portrait = $mapDetails[0]['print_voucher_portrait'];
+			$_SESSION['print_voucher_portrait'] = $print_voucher_portrait;
+
+			// $landLordDB = $mapDetails[0]['landLordDB'];
+			// $_SESSION['landLordDB'] = $landLordDB;
+
 			$_SESSION['desc'] = $mapDetails[0]['desc'];
 			$_SESSION['society_client_id'] = $mapDetails[0]['client_id'];
 			
@@ -87,6 +102,8 @@
 					localStorage.setItem('login', "<?php echo $_SESSION['login_id']; ?>");
 					localStorage.setItem('client_id', "<?php echo $_SESSION['society_client_id']; ?>");
 					localStorage.setItem('dbname', "<?php echo $_SESSION['dbname']; ?>");
+					localStorage.setItem('res_flag', "<?php echo $_SESSION['res_flag']; ?>");
+					localStorage.setItem('rental_flag', "<?php echo $_SESSION['rental_flag']; ?>");
 					//window.location.href = "initialize.php?set&url=" + "<?php echo $_REQUEST['url']?>";
 				</script>
             <?php
@@ -170,11 +187,14 @@
 			
 			}
 		}
-		if($_SESSION['unit_id'] == 0)
+		if($_SESSION['unit_id'] == 0 && $_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1)
 		{
 		?>
-            	<script>window.location.href = "home_s.php?View=ADMIN";</script>
+            	<script>window.location.href = "home_res.php?View=ADMIN";</script>
          <?php
+		}else if($_SESSION['unit_id'] == 0){ ?>
+				<script>window.location.href = "home_s.php?View=ADMIN";</script>
+		<?php		
 		}
 		else if(!isset($_REQUEST["url"]))
 		{

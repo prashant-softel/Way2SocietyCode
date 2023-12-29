@@ -382,14 +382,19 @@ function getExistingData(chqAry, LeafNo, bIsCustomLeaf)
 							//document.getElementById('DE' + iCount).disabled=true;
 							
 							document.getElementById('ChequeDate'+iCount).value=arr4[0].ChequeDate;
-							if(login_id !=4)
+							if(login_id ==4)
+							{
+								document.getElementById('ChequeDate'+iCount).disabled = false;
+								document.getElementById('ChequeDate'+iCount).style.backgroundColor = '';
+							}
+							else
 							{
 								document.getElementById('ChequeDate'+iCount).disabled = true;
 								document.getElementById('ChequeDate'+iCount).style.backgroundColor = 'lightgray';
-								
-								document.getElementById('ML'+iCount).disabled = true;
-								document.getElementById('ML'+iCount).style.backgroundColor = 'lightgray';
 							}
+							document.getElementById('ML'+iCount).disabled = true;
+							document.getElementById('ML'+iCount).style.backgroundColor = 'lightgray';
+							
 							if(arr4[0].show_in_jvformat == 1)
 							{
 								document.getElementById('Amount'+iCount).value=BankAmount;								
@@ -399,7 +404,12 @@ function getExistingData(chqAry, LeafNo, bIsCustomLeaf)
 								document.getElementById('Amount'+iCount).value=arr4[0].Amount;								
 							}
 							
-							if(login_id !=4)
+							if(login_id ==4)
+							{
+								document.getElementById('Amount'+iCount).disabled = false;
+								document.getElementById('Amount'+iCount).style.backgroundColor = '';
+							}
+							else
 							{
 								document.getElementById('Amount'+iCount).disabled = true;
 								document.getElementById('Amount'+iCount).style.backgroundColor = 'lightgray';
@@ -410,10 +420,24 @@ function getExistingData(chqAry, LeafNo, bIsCustomLeaf)
 							}
 
 							document.getElementById('Print'+iCount).firstChild.setAttribute('id','print-'+arr4[0].id);
-							
-							document.getElementById('ChequeNumber'+iCount).value=arr4[0].ChequeNumber;
-							document.getElementById('ChequeNumber'+iCount).disabled = true;
-							document.getElementById('ChequeNumber'+iCount).style.backgroundColor = 'lightgray';
+							if(login_id == 4)
+							{
+								
+								document.getElementById('ChequeNumber'+iCount).value=arr4[0].ChequeNumber;
+								document.getElementById('ChequeNumber'+iCount).disabled = false;
+								document.getElementById('ChequeNumber'+iCount).style.backgroundColor = '';
+								document.getElementById('ChequeNumber'+iCount).readOnly = false;
+							}
+							else
+							{
+								document.getElementById('ChequeNumber'+iCount).value=arr4[0].ChequeNumber;
+								document.getElementById('ChequeNumber'+iCount).disabled = true;
+								document.getElementById('ChequeNumber'+iCount).style.backgroundColor = 'lightgray';
+								document.getElementById('ChequeNumber'+iCount).readOnly = true;
+							}
+							//document.getElementById('ChequeNumber'+iCount).value=arr4[0].ChequeNumber;
+							//document.getElementById('ChequeNumber'+iCount).disabled = true;
+							//document.getElementById('ChequeNumber'+iCount).style.backgroundColor = 'lightgray';
 							
 							document.getElementById('DrpDwnBillType'+iCount).value=arr4[0].Bill_Type;
 							document.getElementById('DrpDwnBillType'+iCount).disabled = true;

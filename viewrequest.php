@@ -11,13 +11,16 @@ include_once ("classes/include/fetch_data.php");
 include_once ("dbconst.class.php"); 
 $dbConn = new dbop();
 $dbConnRoot = new dbop(true);
+$landLordDB = new dbop(false,false,false,false,true);
 $objFetchData = new FetchData($dbConn);
 $objFetchData->GetSocietyDetails($_SESSION['society_id']);
-$obj_request = new servicerequest($dbConn);
+$obj_request = new servicerequest($dbConn, $dbConnRoot, $landLordDB);
 $LoginIDQuery = "select `member_id` from `login` where `login_id`='".$_SESSION['login_id']."'";
 $loginID = $dbConnRoot->select($LoginIDQuery);
 //$details = $obj_request->getViewDetails($_REQUEST['rq']);
 //
+// echo "debug";
+// echo $_REQUEST['socid'];
 $cnt=0;
 $SREmailIDs = array(); 
 $strSREMailIDs = "";
@@ -25,13 +28,14 @@ if(isset($_REQUEST['rq']))
 {
 	if($_REQUEST['rq']<>"")
 	{
-		$details = $obj_request->getViewDetails($_REQUEST['rq'],true);
+		$req_history = $obj_request->getreqhistory($_REQUEST['rq'], true, $_REQUEST['socid']);
+		$details = $obj_request->getViewDetails($_REQUEST['rq'],true, $_REQUEST['socid']);
 		
 		//for($i=0;$i <= sizeof($edit)-1; $i++)
-			//{ 
-			$image=$details[0]['img'];
-			$image_collection = explode(',', $image);	
-			//print_r(sizeof($details));
+			//{ ~~
+			foreach($req_history as $key => $val){
+				$image_collection[] = explode(',', $val['img']);	
+			}
 			for($i=0;$i < sizeof($details); $i++)
 			{
 				//echo $details[$i]['email'];
@@ -47,6 +51,7 @@ if(isset($_REQUEST['rq']))
 			}
 	}
 	}
+	
 ?>
 <!--<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -83,18 +88,16 @@ if(isset($_REQUEST['rq']))
 <script language="javascript" type="application/javascript">
 	function printTable()
 	{
-		//alert("test23");
-	 // document.getElementById('PrintableTable').style.width='80%';
-	 
-	 //alert("testnew");
+		
 	  var divToPrint=document.getElementById('PrintableDiv');
-	 document.getElementById('society_name').style.display='block';
-	  newWin= window.open("");
-	  newWin.document.write('<br><br><center>' + divToPrint.outerHTML + '</center>');
-	  newWin.print();
-	  newWin.close();
-	  //document.getElementById('PrintableTable').style.width='100%';
-	   document.getElementById('society_name').style.display='none';
+	  console.log(divToPrint);
+	
+	  document.body.innerHTML = divToPrint.outerHTML;
+	  
+	  window.print();
+	
+	location.reload();  
+	 
 	}
 </script>
 <script type="text/javascript" src="lib/jquery-1.7.2.min.js"></script>
@@ -116,6 +119,13 @@ if(isset($_REQUEST['rq']))
 
 	<!-- Add Media helper (this is optional) -->
 	<script type="text/javascript" src="source/helpers/jquery.fancybox-media.js?v=1.0.0"></script>
+
+	<!-- new scripts  -->
+	<script type="text/javascript" src="lib/jquery-1.10.2.min.js"></script>
+	<script type="text/javascript" src="lib/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+	<link rel="stylesheet" type="text/css" href="lib/source/jquery.fancybox.css?v=2.1.5" media="screen" />
+	<link rel="stylesheet" type="text/css" href="lib/source/helpers/jquery.fancybox-thumbs.css?v=1.0.7" />
+	<script type="text/javascript" src="lib/source/helpers/jquery.fancybox-thumbs.js?v=1.0.7"></script>
     
     <script type="text/javascript">
 		$(document).ready(function() {			
@@ -124,7 +134,103 @@ if(isset($_REQUEST['rq']))
 		$('.fancybox').fancybox();
 		$('.fancybox1').fancybox();
 	
-	
+		$(".fancybox-effects-c").fancybox({
+				wrapCSS    : 'fancybox-custom',
+				closeClick : true,
+
+				openEffect : 'none',
+
+				helpers : {
+					title : {
+						type : 'inside'
+					},
+					overlay : {
+						css : {
+							'background' : 'rgba(238,238,238,0.85)'
+						}
+					}
+				}
+			});
+			$(".fancybox-effects-d").fancybox({
+				padding: 0,
+
+				openEffect : 'elastic',
+				openSpeed  : 150,
+
+				closeEffect : 'elastic',
+				closeSpeed  : 150,
+
+				closeClick : true,
+
+				helpers : {
+					overlay : null
+				}
+			});
+
+
+			/*
+			 *  Thumbnail helper. Disable animations, hide close button, arrows and slide to next gallery item if clicked
+			 */
+
+			$('.fancybox-thumbs').fancybox({
+				prevEffect : 'none',
+				nextEffect : 'none',
+
+				closeBtn  : false,
+				arrows    : false,
+				nextClick : true,
+
+				helpers : {
+					thumbs : {
+						width  : 50,
+						height : 50
+					}
+				}
+			});
+
+			/*
+			 *  Media helper. Group items, disable animations, hide arrows, enable media and button helpers.
+			*/
+			$('.fancybox-media')
+				.attr('rel', 'media-gallery')
+				.fancybox({
+					openEffect : 'none',
+					closeEffect : 'none',
+					prevEffect : 'none',
+					nextEffect : 'none',
+
+					arrows : false,
+					helpers : {
+						media : {},
+						buttons : {}
+					}
+			});
+			$("#fancybox-manual-c").click(function() {
+				$.fancybox.open([ 
+				<?php 
+				for($i=0;$i<sizeof($image_collection);$i++)
+				{
+				?>
+					{ 
+						href : 'ads/<?php echo $image_collection[$i]?>',
+						//title : 'My title'
+					},
+				<?php }?>/*{
+					href : '2_b.orjpg',
+						title : '2nd title'
+					}, {
+						href : '3_b.jpg'
+					}*/
+				], {
+					helpers : {
+						thumbs : {
+							width: 75,
+							height: 50
+						}
+					}
+				});
+			});
+
 		//Button helper. Disable animations, hide close button, change title type and content
 		$('.fancybox-buttons').fancybox({
 		openEffect  : 'none',
@@ -179,7 +285,7 @@ if(isset($_REQUEST['rq']))
             </div>
             <div id="society_address"; style="font-size:14px; border-left:thick;"><?php echo 'Reg. Add:'.$objFetchData->objSocietyDetails->sSocietyAddress; ?></div>
 </div>-->
-<?php //echo "role".$_SESSION['role'];?>
+
 <center><!--<a href="servicerequest.php">Go Back</a>-->
 <div style="padding-left: 15px;padding-bottom: 10px;">
 		 <center> <INPUT TYPE="button" id="Print" onClick="printTable()" name="Print" value="Print"   class="btn btn-primary"></center></div>
@@ -191,15 +297,36 @@ if(isset($_REQUEST['rq']))
 <?php 
 //print_r($details);
 if($details <> "")
-	  { ?>
+	  { 
+		$timestamp = strtotime($details[0]['timestamp']);
+	
+		//$sql = "SELECT `img` FROM `service_request` WHERE `request_id` = '".$_SESSION['unit_id']."' AND `society_id` = '".$_SESSION['society_id']."'";
+		//$result = $this->m_dbConn->select($sql);
+		$CategoryDetails = $obj_request->GetCategoryDetails( $details[0]['category']);
+		//var_dump($CategoryDetails);
+		$MemberName = $obj_request->GetMemberName( $details[0]['category']);
+		// var_dump($details[0]['category']);
+		
+		$UnitNo = $obj_request->GetUnitNoIfZero( $_REQUEST['rq']);
+		$GotUnitNo = $obj_request->GetUnitNoIfNZero( $_REQUEST['rq']);
+		$status = $obj_request->getUpdatedStatus( $_REQUEST['rq']);
+		$color = constant(strtoupper(preg_replace('/[^A-Za-z0-9]+/', '_', $status)));
+		
+		if($UnitNo[0]['unit_id'] == 0)
+		{
+			$show = " - ";
+		}
+		else
+		{			
+			$show = $GotUnitNo[0]['unit_no'];
+		}?>
 <div width="100%" style="font-size:12px;" id="PrintableDiv"  >
 <div id="society_name" style="font-weight:bold; font-size:18px; display:none;"><?php echo $objFetchData->objSocietyDetails->sSocietyName; ?></div>
-   
+<div class="text-right" style="margin: 10px 0;"><span class="" style="padding: 5px 15px;margin: 2px;border-radius: 5px;background-color:<?php echo $color ?>;font-size:15px;"><b><?php echo $status ?></b></span></div>
 <table width="100%" style="font-size:12px;" id="PrintableTable">
-
 	<tr style="background-color:#bce8f1;font-size:14px;" height="25">
         <th style="width:10%;"><center>Request ID</center></th>
-        <th style="width:10%;"><center>Unit No.</center></th>
+        <!-- <th style="width:10%;"><center>Unit No.</center></th> -->
         <th style="width:20%;"><center>Raised Date</center></th>
         <th style="width:10%;"><center>Status</center></th>
         <th style="width:10%;"><center>Priority</center></th>
@@ -230,10 +357,9 @@ if($details <> "")
 			$show = $GotUnitNo[0]['unit_no'];
 		}
 
-	?>
-    	
+    	?>
     	<td align="center"><?php echo $_REQUEST['rq'];?></td>
-        <td align="center"><?php echo $show;?></td>
+        <!-- <td align="center"><?php echo $show;?></td> -->
         <td align="center"><?php echo $details[0]['raisedDate'];?></td>
         <td align="center"><?php echo $details[sizeof($details)-1]['status'];?></td>
         <td align="center"><?php echo $details[0]['priority'];?></td>
@@ -283,16 +409,15 @@ if($details <> "")
  <table width="500%"><tr><td  align="left">
      <?php 
 	// print_r($image_collection);
-		for($i=0;$i<sizeof($image_collection);$i++)
+			for($i=0;$i<sizeof($image_collection[0]);$i++)
 		{
-			if(strlen($image_collection[$i]) >0 )
+				if(strlen($image_collection[0][$i]) >0 )
 			{
 		?>
         
-		<a href="upload/main/<?php echo $image_collection[$i]?>" class="fancybox"><img  style="    width: 100px;
-    height: 70px;" src="upload/main/<?php echo $image_collection[$i]?>" ></a>
+			<a href="upload/main/<?php echo $image_collection[0][$i]?>" class="fancybox"><img  style="    width: 100px; height: 70px;" src="upload/main/<?php echo $image_collection[0][$i]?>" ></a>
       <?php
-	   }
+	   		}
 		}
 	  ?>
        </td></tr></table>
@@ -310,26 +435,69 @@ if($details <> "")
     <table cellspacing="0px"> 
      <tr style="background-color:#988e8e30;font-size:14px;" height="25">
     	<th align="left" style="width: 65%;padding-left:10px" colspan="3">Details</th>
+        <th align="left" style="width: 20%;">Attachments</th>
         <th align="left" style="width: 20%;" colspan="2">Updated By</th>
         <th align="left" style="width: 5%;">Status</th>
         <th align="left" style="width: 10%;">Timestamp</th>
     </tr>
    
     <?php
-	for($i = sizeof($details)-1; $i>=0;$i-- )
+	for($i = sizeof($req_history)-1; $i>=0;$i-- )
 		{
 			//echo $timestamp = strtotime($details[$i]['timestamp']);
-			$timestamp = date('d-m-Y (h:i:s A)',strtotime('+5 hour +30 minutes +1 seconds',strtotime($details[$i]['timestamp'])));
-		if($details[$i]['status']=="Reopen")
+			$timestamp = date('d-m-Y (h:i:s A)',strtotime('+5 hour +30 minutes +1 seconds',strtotime($req_history[$i]['timestamp'])));
+		if($req_history[$i]['status']=="Reopen")
 		{
 			$cnt=$cnt+1;
 		}
+		$history_img_col = explode(',', $req_history[$i]['img']);	
+
 	?>
    
     <tr>
-    	<td align="left" colspan="3" style = "width: 30%;border-bottom:1px solid #988e8e30;padding-left:10px;padding-top:10px"><?php echo $details[$i]['summery']; ?></td>
-        <td align="left" colspan="2" style="width: 20%;border-bottom:1px solid #988e8e30;padding-top:10px"><?php echo $details[$i]['reportedby']; ?></td>
-        <td align="left" style="width: 5%;border-bottom:1px solid #988e8e30;padding-top:10px" ><?php echo $details[$i]['status']; ?></td>
+    	<td align="left" colspan="3" style = "width: 30%;border-bottom:1px solid #988e8e30;padding-left:10px;padding-top:10px"><?php echo $req_history[$i]['summery']; ?></td>
+        <td align="left" style="width: 20%;border-bottom:1px solid #988e8e30;padding-top:10px">
+		<?php 
+			foreach($history_img_col as $img)
+			{
+				if(!empty($img))
+				{
+
+		?>
+					<a href="upload/main/<?php echo $img?>" class="fancybox"><img id="fancybox-manual-c"  style="width: 30px; height: 30px;padding:2px;" src="upload/main/<?php echo $img?>" ></a>
+		<?php   } else { 
+			echo '<img  style="width: 30px; height: 30px;padding:2px;" src="upload/main/nophoto.PNG" >';
+			} } ?>
+		<script type="text/javascript">
+			$(".fancybox-manual-c").click(function() {
+				$.fancybox.open([ 
+				<?php 
+				foreach($history_img_col as $img)
+				{
+				?>
+					{ 
+						href : 'upload/main/<?php echo $img?>',
+						// title : 'My title'
+					},
+				<?php }?>/*{
+					href : '2_b.orjpg',
+						title : '2nd title'
+					}, {
+						href : '3_b.jpg'
+					}*/
+				], {
+					helpers : {
+						thumbs : {
+							width: 75,
+							height: 50
+						}
+					}
+				});
+			});
+		</script>
+		</td>
+        <td align="left" colspan="2" style="width: 20%;border-bottom:1px solid #988e8e30;padding-top:10px"><?php echo $req_history[$i]['reportedby']; ?></td>
+        <td align="left" style="width: 5%;border-bottom:1px solid #988e8e30;padding-top:10px" ><?php echo $req_history[$i]['status']; ?></td>
         <td align="left" style="width: 10%;border-bottom:1px solid #988e8e30;padding-top:10px"><?php echo $timestamp  //echo date("d-m-Y (h:i:s A)", $timestamp ); ?></td>
         </tr>
        
@@ -339,11 +507,11 @@ if($details <> "")
 	?>
      </table>
     </tr>
-    <tr><td colspan="5"><br /></td></tr> 
+    <tr><td colspan="6"><br /></td></tr> 
 </table>
 </div>
 <br />
-<form name="viewrequest" id="viewrequest" method="post" action="process/servicerequest.process.php?vr=<?php echo $_REQUEST['rq'];?>" onSubmit="return val();">
+<form name="viewrequest" id="viewrequest" method="post" action="process/servicerequest.process.php?vr=<?php echo $_REQUEST['rq'];?>"  enctype="multipart/form-data" onSubmit="return val();">
 <center>
 <table style="border:1px solid #CCC; width:85%;font-size:12px; padding:10px; border-radius: 15px;">
 <?php
@@ -388,23 +556,29 @@ if($details <> "")
 				if($_SESSION['role'] && ($_SESSION['role']==ROLE_ADMIN || $_SESSION['role']==ROLE_ADMIN_MEMBER || $_SESSION['role']==ROLE_SUPER_ADMIN))
 	      		{?>
 <!--                <option value="Raised" <?php //if($details[sizeof($details)-1]['status']=='Raised'){?> selected <?php// }?>> Raised </option>
--->                <option value="Assigned" <?php if($details[sizeof($details)-1]['status']=='Assigned'){?> selected <?php }?>> Assigned </option>
-                <option value="In process" <?php if($details[sizeof($details)-1]['status']=='In process'){?> selected <?php }?>> In process </option>
-                <option value="Resolved" <?php if($details[sizeof($details)-1]['status']=='Resolved'){?> selected <?php }?>> Resolved </option>
-                <option value="Waiting for details" <?php if($details[sizeof($details)-1]['status']=='Waiting for details'){?> selected <?php }?>> Waiting for details </option>
+-->                <option value="Assigned" <?php if($req_history[sizeof($req_history)-1]['status']=='Assigned'){?> selected <?php }?>> Assigned </option>
+                <option value="In process" <?php if($req_history[sizeof($req_history)-1]['status']=='In process'){?> selected <?php }?>> In process </option>
+                <option value="Resolved" <?php if($req_history[sizeof($req_history)-1]['status']=='Resolved'){?> selected <?php }?>> Resolved </option>
+                <option value="Waiting for details" <?php if($req_history[sizeof($req_history)-1]['status']=='Waiting for details'){?> selected <?php }?>> Waiting for details </option>
    				<?php } 
 				else
 				{
-                	$status=$details[sizeof($details)-1]['status'];
+                	$status=$req_history[sizeof($req_history)-1]['status'];
 					?>
                 	<option value="<?php echo $status;?>"  selected ><?php echo $status;?></option>
           <?php }?>
                 
-                <option value="Reopen" <?php if($details[sizeof($details)-1]['status']=='Reopen'){?> selected <?php }?>> Re-Open </option>
-                <option value="Closed" <?php if($details[sizeof($details)-1]['status']=='Closed'){?> selected <?php }?>> Closed </option>                
+                <option value="Reopen" <?php if($req_history[sizeof($req_history)-1]['status']=='Reopen'){?> selected <?php }?>> Re-Open </option>
+                <option value="Closed" <?php if($req_history[sizeof($req_history)-1]['status']=='Closed'){?> selected <?php }?>> Closed </option>                
             </select>
         </td>
     </tr>
+    <tr><td colspan="3"><br /></td></tr>
+    <tr>       
+        <th>&nbsp; Upload Image	</th>
+        <td>&nbsp; : &nbsp;</td>
+        <td><input  style=" width: 200px;" name="img[]" id="img" type="file" accept=".jpg, .png, .jpeg, .gif" multiple /></td>
+	</tr>
     <tr><td colspan="3"><br /></td></tr>
     <tr>       
         <th>&nbsp; Comments</th>

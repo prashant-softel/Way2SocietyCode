@@ -4,7 +4,8 @@
 	include_once ("../classes/include/exportToExcel.php");
 	include_once("../classes/parking.class.php");
 	$dbConn = new dbop();
-	$obj_genbill = new genbill($dbConn);
+	$landLordDB = new dbop(false,false,false,false,true);	
+	$obj_genbill = new genbill($dbConn,$landLordDB);
    	$objParking = new Parking($dbConn);
 	
 	    //remove all empty spaces after php closing brackets
@@ -107,6 +108,18 @@
 	else if($_REQUEST['method'] == 'deleteDebitorCredit')
 	{
 		$result = $obj_genbill->deleteDebitorCredit($_REQUEST['DebitorCreditID'],$_REQUEST['NoteType']);
+	}
+	else if(isset($_REQUEST['method']) && $_REQUEST['method']=='Tenant_rent')
+	{
+		// echo "<pre>";
+		// print_r($_REQUEST);
+		// echo "</pre>";
+		// echo"test";
+		// $ledger_id = $_GET['uid'];
+		// echo "ID" .$ledger_id;
+		$tenant_rent = "select annual_rent from tenant_module where ledger_id = '".$_REQUEST['ledgerid']."' ";
+		$res = $dbConn->select($tenant_rent);
+		echo $res[0]['annual_rent'];
 	}
 	else if(isset($_REQUEST['method']) && $_REQUEST['method']=='Checktaxable')
 	{

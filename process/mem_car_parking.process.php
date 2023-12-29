@@ -1,16 +1,17 @@
 <?php	include_once("../classes/include/dbop.class.php");
 	  	$dbConn = new dbop();
+		$landLordDB = new dbop(false, false, false, false, true);
 		
 		if($_POST['vehicle_type'] == '2')
 		{
 			include_once("../classes/mem_bike_parking.class.php");
-			$obj_mem_bike_parking=new mem_bike_parking($dbConn);
+			$obj_mem_bike_parking=new mem_bike_parking($dbConn, $landLordDB);
 			$validator = $obj_mem_bike_parking->startProcess();
 		}
 		else if($_POST['vehicle_type'] == '4')
 		{
 			include_once("../classes/mem_car_parking.class.php");
-			$obj_mem_car_parking=new mem_car_parking($dbConn);
+			$obj_mem_car_parking=new mem_car_parking($dbConn,$landLordDB);
 			$validator = $obj_mem_car_parking->startProcess();
 		}
 		echo $obj_mem_car_parking->actionPage;

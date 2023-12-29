@@ -19,6 +19,7 @@ include_once("register.class.php");
 include_once("utility.class.php");
 include_once("billmaster.class.php");
 
+
 class CUpdatedBillDetails
 {	
 	public $sBillNo;
@@ -32,11 +33,14 @@ class CUpdatedBillDetails
 	public $sAdjustmentCredit;	
 	public $arrData;
 	public $m_dbConn;
+	public $landLordDB;
+	public $isLandLordDB;
 	private $m_IsSupplementary;
 	
 	function __construct($dbConn)
 	{
 		$this->m_dbConn = $dbConn;
+		$this->landLordDB = $landLordDB;
 		$this->sBillNo = "";
 		$this->sBillDate = "";
 		$this->sDueDate = "";
@@ -71,29 +75,34 @@ class genbill
 	public $m_IsSupplementary;
 	public $ShowDebugTrace;
 	private $m_IsInterestTaxable;
+	public $landLordDB;
+	public $isLandLordDB;
 	private $m_IsInterestTaxable_NoThreshold;
 	private $m_DontChargeIntToLastBillAmt;	//No int charge to prev bill amount but Interest would be charged to Principal arrears
 	private $changeLogDeleteRefArr = array(); // If bills get regenerated then its delete the old bill and add it again but both are separate function, so this arr will hold the ref of old log id for unit which bill deleted
 
 	
-    function __construct($dbConn, $dbConnRoot = "")
+    function __construct($dbConn, $dbConnRoot = "",$landLordDB)
 	{
 		$this->m_dbConn = $dbConn;
 		$this->m_dbConnRoot = $dbConnRoot;
+		$this->landLordDB = $landLordDB;
 		$this->display_pg=new display_table($this->m_dbConn);
-		
-		$oUpdateBillData = new CUpdatedBillDetails($this->m_dbConn);
+		if($_SESSION['landLordDB']){
+			$this->isLandLordDB = true;
+		}
+		$oUpdateBillData = new CUpdatedBillDetails($this->m_dbConn,$this->landLordDB);
 		$actionPage="../Maintenance_bill_edit.php";
 		
-		$this->obj_LatestCount = new latestCount($this->m_dbConn);
+		$this->obj_LatestCount = new latestCount($this->m_dbConn,$this->landLordDB);
 		$this->objFetchData = new FetchData($this->m_dbConn);
-		$this->m_objUtility =  new utility($this->m_dbConn, $this->m_dbConnRoot);
-        $this->m_objLog = new changeLog($this->m_dbConn);
-		//$obj_utility = new utility($this->m_dbConn, $this->m_dbConnRoot);
+		$this->m_objUtility =  new utility($this->m_dbConn, $this->m_dbConnRoot,$this->landLordDB);
+        	$this->m_objLog = new changeLog($this->m_dbConn,$this->landLordDB);
+		//$obj_utility = new utility($this->m_dbConn, $landLordDB);
 				
-		$this->obj_voucher = new voucher($this->m_dbConn);
-		$this->obj_register = new regiser($this->m_dbConn);
-		$this->obj_billmaster = new billmaster($this->m_dbConn);
+		$this->obj_voucher = new voucher($this->m_dbConn,$this->landLordDB);
+		$this->obj_register = new regiser($this->m_dbConn,$this->landLordDB);
+		$this->obj_billmaster = new billmaster($this->m_dbConn,$this->landLordDB);
 		$this->m_IsSupplementary = 0;
 		$this->ShowDebugTrace = 0;
 
@@ -423,7 +432,7 @@ class genbill
 		}
 		else if($IsOutsider == 1)
 		{
-			echo $query = " SELECT l.id, l.ledger_name FROM ledger as l JOIN account_category as ac ON l.categoryid = ac.category_id where `categoryid` = '".$_SESSION['default_Sundry_debetor']."' AND group_id = '".ASSET."'";
+			$query = " SELECT l.id, l.ledger_name FROM ledger as l JOIN account_category as ac ON l.categoryid = ac.category_id where `categoryid` = '".$_SESSION['default_Sundry_debetor']."' AND group_id = '".ASSET."'";
 			
 		//	WHERE `categoryid` NOT IN '".DUE_FROM_MEMBERS."'
 		}
@@ -476,8 +485,11 @@ class genbill
 			<li>&nbsp;<input type="checkbox"      id = '0' class="checkBox chekAll" checked/>&nbsp;<?php echo $defaultText ; ?></li>
 			<?php 
 		}
-		
-		$data = $this->m_dbConn->select($query);
+		if($this->isLandLordDB){
+			$data = $this->landLordDB->select($query);
+		}else{
+			$data = $this->m_dbConn->select($query);
+		}
 		
 		for($i = 0; $i < sizeof($data); $i++)
 		{?>
@@ -527,36 +539,72 @@ class genbill
 					{
 						//generate for all units in all societies
 //						$sqlGen = "select master.UnitID, master.AccountHeadID, master.AccountHeadAmount,master.BillType from unitbillmaster as master where master.BillType='".$this->IsSupplementaryBill() ."'";
-						$sqlGen_BillCalc = "select distinct(master.UnitID), unitinfo.society_id as SocietyID, unitinfo.taxable_no_threshold, master.BillType from unitbillmaster as master JOIN unit as unitinfo ON master.UnitID = unitinfo.unit_id and  master.BillType='".$this->IsSupplementaryBill(); "' ORDER BY unitinfo.sort_order ASC";
+						if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag']==1)
+						{
+						$sqlGen_BillCalc = "select distinct(master.UnitID), unitinfo.society_id as SocietyID, unitinfo.taxable_no_threshold,master.BillType from unitbillmaster as master JOIN tenant_module as tm on tm.ledger_id = master.UnitID JOIN unit as unitinfo on tm.unit_id = unitinfo.unit_id  and master.BillType='".$this->IsSupplementaryBill(); "' ORDER BY unitinfo.sort_order ASC";
+						}
+						else
+						{
+							$sqlGen_BillCalc = "select distinct(master.UnitID), unitinfo.society_id as SocietyID, unitinfo.taxable_no_threshold, master.BillType from unitbillmaster as master JOIN unit as unitinfo ON master.UnitID = unitinfo.unit_id and  master.BillType='".$this->IsSupplementaryBill(); "' ORDER BY unitinfo.sort_order ASC";
+						}
+						
 					}
 					else if($_REQUEST['wing_id'] == '0' && $_REQUEST['unit_id'] == '0')
 					{
 						//generate for all units in single society
 //						$sqlGen = "select master.UnitID, master.AccountHeadID, master.AccountHeadAmount,master.BillType from unitbillmaster as master JOIN unit as unitinfo on master.UnitID = unitinfo.unit_id where unitinfo.society_id = '" . $_REQUEST['society_id'] .  "' where master.BillType='".$this->IsSupplementaryBill()."'";
-						$sqlGen_BillCalc = "select distinct(master.UnitID), unitinfo.society_id as SocietyID, unitinfo.taxable_no_threshold,master.BillType from unitbillmaster as master JOIN unit as unitinfo on master.UnitID = unitinfo.unit_id where unitinfo.society_id = '" . $_REQUEST['society_id'] .  "' and  master.BillType='".$this->IsSupplementaryBill()."' ORDER BY unitinfo.sort_order ASC";
+						if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag']==1)
+						{
+							$sqlGen_BillCalc = "select distinct(master.UnitID), unitinfo.society_id as SocietyID, unitinfo.taxable_no_threshold,master.BillType from unitbillmaster as master JOIN tenant_module as tm on tm.ledger_id = master.UnitID JOIN unit as unitinfo on tm.unit_id = unitinfo.unit_id where unitinfo.society_id = '" . $_REQUEST['society_id'] .  "' and master.BillType='".$this->IsSupplementaryBill()."' ORDER BY unitinfo.sort_order ASC";
+						}
+						else
+						{
+							$sqlGen_BillCalc = "select distinct(master.UnitID), unitinfo.society_id as SocietyID, unitinfo.taxable_no_threshold,master.BillType from unitbillmaster as master JOIN unit as unitinfo on master.UnitID = unitinfo.unit_id where unitinfo.society_id = '" . $_REQUEST['society_id'] .  "' and  master.BillType='".$this->IsSupplementaryBill()."' ORDER BY unitinfo.sort_order ASC";
+						}
+						
 					}
 					else if($_REQUEST['unit_id'] == '0')
 					{
 						//generate for all units in single wing
 //						$sqlGen = "select master.UnitID, master.AccountHeadID, master.AccountHeadAmount,master.BillType from unitbillmaster as master JOIN unit as unitinfo on master.UnitID = unitinfo.unit_id where unitinfo.society_id = '" . $_REQUEST['society_id'] .  "' and unitinfo.wing_id = '" . $_REQUEST['wing_id'] . "' and master.BillType=".$this->IsSupplementaryBill();
-						$sqlGen_BillCalc = "select distinct(master.UnitID), unitinfo.society_id as SocietyID, unitinfo.taxable_no_threshold, master.BillType from unitbillmaster as master JOIN unit as unitinfo on master.UnitID = unitinfo.unit_id where unitinfo.society_id = '" . $_REQUEST['society_id'] .  "' and unitinfo.wing_id = '" . $_REQUEST['wing_id'] . "' and master.BillType='".$this->IsSupplementaryBill() ."' ORDER BY unitinfo.sort_order ASC";
+						if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag']==1)
+						{
+							$sqlGen_BillCalc = "select distinct(master.UnitID), unitinfo.society_id as SocietyID, unitinfo.taxable_no_threshold,master.BillType from unitbillmaster as master JOIN tenant_module as tm on tm.ledger_id = master.UnitID JOIN unit as unitinfo on tm.unit_id = unitinfo.unit_id where unitinfo.society_id =  '" . $_REQUEST['society_id'] .  "' and unitinfo.wing_id = '" . $_REQUEST['wing_id'] . "' and master.BillType='".$this->IsSupplementaryBill() ."' ORDER BY unitinfo.sort_order ASC";
+						}
+						else
+						{
+							$sqlGen_BillCalc = "select distinct(master.UnitID), unitinfo.society_id as SocietyID, unitinfo.taxable_no_threshold, master.BillType from unitbillmaster as master JOIN unit as unitinfo on master.UnitID = unitinfo.unit_id where unitinfo.society_id = '" . $_REQUEST['society_id'] .  "' and unitinfo.wing_id = '" . $_REQUEST['wing_id'] . "' and master.BillType='".$this->IsSupplementaryBill() ."' ORDER BY unitinfo.sort_order ASC";
+						}
+						
 					}
 					else
 					{
+						
 						//generate for single unit
 						$sqlGen = "select master.UnitID, master.AccountHeadID, master.AccountHeadAmount from unitbillmaster as master where master.UnitID = '" . $_REQUEST['unit_id'] . "' and  master.BillType='".$this->IsSupplementaryBill() ."'";
-						$sqlGen_BillCalc = "select distinct(master.UnitID), unitinfo.society_id as SocietyID, unitinfo.taxable_no_threshold from unitbillmaster as master JOIN unit as unitinfo ON master.UnitID = unitinfo.unit_id where master.UnitID = '" . $_REQUEST['unit_id'] . "' and master.BillType='".$this->IsSupplementaryBill() ."' ORDER BY unitinfo.sort_order ASC";
+						if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag']==1)
+						{
+							$sqlGen_BillCalc = "select distinct(master.UnitID), unitinfo.society_id as SocietyID, unitinfo.taxable_no_threshold,master.BillType from unitbillmaster as master JOIN tenant_module as tm on tm.ledger_id = master.UnitID JOIN unit as unitinfo on tm.unit_id = unitinfo.unit_id where  master.UnitID = '" . $_REQUEST['unit_id'] . "'  and master.BillType='".$this->IsSupplementaryBill() ."' ORDER BY unitinfo.sort_order ASC";
+						}
+						else
+						{
+							
+							$sqlGen_BillCalc = "select distinct(master.UnitID), unitinfo.society_id as SocietyID, unitinfo.taxable_no_threshold from unitbillmaster as master JOIN unit as unitinfo ON master.UnitID = unitinfo.unit_id where master.UnitID = '" . $_REQUEST['unit_id'] . "' and master.BillType='".$this->IsSupplementaryBill() ."' ORDER BY unitinfo.sort_order ASC";
+						}
+						
 					}
 				
 					//echo '<br/>SqlGen : ' . $sqlGen_BillCalc;
-					
+				
 					//$result = $this->m_dbConn->select($sqlGen);
 					$result = $this->m_dbConn->select($sqlGen_BillCalc);
+					
 					$UnitIDCol = array();
 					$aryGenBillInsertID = array();
-					
+				
 					if($result <> "")
 					{
+					
 						$this->obj_LatestCount->updateLatestBillNo($_SESSION['society_id'], $_REQUEST['bill_no']);
 						$this->changeLogDeleteRefArr = array(); // set to empty				
 						foreach($result as $k => $v)
@@ -564,7 +612,7 @@ class genbill
 							//Delete Bill Details if already generated
 							$this->DeleteBillDetails($result[$k]['UnitID'], $_REQUEST['period_id'],false,false,$this->IsSupplementaryBill());
 						}
-						
+					
 						$changeLog = new changeLog($this->m_dbConn);
 						// $desc = $this->IsSupplementaryBill();
 						if($this->IsSupplementaryBill())
@@ -601,38 +649,38 @@ class genbill
 
 //						$sqlSelect = "SELECT * from `billregister` where `SocietyID` = '" . $this->m_dbConn->escapeString($result[$k]['SocietyID']). "' and `PeriodID` = '" . $this->m_dbConn->escapeString( $_REQUEST['period_id']). "' and `BillDate` = '" . $sBillDate . "' and `DueDate` = '" . getDBFormatDate($this->m_dbConn->escapeString($_REQUEST['due_date'])) . "' and `BillType` = '".$this->IsSupplementaryBill()."' and `font_size` = '".$FontSize."'";
 //							echo "<BR>$sqlSelect<BR>";
-					
-					$sqlSelect = "SELECT * from `billregister` where `SocietyID` = '" . $this->m_dbConn->escapeString($result[$k]['SocietyID']). "' and `PeriodID` = '" . $this->m_dbConn->escapeString( $_REQUEST['period_id']). "' and `BillDate` = '" . $sBillDate . "' and `DueDate` = '" . getDBFormatDate($this->m_dbConn->escapeString($_REQUEST['due_date'])) . "' and `DueDateToDisplay` = '" . getDBFormatDate($this->m_dbConn->escapeString($_REQUEST['due_date_to_display'])) . "' and  `Notes` = '" . $this->m_dbConn->escapeString($Notes) . "' and `BillType` = '".$this->IsSupplementaryBill()."' and `font_size` = '".$FontSize."'";
-					
-					$ExistingBillRegister = $this->m_dbConn->select($sqlSelect);
-					if($this->ShowDebugTrace == 1)
-					{
-						//echo "<BR>$sqlSelect<BR>";
-					}
-
-					if($ExistingBillRegister <> '')
-					{
 						
+						$sqlSelect = "SELECT * from `billregister` where `SocietyID` = '" . $this->m_dbConn->escapeString($result[$k]['SocietyID']). "' and `PeriodID` = '" . $this->m_dbConn->escapeString( $_REQUEST['period_id']). "' and `BillDate` = '" . $sBillDate . "' and `DueDate` = '" . getDBFormatDate($this->m_dbConn->escapeString($_REQUEST['due_date'])) . "' and `DueDateToDisplay` = '" . getDBFormatDate($this->m_dbConn->escapeString($_REQUEST['due_date_to_display'])) . "' and  `Notes` = '" . $this->m_dbConn->escapeString($Notes) . "' and `BillType` = '".$this->IsSupplementaryBill()."' and `font_size` = '".$FontSize."'";
+					
+						$ExistingBillRegister = $this->m_dbConn->select($sqlSelect);
 						if($this->ShowDebugTrace == 1)
 						{
-							echo "<BR>Bill Register exists : ". $ExistingBillRegister[0][ID] . "<BR> ";
+							//echo "<BR>$sqlSelect<BR>";
 						}
-						$BillRegisterID = $ExistingBillRegister[0][ID];
-						//print_r($ExistingBillRegister);
-					}
+
+						if($ExistingBillRegister <> '')
+						{
 						
-					if($BillRegisterID <= 0)
-					{
-						$sqlInsert = "INSERT INTO `billregister`(`SocietyID`, `PeriodID`, `CreatedBy`, `BillDate`, `DueDate`, `DueDateToDisplay`, `LatestChangeID`, `Notes`,`BillType`,`font_size`,`gen_bill_template`) VALUES ('" . $this->m_dbConn->escapeString($result[$k]['SocietyID']). "', '" . $this->m_dbConn->escapeString( $_REQUEST['period_id']). "', '" . $this->m_dbConn->escapeString($_SESSION['login_id']). "', '" . $sBillDate . "', '" . getDBFormatDate($this->m_dbConn->escapeString($_REQUEST['due_date'])) . "', '" . getDBFormatDate($this->m_dbConn->escapeString($_REQUEST['due_date_to_display'])) . "', '" . $this->m_dbConn->escapeString($iLatestChangeID). "', '" . $this->m_dbConn->escapeString($Notes). "','".$this->IsSupplementaryBill()."','".$FontSize."','".$this->m_objUtility->bill_template()."')";
+							if($this->ShowDebugTrace == 1)
+							{
+								echo "<BR>Bill Register exists : ". $ExistingBillRegister[0][ID] . "<BR> ";
+							}
+							$BillRegisterID = $ExistingBillRegister[0][ID];
+							//print_r($ExistingBillRegister);
+						}
+						
+						if($BillRegisterID <= 0)
+						{
 							
-						$BillRegisterID = $this->m_dbConn->insert($sqlInsert);
-						if($this->ShowDebugTrace == 1)
-						{
-							echo "<BR>Created new BillRegisterID:". $BillRegisterID . "<BR>";
+							$sqlInsert = "INSERT INTO `billregister`(`SocietyID`, `PeriodID`, `CreatedBy`, `BillDate`, `DueDate`, `DueDateToDisplay`, `LatestChangeID`, `Notes`,`BillType`,`font_size`,`gen_bill_template`) VALUES ('" . $this->m_dbConn->escapeString($result[$k]['SocietyID']). "', '" . $this->m_dbConn->escapeString( $_REQUEST['period_id']). "', '" . $this->m_dbConn->escapeString($_SESSION['login_id']). "', '" . $sBillDate . "', '" . getDBFormatDate($this->m_dbConn->escapeString($_REQUEST['due_date'])) . "', '" . getDBFormatDate($this->m_dbConn->escapeString($_REQUEST['due_date_to_display'])) . "', '" . $this->m_dbConn->escapeString($iLatestChangeID). "', '" . $this->m_dbConn->escapeString($Notes). "','".$this->IsSupplementaryBill()."','".$FontSize."','".$this->m_objUtility->bill_template()."')";
+							
+							$BillRegisterID = $this->m_dbConn->insert($sqlInsert);
+							if($this->ShowDebugTrace == 1)
+							{
+								echo "<BR>Created new BillRegisterID:". $BillRegisterID . "<BR>";
+							}
+							//echo "<BR><BR>In if part " . $sqlInsert ;
 						}
-						//echo "<BR><BR>In if part " . $sqlInsert ;
-					}
-
 						//echo '<br/>BillRegisterID <' . $BillRegisterID . ">"; 
 						$this->strTrace .= '<tr><td>BillRegisterID <' . $BillRegisterID . "></td></tr>"; 																												
 						//die;
@@ -662,7 +710,7 @@ class genbill
 							//echo 'Getting data for PrevPeriodID : ' . $PrevPeriodID;
 							//$sqlPrevQuery = "Select Type, YearID, PrevPeriodID, Status, BeginingDate, EndingDate from period where ID=" . $PeriodID;
 							$sqlPymtQuery = "Select Type, YearID, PrevPeriodID, Status, BeginingDate, EndingDate from period where ID=" . $PrevPeriodID;
-					//		echo '<br/>sqlPymtQuery : ' . $sqlPymtQuery;
+							//		echo '<br/>sqlPymtQuery : ' . $sqlPymtQuery;
 							$Prevresult = $this->m_dbConn->select($sqlPymtQuery);
 							//$PrevPeriodID = -1;
 							if(!is_null($Prevresult))
@@ -683,177 +731,189 @@ class genbill
 							}
 						/*}*/
 		
-		//-----		
-		
-				//echo "Get interest calc parameters of Society";
-				$SocietyID = $_SESSION['society_id'];
-/*				$sqlSocietyQuery = "Select int_rate, int_method, int_tri_amt, rebate_method, rebate, bill_cycle from society where society_id =" . $SocietyID;
-		//		echo '<br/>sqlSocietyQuery : ' . $sqlSocietyQuery;
-				$SQLResult = $this->m_dbConn->select($sqlSocietyQuery);
-*/
-				$societyInfo = $this->m_objUtility->GetSocietyInformation($SocietyID);
+							//-----		
+							
+							//echo "Get interest calc parameters of Society";
+							$SocietyID = $_SESSION['society_id'];
+							/*				$sqlSocietyQuery = "Select int_rate, int_method, int_tri_amt, rebate_method, rebate, bill_cycle from society where society_id =" . $SocietyID;
+							//		echo '<br/>sqlSocietyQuery : ' . $sqlSocietyQuery;
+							$SQLResult = $this->m_dbConn->select($sqlSocietyQuery);
+							*/
+							$societyInfo = $this->m_objUtility->GetSocietyInformation($SocietyID);
 						
-				//echo $sqlGen_BillCalc;
-				//echo "<BR>sqlgen_BillCalc<BR>" . $sqlGen_BillCalc . "<BR>";		
-				$result_BillCalc = $this->m_dbConn->select($sqlGen_BillCalc);
-				//var_dump($result_BillCalc );
-				if($result_BillCalc <> "")
-				{
-					$this->objFetchData->GetSocietyDetails($SocietyID);
-					$SocietyDetails = $this->objFetchData->objSocietyDetails;
-					
-					//var_dump($this->objFetchData->objSocietyDetails->sSocietyCode);
-					$bill_dir = '../m_bills_log/' . $this->objFetchData->objSocietyDetails->sSocietyCode;
-					//echo $bill_dir;
-					if (!file_exists($bill_dir)) 
-					{
-						mkdir($bill_dir, 0777, true);
-					}
-
-					//echo "<BR>Societyid " . $SocietyID;
-					foreach($result_BillCalc as $k => $v)
-					{
-						if($result_BillCalc[$k]['UnitID'] <> 0)
-						{
-							$UnitID = $result_BillCalc[$k]['UnitID'];
-							$Unit_taxable_no_threshold = 0;
-							/*if($SocietyID == 254) //For Shree swami
+							//echo $sqlGen_BillCalc;
+							//echo "<BR>sqlgen_BillCalc<BR>" . $sqlGen_BillCalc . "<BR>";		
+							$result_BillCalc = $this->m_dbConn->select($sqlGen_BillCalc);
+							//var_dump($result_BillCalc );
+							if($result_BillCalc <> "")
 							{
-								if($PeriodID <= 3)
+								$this->objFetchData->GetSocietyDetails($SocietyID);
+								$SocietyDetails = $this->objFetchData->objSocietyDetails;
+								
+								//var_dump($this->objFetchData->objSocietyDetails->sSocietyCode);
+								$bill_dir = '../m_bills_log/' . $this->objFetchData->objSocietyDetails->sSocietyCode;
+								//echo $bill_dir;
+								if (!file_exists($bill_dir)) 
 								{
-									$Unit_taxable_no_threshold = $result_BillCalc[$k]['taxable_no_threshold'];
+									mkdir($bill_dir, 0777, true);
 								}
-								else
+
+								//echo "<BR>Societyid " . $SocietyID;
+								foreach($result_BillCalc as $k => $v)
 								{
-									//if(($UnitID == 67 || $UnitID == 131 ||$UnitID == 132 ||$UnitID == 215 ||$UnitID == 216 ||$UnitID == 224 ||$UnitID == 223 ||$UnitID == 67 || $UnitID == 204 ||$UnitID == 268 ||$UnitID == 269))
+									if($result_BillCalc[$k]['UnitID'] <> 0)
 									{
+										$UnitID = $result_BillCalc[$k]['UnitID'];
+										$Unit_taxable_no_threshold = 0;
+										/*if($SocietyID == 254) //For Shree swami
+										{
+											if($PeriodID <= 3)
+											{
+												$Unit_taxable_no_threshold = $result_BillCalc[$k]['taxable_no_threshold'];
+											}
+											else
+											{
+												//if(($UnitID == 67 || $UnitID == 131 ||$UnitID == 132 ||$UnitID == 215 ||$UnitID == 216 ||$UnitID == 224 ||$UnitID == 223 ||$UnitID == 67 || $UnitID == 204 ||$UnitID == 268 ||$UnitID == 269))
+												{
+													$Unit_taxable_no_threshold = $result_BillCalc[$k]['taxable_no_threshold'];
+												}
+											}
+											if($this->ShowDebugTrace == 1)
+											{
+												echo "<BR>UnitId : " . $UnitID . "  Unit_taxable_no_threshold : " . $Unit_taxable_no_threshold ;
+											}
+											$this->strTrace .=  '<tr><td>Unit_taxable_no_threshold  : ' . $Unit_taxable_no_threshold . '</td></tr>';
+										}*/
 										$Unit_taxable_no_threshold = $result_BillCalc[$k]['taxable_no_threshold'];
+										if($this->ShowDebugTrace == 1)
+										{
+											echo "<BR>UnitId : " . $UnitID . "  Unit_taxable_no_threshold : " . $Unit_taxable_no_threshold ;
+										}
+										$this->strTrace .=  '<tr><td>Unit_taxable_no_threshold  : ' . $Unit_taxable_no_threshold . '</td></tr>';
+										$iBillCounter = $this->obj_LatestCount->getLatestBillNo($_SESSION['society_id']);
+										$BillFor = $this->objFetchData->GetBillFor($PeriodID);
+										//var_dump($BillFor);
+										$this->objFetchData->GetMemberDetails($UnitID);
+										$CurUnitID = $this->objFetchData->objMemeberDetails->sUnitNumber;
+										
+										if(strpos($CurUnitID, '/') == true)
+										{
+											$CurUnitID = str_replace('/','-',$CurUnitID);
+										}
+							
+										$this->errofile_name = $bill_dir.'/M_Bill_'.$_SESSION['society_id'].'_'. $CurUnitID .'_'.$BillFor.'_'.$iBillCounter .'.html';
+										$this->errofile_name = str_replace(' ', '-',$this->errofile_name);
+
+										$this->m_bill_file = fopen($this->errofile_name,"a");
+										$this->strTrace = "<html><head><title>m-Bill log</title></head><body><table>";
+										$this->strTrace .= "<tr><td>-----------------------------------------------------------------------</td></tr>";
+										if($this->IsSupplementaryBill())
+										{ 
+											$this->strTrace .= "<tr><td>New Supplementary Bill Generated for SocietyID <".$_SESSION['society_id']."> : <b>".$this->objFetchData->objSocietyDetails->sSocietyName." </b></td></tr>";
+										}
+										else
+										{
+											$this->strTrace .= "<tr><td>New Bill Generated for SocietyID <".$_SESSION['society_id']."> : <b>".$this->objFetchData->objSocietyDetails->sSocietyName." </b></td></tr>";
+										}
+										$this->strTrace .= "<tr><td>UnitID <".$UnitID."> : <b>".$CurUnitID."</b></td></tr>";
+										$this->strTrace .= "<tr><td>PeriodID <".$PeriodID.">  : <b>".$BillFor."</b></td></tr>";
+										$this->strTrace .= "<tr><td>Bill Number <".$iBillCounter."></b></td></tr>";
+										//echo "generating bill per unit";
+										//$result1 = $this->GetGSTNoThresholdFlag_perMember($societyInfo, $PeriodID, $PrevPeriodID, $PrevPeriodBeginingDate, $PrevPeriodEndingDate,							1);
+							
+										$BillDetailID = $this->generateBill_PerUnit($UnitID, $PeriodID, $PrevPeriodID, $PrevPeriodBeginingDate, $PrevPeriodEndingDate, $BillRegisterID, $iBillCounter, $sBillDate, $Unit_taxable_no_threshold, $societyInfo);
+
+										$this->strTrace .= "<tr><td>-----------------------------------------------------------------------</td></tr>";
+
+										$this->strTrace .= "</table></body></html>";
+										//echo "file name " . $this->m_bill_file;
+										fwrite($this->m_bill_file,$this->strTrace);
+										fclose($this->m_bill_file);
+										
 									}
 								}
-								if($this->ShowDebugTrace == 1)
-								{
-									echo "<BR>UnitId : " . $UnitID . "  Unit_taxable_no_threshold : " . $Unit_taxable_no_threshold ;
-								}
-								$this->strTrace .=  '<tr><td>Unit_taxable_no_threshold  : ' . $Unit_taxable_no_threshold . '</td></tr>';
-							}*/
-							$Unit_taxable_no_threshold = $result_BillCalc[$k]['taxable_no_threshold'];
-							if($this->ShowDebugTrace == 1)
+							} 
+							//$info = 'Bills generated successully.';
+							//echo $info;
+				
+							if($_POST["unit_id"] == 0)
 							{
-								echo "<BR>UnitId : " . $UnitID . "  Unit_taxable_no_threshold : " . $Unit_taxable_no_threshold ;
+								echo $updateQuery = "UPDATE `society` SET `M_PeriodID` =" .$PeriodID. " WHERE society_id = ".$_SESSION['society_id'] ;
+								//echo "<br>UPDATE ".$updateQuery;
+								$this->m_dbConn->update($updateQuery);
 							}
-							$this->strTrace .=  '<tr><td>Unit_taxable_no_threshold  : ' . $Unit_taxable_no_threshold . '</td></tr>';
-							$iBillCounter = $this->obj_LatestCount->getLatestBillNo($_SESSION['society_id']);
-							$BillFor = $this->objFetchData->GetBillFor($PeriodID);
-							//var_dump($BillFor);
-							$this->objFetchData->GetMemberDetails($UnitID);
-							$CurUnitID = $this->objFetchData->objMemeberDetails->sUnitNumber;
+							//Insert or Uodate Reminder date in `remindersms` table						
+							/*$countQuery = "SELECT count(ID) AS `cnt` FROM `remindersms` WHERE `society_id` = '" . $this->m_dbConn->escapeString($result[$k]['SocietyID']). "' AND `PeriodId` = '" . $this->m_dbConn->escapeString( $_REQUEST['period_id']). "'";
 							
-							if(strpos($CurUnitID, '/') == true)
-							{
-								$CurUnitID = str_replace('/','-',$CurUnitID);
-							}
+							$count = $this->m_dbConnRoot->select($countQuery);
 							
-							$this->errofile_name = $bill_dir.'/M_Bill_'.$_SESSION['society_id'].'_'. $CurUnitID .'_'.$BillFor.'_'.$iBillCounter .'.html';
-							$this->errofile_name = str_replace(' ', '-',$this->errofile_name);
-
-							$this->m_bill_file = fopen($this->errofile_name,"a");
-							$this->strTrace = "<html><head><title>m-Bill log</title></head><body><table>";
-							$this->strTrace .= "<tr><td>-----------------------------------------------------------------------</td></tr>";
-							if($this->IsSupplementaryBill())
-							{ 
-								$this->strTrace .= "<tr><td>New Supplementary Bill Generated for SocietyID <".$_SESSION['society_id']."> : <b>".$this->objFetchData->objSocietyDetails->sSocietyName." </b></td></tr>";
+							$reminderDate = $this->GetDateByOffset($_REQUEST['due_date'], -5);
+							if($count[0]['cnt'] == 0)
+							{																					
+								$sqlReminderQuery = "INSERT INTO `remindersms`(`society_id`, `PeriodID`, `ReminderType`, `EventDate`, `EventReminderDate`, `LoginID`) VALUES ('" . $this->m_dbConn->escapeString($result[$k]['SocietyID']). "',
+											'" . $this->m_dbConn->escapeString( $_REQUEST['period_id']). "','".SENDBILLREMINDER."','" . getDBFormatDate($this->m_dbConn->escapeString($_REQUEST['due_date'])) . "','" . getDBFormatDate($this->m_dbConn->escapeString($reminderDate)) . "',
+											'".$_SESSION['login_id']."')";												
+								$this->m_dbConnRoot->insert($sqlReminderQuery);
 							}
 							else
 							{
-								$this->strTrace .= "<tr><td>New Bill Generated for SocietyID <".$_SESSION['society_id']."> : <b>".$this->objFetchData->objSocietyDetails->sSocietyName." </b></td></tr>";
-							}
-							$this->strTrace .= "<tr><td>UnitID <".$UnitID."> : <b>".$CurUnitID."</b></td></tr>";
-							$this->strTrace .= "<tr><td>PeriodID <".$PeriodID.">  : <b>".$BillFor."</b></td></tr>";
-							$this->strTrace .= "<tr><td>Bill Number <".$iBillCounter."></b></td></tr>";
-							//echo "generating bill per unit";
-//$result1 = $this->GetGSTNoThresholdFlag_perMember($societyInfo, $PeriodID, $PrevPeriodID, $PrevPeriodBeginingDate, $PrevPeriodEndingDate,							1);
+								$updateTable = "UPDATE `remindersms` SET `EventDate`='" . getDBFormatDate($this->m_dbConn->escapeString($_REQUEST['due_date'])) . "',
+									`EventReminderDate`='" . getDBFormatDate($this->m_dbConn->escapeString($reminderDate)) . "', `LoginID` = '".$_SESSION['login_id']."', `ReminderType` = '".SENDBILLREMINDER."'  WHERE `society_id`='" . $this->m_dbConn->escapeString($result[$k]['SocietyID']). "' AND
+									`PeriodID`='" . $this->m_dbConn->escapeString( $_REQUEST['period_id']). "'";								
+								$this->m_dbConnRoot->update($updateTable);
+							}*/
 							
-							$BillDetailID = $this->generateBill_PerUnit($UnitID, $PeriodID, $PrevPeriodID, $PrevPeriodBeginingDate, $PrevPeriodEndingDate, $BillRegisterID, $iBillCounter, $sBillDate, $Unit_taxable_no_threshold, $societyInfo);
-
-							$this->strTrace .= "<tr><td>-----------------------------------------------------------------------</td></tr>";
-
-							$this->strTrace .= "</table></body></html>";
-							//echo "file name " . $this->m_bill_file;
-							fwrite($this->m_bill_file,$this->strTrace);
-							fclose($this->m_bill_file);
-							
-						}
-					}
-				}
-				//$info = 'Bills generated successully.';
-				//echo $info;
-				if($_POST["unit_id"] == 0)
-				{
-					$updateQuery = "UPDATE `society` SET `M_PeriodID` =" .$PeriodID. " WHERE society_id = ".$_SESSION['society_id'] ;
-					//echo "<br>UPDATE ".$updateQuery;
-					$this->m_dbConn->update($updateQuery);
-				}
-						//Insert or Uodate Reminder date in `remindersms` table						
-						/*$countQuery = "SELECT count(ID) AS `cnt` FROM `remindersms` WHERE `society_id` = '" . $this->m_dbConn->escapeString($result[$k]['SocietyID']). "' AND `PeriodId` = '" . $this->m_dbConn->escapeString( $_REQUEST['period_id']). "'";
-						
-						$count = $this->m_dbConnRoot->select($countQuery);
-						
-						$reminderDate = $this->GetDateByOffset($_REQUEST['due_date'], -5);
-						if($count[0]['cnt'] == 0)
-						{																					
-							$sqlReminderQuery = "INSERT INTO `remindersms`(`society_id`, `PeriodID`, `ReminderType`, `EventDate`, `EventReminderDate`, `LoginID`) VALUES ('" . $this->m_dbConn->escapeString($result[$k]['SocietyID']). "',
-										 '" . $this->m_dbConn->escapeString( $_REQUEST['period_id']). "','".SENDBILLREMINDER."','" . getDBFormatDate($this->m_dbConn->escapeString($_REQUEST['due_date'])) . "','" . getDBFormatDate($this->m_dbConn->escapeString($reminderDate)) . "',
-										 '".$_SESSION['login_id']."')";												
-							$this->m_dbConnRoot->insert($sqlReminderQuery);
+							//$sqlReminderQuery = "INSERT INTO `remindersms`(`society_id`, `PeriodID`, `ReminderType`, `EventDate`, `EventReminderDate`, `LoginID`) VALUES ('" . $this->m_dbConn->escapeString($result[$k]['SocietyID']). "', '" . $this->m_dbConn->escapeString( $_REQUEST['period_id']). "','".SENDBILLREMINDER."','" . getDBFormatDate($this->m_dbConn->escapeString($_REQUEST['due_date'])) . "','" . getDBFormatDate($this->m_dbConn->escapeString($reminderDate)) . "', '".$_SESSION['login_id']."')";
+							//$this->m_dbConnRoot->insert($sqlReminderQuery);
 						}
 						else
 						{
-							$updateTable = "UPDATE `remindersms` SET `EventDate`='" . getDBFormatDate($this->m_dbConn->escapeString($_REQUEST['due_date'])) . "',
-								`EventReminderDate`='" . getDBFormatDate($this->m_dbConn->escapeString($reminderDate)) . "', `LoginID` = '".$_SESSION['login_id']."', `ReminderType` = '".SENDBILLREMINDER."'  WHERE `society_id`='" . $this->m_dbConn->escapeString($result[$k]['SocietyID']). "' AND
-								`PeriodID`='" . $this->m_dbConn->escapeString( $_REQUEST['period_id']). "'";								
-							$this->m_dbConnRoot->update($updateTable);
-						}*/
-						
-						//$sqlReminderQuery = "INSERT INTO `remindersms`(`society_id`, `PeriodID`, `ReminderType`, `EventDate`, `EventReminderDate`, `LoginID`) VALUES ('" . $this->m_dbConn->escapeString($result[$k]['SocietyID']). "', '" . $this->m_dbConn->escapeString( $_REQUEST['period_id']). "','".SENDBILLREMINDER."','" . getDBFormatDate($this->m_dbConn->escapeString($_REQUEST['due_date'])) . "','" . getDBFormatDate($this->m_dbConn->escapeString($reminderDate)) . "', '".$_SESSION['login_id']."')";
-						//$this->m_dbConnRoot->insert($sqlReminderQuery);
+							
+							$info = "No Units found in Bill Master to Generate Bills for selected criteria.";
+						}
 					}
 					else
 					{
-						$info = "No Units found in Bill Master to Generate Bills for selected criteria.";
+						$info = 'Please enter valid data for all the fields.';
 					}
+					//if($this->ShowDebugTrace == 1)
+					{
+						//echo "doing commit";
+					}
+					$this->m_dbConn->commit();
+					return $info;
 				}
-				else
-				{
-					$info = 'Please enter valid data for all the fields.';
-				}
-				//if($this->ShowDebugTrace == 1)
-				{
-					//echo "doing commit";
-				}
-				$this->m_dbConn->commit();
-				return $info;
 			}
-		}
-		catch(Exception $exp)
-		{
-			if($this->ShowDebugTrace == 1)
+			catch(Exception $exp)
 			{
-				echo "<BR>Exception occured. Doing rollback.";
-				print_r($exp);
+				if($this->ShowDebugTrace == 1)
+				{
+					echo "<BR>Exception occured. Doing rollback.";
+					print_r($exp);
+				}
+				$this->m_dbConn->rollback();
+				return $exp;
 			}
-			$this->m_dbConn->rollback();
-			return $exp;
 		}
-	}
 
 	public function ReGenerateBill($UnitID, $PeriodID, $IsSupplementaryBill)
 	{
+		
 		$bIsManualDelete = false;
 		$bIsDeleteAll = false;
 		
 		$societyInfo = $this->m_objUtility->GetSocietyInformation($_SESSION['society_id']);
+		
 		$this->m_IsSupplementary = $IsSupplementaryBill;
-		$sqlCheck = "Select b.ID,b.BillRegisterID,b.BillNumber,br.BillDate,u.taxable_no_threshold,p.PrevPeriodID from billdetails as b JOIN billregister as br ON b.BillRegisterID = br.ID JOIN unit as u ON u.unit_id = b.UnitID JOIN period as p ON p.ID = b.PeriodID where b.UnitID ='" . $UnitID . "' and b.PeriodID ='" . $PeriodID . "'  and b.BillType='".$IsSupplementaryBill."'";
+		if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1)
+		{
+			 $sqlCheck = "Select b.ID,b.BillRegisterID,b.BillNumber,br.BillDate,u.taxable_no_threshold,p.PrevPeriodID from billdetails as b JOIN billregister as br ON b.BillRegisterID = br.ID JOIN tenant_module as tm on tm.ledger_id= b.UnitID JOIN unit as u ON u.unit_id = tm.unit_id JOIN period as p ON p.ID = b.PeriodID where b.UnitID ='" . $UnitID . "' and b.PeriodID ='" . $PeriodID . "' and b.BillType='".$IsSupplementaryBill."'";
+
+		}
+		else
+		{
+		 $sqlCheck = "Select b.ID,b.BillRegisterID,b.BillNumber,br.BillDate,u.taxable_no_threshold,p.PrevPeriodID from billdetails as b JOIN billregister as br ON b.BillRegisterID = br.ID JOIN unit as u ON u.unit_id = b.UnitID JOIN period as p ON p.ID = b.PeriodID where b.UnitID ='" . $UnitID . "' and b.PeriodID ='" . $PeriodID . "'  and b.BillType='".$IsSupplementaryBill."'";
+		}
 		$sqlResult = $this->m_dbConn->select($sqlCheck);
 		
 		$PrevPeriodquery = "SELECT BeginingDate, EndingDate FROM period WHERE ID = '".$sqlResult[0]['PrevPeriodID']."'";
@@ -877,7 +937,7 @@ class genbill
 		}
 		 $this->changeLogDeleteRefArr = array();
 		 $this->DeleteBillDetails($UnitID, $PeriodID,$bIsManualDelete,$bIsDeleteAll,$IsSupplementaryBill);
-	
+		
 		//echo "<br>UnitID ".$UnitID." <br>PeriodID : ".$PeriodID." <br> PrevPeriodID : ".$PrevPeriodID." <br>PrevPeriodBeginingDate : ".$PrevPeriodBeginingDate." <br>PrevPeriodEndingDate : ".$PrevPeriodEndingDate. " <br>
 		//		".$PrevPeriodEndingDate." <br> BillRegisterID : ".$BillRegisterID . "<br> iBillCounter: ".$iBillCounter." sBillDate ".$sBillDate." <br> Unit_taxable_no_threshold : ".$Unit_taxable_no_threshold." <br> ";
 		
@@ -896,9 +956,17 @@ class genbill
 		
 		$BillFor = $this->objFetchData->GetBillFor($PeriodID);
 		
-		$this->objFetchData->GetMemberDetails($UnitID);
+		if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1)
+		{
+			$this->objFetchData->GetMemberDetailsRec($UnitID);
+			$CurUnitID = $this->objFetchData->objMemeberDetails->sUnitNumber;
+		}
+		else
+		{
+			$this->objFetchData->GetMemberDetails($UnitID);
+			$CurUnitID = $this->objFetchData->objMemeberDetails->sUnitNumber;
+		}
 		
-		$CurUnitID = $this->objFetchData->objMemeberDetails->sUnitNumber;
 		
 		if(strpos($CurUnitID, '/') == true)
 		{
@@ -943,8 +1011,9 @@ class genbill
 //		$this->ShowDebugTrace = 1;
 		//Check if data exist in billdetails
 		
-		$sqlCheck = "Select bill.ID,bill.BillRegisterID, bill.BillNumber, `BillSubTotal`, `BillInterest`, `CurrentBillAmount`, `PrincipalArrears`, `InterestArrears`, `TotalBillPayable`, PaymentReceived, PaidPrincipal, PaidInterest  from billdetails as bill  where bill.UnitID ='" . $UnitID . "' and bill.PeriodID ='" . $PeriodID . "'  and bill.BillType='".$IsSupplementaryBill."'";
+		 $sqlCheck = "Select bill.ID,bill.BillRegisterID, bill.BillNumber, `BillSubTotal`, `BillInterest`, `CurrentBillAmount`, `PrincipalArrears`, `InterestArrears`, `TotalBillPayable`, PaymentReceived, PaidPrincipal, PaidInterest  from billdetails as bill  where bill.UnitID ='" . $UnitID . "' and bill.PeriodID ='" . $PeriodID . "'  and bill.BillType='".$IsSupplementaryBill."'";
 		$sqlResult = $this->m_dbConn->select($sqlCheck);
+		
 		if($sqlResult <> '')
 		{
 			$RefNo = $sqlResult[0]['ID'];
@@ -961,10 +1030,10 @@ class genbill
 			$PaidInterest = $sqlResult[0]['PaidInterest'];;
 			
 			$LedgerDetailsInBill = $this->getAllIncludesLedgersInBill($RefNo);
-		
+			
 			$sqlCount = "Select Count(*) as cnt, BillDate from billregister where ID = '" . $BillRegisterID . "'";
 			$resCount = $this->m_dbConn->select($sqlCount);
-
+		
 			if($resCount[0]['cnt'] > 0){
 
 				$this->oUpdateBillData->sBillDate = $resCount[0]['BillDate'];
@@ -976,17 +1045,18 @@ class genbill
 			//Delete from billregister
 			if(($bIsManualDelete == false && $bIsDeleteAll == true) || ($bIsManualDelete == true && $bIsDeleteAll == true) || ($bIsManualDelete == true && $bIsDeleteAll == false && $resCount[0]['cnt'] > 0))
 			{
-			   $sqlDelete = "Delete from billregister where ID = '" . $BillRegisterID . "'and BillType='".$IsSupplementaryBill."'";
+			    $sqlDelete = "Delete from billregister where ID = '" . $BillRegisterID . "'and BillType='".$IsSupplementaryBill."'";
 				$sqlDelete = $this->m_dbConn->delete($sqlDelete);
 			}
                         
              //Delete from billdetails
-			$sqlDelete = "Delete from billdetails where UnitID ='" . $UnitID . "' and PeriodID ='" . $PeriodID . "' and BillType='".$IsSupplementaryBill."'";
+				$sqlDelete = "Delete from billdetails where UnitID ='" . $UnitID . "' and PeriodID ='" . $PeriodID . "' and BillType='".$IsSupplementaryBill."'";
 			$sqlDelete = $this->m_dbConn->delete($sqlDelete);
 		
 			//Delete from VoucherSales
 			$sqlSelect = "Select id, SrNo, VoucherNo from voucher where RefNo = '" . $RefNo . "' and RefTableID = '" . TABLE_BILLREGISTER . "'";
 			$sqlResultVoucher = $this->m_dbConn->select($sqlSelect);
+		
 			if($sqlResultVoucher <> '')
 			{
 				if($this->ShowDebugTrace == 1)
@@ -1102,7 +1172,8 @@ class genbill
 			
 		}
 
-		$sqlFetch = "Select `BillSubTotal`, `BillInterest`, `CurrentBillAmount`, `AdjustmentCredit`, `BillTax`,`IGST`,`CGST`,`SGST`,`CESS`, `Ledger_round_off` from `billdetails` where UnitID = '" . $UnitID . "' and PeriodID = '" . $PeriodID . "' and BillType = '" . $this->IsSupplementaryBill() .  "'";
+		//$sqlFetch = "Select `BillSubTotal`, `BillInterest`, `CurrentBillAmount`, `AdjustmentCredit`, `BillTax`,`IGST`,`CGST`,`SGST`,`CESS`, `Ledger_round_off` from `billdetails` where UnitID = '" . $UnitID . "' and PeriodID = '" . $PeriodID . "' and BillType = '" . $this->IsSupplementaryBill() .  "'";
+		$sqlFetch = "Select `BillSubTotal`,`BillSubTotal_NoInt`, `BillInterest`, `CurrentBillAmount`, `AdjustmentCredit`, `BillTax`,`IGST`,`CGST`,`SGST`,`CESS`, `Ledger_round_off` from `billdetails` where UnitID = '" . $UnitID . "' and PeriodID = '" . $PeriodID . "' and BillType = '" . $this->IsSupplementaryBill() .  "'";
 		$sqlResult = $this->m_dbConn->select($sqlFetch);
 		
 		$iBillInterest = 0;
@@ -1113,6 +1184,7 @@ class genbill
 			$iVoucherCouter = $this->obj_LatestCount->getLatestVoucherNo($_SESSION['society_id']);
 			$iSrNo = 1;
 			$BillSubTotal = $sqlResult[0]['BillSubTotal'];
+			$BillSubTotal_NoInt = $sqlResult[0]['BillSubTotal_NoInt'];
 			$iBillInterest = $sqlResult[0]['BillInterest'];
 //			$iCurrentBillAmount = $sqlResult[0]['CurrentBillAmount'];
 			$iAdjustmentCredit = $sqlResult[0]['AdjustmentCredit'];
@@ -1123,7 +1195,7 @@ class genbill
 			$iCESS = $sqlResult[0]['CESS'];
 			$LedgerRoundOff = $sqlResult[0]['Ledger_round_off'];
 
-			$iTotalAmount = $BillSubTotal + $iBillInterest + $iAdjustmentCredit + $iBillTax + $iIGST + $iCGST + $iSGST + $iCESS + $LedgerRoundOff ;
+			$iTotalAmount = $BillSubTotal + $BillSubTotal_NoInt + $iBillInterest + $iAdjustmentCredit + $iBillTax + $iIGST + $iCGST + $iSGST + $iCESS + $LedgerRoundOff ;
 			
 			if ($this->ShowDebugTrace == 1)
 			{
@@ -1947,7 +2019,7 @@ class genbill
 
 //*************************************
 
-	private function GetDebitNoteTotal($UnitID, $PrevPeriodBeginingDate, $PrevPeriodEndingDate)
+	private function GetDebitNoteTotal($UnitID, $PrevPeriodBeginingDate, $PrevPeriodEndingDate, $DebitNoteTotal_NoInt)
 	{
 		$debit_note_amount_total = 0;
 		
@@ -1966,6 +2038,73 @@ class genbill
 		return $debit_note_amount_total;		
 	}
 
+	public function ProcessPreviousPrincipal_NoInt(&$PrevPrincipalDue_NoInt, &$PaymentReceived, &$CurrentBillInterestAmount, &$PaidPrincipal, $societyInfo, $TransactionType, $PaymentDate, $PrevPeriodBeginingDate, $PrevPeriodEndingDate, $PrevBillDueDate)
+	{
+		$SubPaidPrincipal_NoInt=0;
+		//echo '<br/><br/>PrevPrincipalDue Processing...';
+		$this->strTrace .=  '<tr><td>** Processing PrevPrincipalDue_NoInt...</td></tr>';
+		if($PaymentReceived > 0) 
+		{
+			//echo '<br/>Remaining payment ' . $PaymentReceived . ' is applied to Prev Principal Arrars' . $PrevPrincipalDue;
+			$this->strTrace .=  '<tr><td>Remaining payment ' . $PaymentReceived . ' is applied to Prev Principal Arrars ' . $PrevPrincipalDue_NoInt . '</td></tr>';
+			//echo '<br/>PrevPrincipalDue_NoInt  : ' . $PrevPrincipalDue_NoInt;
+			$this->strTrace .=  '<tr><td>PrevPrincipalDue_NoInt  : ' . $PrevPrincipalDue_NoInt . '</td></tr>';
+			if($PrevPrincipalDue_NoInt > 0)
+			{
+				//echo '<br/>PrevPrincipalDue Processing...';
+				//$this->strTrace .=  '<tr><td>PrevPrincipalDue Processing...</td></tr>';
+				if($PaymentReceived > $PrevPrincipalDue_NoInt )
+				{
+					$SubPaidPrincipal_NoInt = $PrevPrincipalDue_NoInt;
+					$PaymentReceived = $PaymentReceived - $PrevPrincipalDue_NoInt;
+					$PrevPrincipalDue_NoInt = 0;
+				}
+				else
+				{
+					$SubPaidPrincipal_NoInt = $PaymentReceived ;
+					$PrevPrincipalDue_NoInt = $PrevPrincipalDue_NoInt - $PaymentReceived ;
+					$PaymentReceived = 0;
+				}	
+				if ($this->ShowDebugTrace == 1)
+				{
+					echo '<br/>SubPaidPrincipal_NoInt  : ' . $SubPaidPrincipal_NoInt;
+					echo '<br/>PaymentReceived : ' . $PaymentReceived;
+					echo '<br/>';
+				}
+				$this->strTrace .=  '<tr><td>SubPaidPrincipal_NoInt  : ' . $SubPaidPrincipal_NoInt . '</td></tr>';
+				$this->strTrace .=  '<tr><td>PaymentReceived : ' . $PaymentReceived . '</td></tr>';
+			}
+			else
+			{
+				$this->strTrace .=  '<tr><td>No PrevPrincipalDue_NoInt  to process : ' . $PrevPrincipalDue_NoInt . '</td></tr>';
+			}
+			
+			{
+				//echo '<br/>No interest: ';
+				$this->strTrace .=  '<tr><td>No interest charged: </td></tr>';
+			}
+			
+			$PaidPrincipal = $PaidPrincipal + $SubPaidPrincipal_NoInt;
+			//echo '<br/>Paid Principal: ' . $PaidPrincipal;
+			$this->strTrace .=  '<tr><td>Paid Principal so far2: ' . $PaidPrincipal . '</td></tr>';
+			if ($this->ShowDebugTrace == 1)
+			{
+					echo '<br/>PaidPrincipal : ' . $PaidPrincipal ;
+					echo '<br/>Remaining PrevPrincipalDue_NoInt  : ' . $PrevPrincipalDue_NoInt  ;
+			}
+			
+		}
+		else
+		{
+			//echo '<br/>No payment for PrevPrincipalDue_NoInt Processing...';
+			$this->strTrace .=  '<tr><td>No payment for PrevPrincipalDue_NoInt Processing...</td></tr>';
+			
+		}
+		//echo '<br/>End of PrevPrincipalDue Processing...';
+		$this->strTrace .=  '<tr><td>End of PrevPrincipalDue_NoInt Processing... </td></tr>';
+		
+	}
+	
 public function ProcessPreviousPrincipal(&$PrevPrincipalDue, &$PaymentReceived, &$CurrentBillInterestAmount, &$PaidPrincipal, $societyInfo, $TransactionType, $PaymentDate, $PrevPeriodBeginingDate, $PrevPeriodEndingDate, $PrevBillDueDate)
 {
 	$SubPaidPrincipal=0;
@@ -2072,6 +2211,70 @@ public function ProcessPreviousPrincipal(&$PrevPrincipalDue, &$PaymentReceived, 
 	}
 	//echo '<br/>End of PrevPrincipalDue Processing...';
 	$this->strTrace .=  '<tr><td>End of PrevPrincipalDue Processing... </td></tr>';
+	
+}
+
+public function ProcessPreviousBillPrincipal_NoInt(&$PrevBillPrincipalAmount_NoInt, &$PaymentReceived, &$CurrentBillInterestAmount, &$PaidPrincipal, $societyInfo, $TransactionType, $PaymentDate, $PrevPeriodEndingDate, $PrevBillDueDate, $PrevPeriodBeginingDate)
+{
+	$SubPaidPrincipal_NoInt = 0;			
+	//echo '<br/><br/>PrevBillPrincipalAmount Processing...';
+	$this->strTrace .=  '<tr><td>** Processing PrevBillPrincipalAmount ...</td></tr>';
+	if($PaymentReceived > 0) 
+	{
+		//echo '<br/>PrevBillPrincipalAmount  : ' . $PrevBillPrincipalAmount;
+		$this->strTrace .=  '<tr><td>PrevBillPrincipalAmount_NoInt  : ' . $PrevBillPrincipalAmount_NoInt . '</td></tr>';
+		//echo '<br/>PaymentReceived : ' . $PaymentReceived;
+		$this->strTrace .=  '<tr><td>PaymentReceived : ' . $PaymentReceived . '</td></tr>';
+		if($PrevBillPrincipalAmount_NoInt  > 0)
+		{
+			//echo '<br/>Processing...';
+			//$this->strTrace .=  '<tr><td>Processing...</td></tr>';
+			
+			if($PaymentReceived > $PrevBillPrincipalAmount_NoInt )
+			{
+				$SubPaidPrincipal_NoInt = $PrevBillPrincipalAmount_NoInt;
+				$PaymentReceived = $PaymentReceived - $PrevBillPrincipalAmount_NoInt;
+				$PrevBillPrincipalAmount_NoInt = 0;
+			}
+			else
+			{
+				$SubPaidPrincipal_NoInt = $PaymentReceived ;
+				$PrevBillPrincipalAmount_NoInt = $PrevBillPrincipalAmount_NoInt - $PaymentReceived ;
+				$PaymentReceived = 0;
+			}
+			//echo '<br/>SubPaidPrincipal  : ' . $SubPaidPrincipal;
+			$this->strTrace .=  '<tr><td>SubPaidPrincipal_NoInt  : ' . $SubPaidPrincipal_NoInt . '</td></tr>';
+			//echo '<br/>Remaining PrevBillPrincipalAmount_NoInt  : ' . $PrevBillPrincipalAmount_NoInt;
+			$this->strTrace .=  '<tr><td>Remaining PrevBillPrincipalAmount_NoInt  : ' . $PrevBillPrincipalAmount_NoInt . '</td></tr>';
+				//echo '<br/>PaymentReceived : ' . $PaymentReceived;
+			$this->strTrace .=  '<tr><td>PaymentReceived Balance : ' . $PaymentReceived . '</td></tr>';
+			
+			{
+				//echo '<br/>No interest: ';
+				$this->strTrace .=  '<tr><td>No interest due on this portion of ' . $SubPaidPrincipal . ' amount</td></tr>';
+			}
+			
+		}
+		$PaidPrincipal = $PaidPrincipal + $SubPaidPrincipal_NoInt;
+		//echo '<br/>Paid Principal: ' . $PaidPrincipal;
+		$this->strTrace .=  '<tr><td>Paid Principal so far: ' . $PaidPrincipal . '</td></tr>';
+		//echo '<br/>';
+		
+	}
+	else
+	{
+		//echo '<br/>No payment for PrevBillPrincipalAmount Processing...';
+		$this->strTrace .=  '<tr><td>No payment for PrevBillPrincipalAmount_NoInt Processing...</td></tr>';
+	}
+	if ($this->ShowDebugTrace == 1)
+	{
+			echo '<br/>PaidPrincipal : ' . $PaidPrincipal ;
+			echo '<br/>Remaining PrevBillPrincipalAmount  : ' . $PrevBillPrincipalAmount_NoInt  ;
+	}
+		//echo '<br/>End of PrevBillPrincipalAmount_NoInt Processing...';
+	$this->strTrace .=  '<tr><td>End of PrevBillPrincipalAmount_NoInt Processing...</td></tr>';
+	//Process PrevPrincipal Arrears as we follow LIFO
+	$SubPaidPrincipal_NoInt = 0;			
 	
 }
 
@@ -2241,8 +2444,10 @@ public function ProcessPreviousPrincipal(&$PrevPrincipalDue, &$PaymentReceived, 
 
 		$BillNote = "";
 		$PrevPrincipalDue = 0;
+		$PrevPrincipalDue_NoInt = 0;
 		$PrevInterestDue = 0;
 		$PrevBillSubTotal = 0;
+		$PrevBillSubTotal_NoInt = 0;
 		$PrevAdjustmentCredit= 0;
 		$PrevBillTax = 0;
 		$PrevIGST = 0;
@@ -2251,12 +2456,13 @@ public function ProcessPreviousPrincipal(&$PrevPrincipalDue, &$PaymentReceived, 
 		$PrevCESS = 0;
 		$PrevRounding = 0;
 		$PrevBillPrincipalAmount = 0;
+		$PrevBillPrincipalAmount_NoInt = 0;
 		$PrevBillInterestAmount = 0;
 		$CurrentBillInterestAmount = 0;
 		$PrevBillBillDate="";
 		$dateDiff  =0;		
 		//$sqlPrevQuery = "Select ID, BillRegisterID, PrincipalArrears, InterestArrears, `BillSubTotal`, `AdjustmentCredit`, `BillTax`,`IGST`,`CGST`, `SGST`, `CESS`, `BillInterest` from billdetails where UnitID=" . $UnitID.	 " and PeriodID=" . $PrevPeriodID." AND BillType ='" . $this->IsSupplementaryBill()."' " ; 
-$sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears, `BillSubTotal`, `AdjustmentCredit`, `BillTax`,`IGST`,`CGST`, `SGST`, `CESS`, `BillInterest`, `Ledger_round_off`, br.BillDate, br.DueDate from billdetails as bd JOIN billregister as br on bd.BillregisterId = br.id where UnitID=" . $UnitID.	 "  and bd.PeriodID=" . $PrevPeriodID." AND bd.BillType ='" . $this->IsSupplementaryBill()."' " ; 
+$sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, PrincipalArrears_NoInt, InterestArrears, `BillSubTotal`, `BillSubTotal_NoInt`, `AdjustmentCredit`, `BillTax`,`IGST`,`CGST`, `SGST`, `CESS`, `BillInterest`, `Ledger_round_off`, br.BillDate, br.DueDate from billdetails as bd JOIN billregister as br on bd.BillregisterId = br.id where UnitID=" . $UnitID.	 "  and bd.PeriodID=" . $PrevPeriodID." AND bd.BillType ='" . $this->IsSupplementaryBill()."' " ; 
 //		echo "<BR><BR>". $sqlPrevQuery;
 
 /*
@@ -2296,9 +2502,11 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 				$this->strTrace .=  '<tr><td>dateDiff : ' . $dateDiff . '</td></tr>';	
 				
 				$PrevPrincipalDue = $PrevPrincipalDue + $SQLResult[$iCounter]['PrincipalArrears'];
+				$PrevPrincipalDue_NoInt = $PrevPrincipalDue_NoInt + $SQLResult[$iCounter]['PrincipalArrears_NoInt'];
 				$PrevInterestDue =  $PrevInterestDue + $SQLResult[$iCounter]['InterestArrears'];;
 		
 				$PrevBillSubTotal = $PrevBillSubTotal  +  $SQLResult[$iCounter]['BillSubTotal'];;
+				$PrevBillSubTotal_NoInt = $PrevBillSubTotal_NoInt  +  $SQLResult[$iCounter]['BillSubTotal_NoInt'];;
 				$PrevAdjustmentCredit = $PrevAdjustmentCredit + $SQLResult[$iCounter]['AdjustmentCredit'];;
 				
 				$PrevIGST = $PrevIGST + $SQLResult[$iCounter]['IGST'];
@@ -2310,8 +2518,10 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 				$PrevBillTax = $PrevBillTax + $SQLResult[$iCounter]['BillTax']+ $SQLResult[$iCounter]['IGST']+ $SQLResult[$iCounter]['CGST'] +$SQLResult[$iCounter]['SGST'] + $SQLResult[$iCounter]['CESS'];
 				
 				$PrevBillPrincipalAmount = $PrevBillSubTotal + $PrevAdjustmentCredit + $PrevIGST + $PrevCGST + $PrevSGST + $PrevCESS+$PrevRounding;// + $PrevBillTax;
+				$PrevBillPrincipalAmount_NoInt = $PrevBillSubTotal_NoInt;
 				
 				$PrevBillPrincipal_ = $PrevBillPrincipalAmount;
+				$PrevBillPrincipal_NoInt_ = $PrevBillPrincipalAmount_NoInt;
 				$PrevBillInterestAmount =  $PrevBillInterestAmount + $SQLResult[$iCounter]['BillInterest'];
 				
 				if($dateDiff  > 0)
@@ -2331,12 +2541,16 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 		//=====================================
 		
 		$PrevPrincipalDue_ = $PrevPrincipalDue ;
+		$PrevPrincipalDue_NoInt_ = $PrevPrincipalDue_NoInt;
 		$PrevInterestDue_ = $PrevInterestDue;
 		$PrevBillPrincipal_ = $PrevBillPrincipalAmount;
+		$PrevBillPrincipal_NoInt_ = $PrevBillPrincipalAmount_NoInt;
 		$PrevBillInterest_ = $PrevBillInterestAmount;
 		$this->strTrace .=  '<tr><td>PrevPrincipalDue: ' . $PrevPrincipalDue . '</td></tr>';
+		$this->strTrace .=  '<tr><td>PrevPrincipalDue_NoInt: ' . $PrevPrincipalDue_NoInt . '</td></tr>';
 		$this->strTrace .=  '<tr><td>PrevInterestDue: ' . $PrevInterestDue . '</td></tr>';
 		$this->strTrace .=  '<tr><td>PrevBillPrincipalAmount: ' . $PrevBillPrincipalAmount . '</td></tr>';
+		$this->strTrace .=  '<tr><td>PrevBillPrincipalAmount_NoInt: ' . $PrevBillPrincipalAmount_NoInt . '</td></tr>';
 		$this->strTrace .=  '<tr><td>PrevBillInterestAmount: ' . $PrevBillInterestAmount . '</td></tr>';
 
 		//We need to use LIFO : So payment is applied in this order
@@ -2389,12 +2603,15 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 		$TaxableLedgerTotal_No_Threshold = 0;
 		$InterestOnArrearsReversalCharge = 0;
 		$TaxableLedgerTotal = 0;
-		$BillSubTotal = $this->GetBillSubTotal_Plain($UnitID, $PeriodID, $BillMaster, $AdditionalBillingHeads, $TaxableLedgerTotal, $TaxableLedgerTotal_No_Threshold, $InterestOnArrearsReversalCharge, $BillNote);
+		$BillSubTotal_NoInt = 0;
+		$returnTaxableAmount = false;
+		$BillSubTotal = $this->GetBillSubTotal_Plain($UnitID, $PeriodID, $BillMaster, $AdditionalBillingHeads, $TaxableLedgerTotal, $TaxableLedgerTotal_No_Threshold, $InterestOnArrearsReversalCharge, $BillNote, $returnTaxableAmount, $BillSubTotal_NoInt);
 		
 		if ($this->ShowDebugTrace == 1)
 		{
 			echo '<br/>BillSubTotal including additional heads: ' . $BillSubTotal;
-			echo '<br/>InterestOnArrearsReversalCharge : ' . $InterestOnArrearsReversalCharge;
+			echo '<BR><BR><br/>BillSubTotal_NoInt including additional heads: ' . $BillSubTotal_NoInt;
+			echo '<BR><BR><br/>InterestOnArrearsReversalCharge : ' . $InterestOnArrearsReversalCharge;
 			echo '<br/>BillNote : ' . $BillNote . "<BR>";
 		}
 		$this->strTrace .=  '<tr><td>BillSubTotal including additional heads: ' . $BillSubTotal . '</td></tr>';
@@ -2409,7 +2626,8 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 		//******************************
 		//*** Processing debit notes ***
 		//******************************
-		$DebitNoteTotal = $this->GetDebitNoteTotal($UnitID, $PrevBillBillDate, $sBillDate);
+		$DebitNoteTotal_NoInt = 0;
+		$DebitNoteTotal = $this->GetDebitNoteTotal($UnitID, $PrevBillBillDate, $sBillDate, $DebitNoteTotal_NoInt);
 		$this->strTrace .=  '<tr><td>Debit note total : ' . $DebitNoteTotal . '</td></tr>';
 		if ($this->ShowDebugTrace == 1)
 		{
@@ -2417,10 +2635,13 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 			echo "<BR>Debit note total " . $DebitNoteTotal;
 		}
 		$PrevBillPrincipalAmount = $PrevBillPrincipalAmount + $DebitNoteTotal;
-		if ($DebitNoteTotal <> 0 and $this->ShowDebugTrace == 1)
+		$PrevBillPrincipalAmount_NoInt = $PrevBillPrincipalAmount_NoInt + $DebitNoteTotal_NoInt;
+		if (($DebitNoteTotal <> 0 || $DebitNoteTotal_NoInt <> 0) and $this->ShowDebugTrace == 1)
 		{
 			echo '<br/>Debit note total : ' . $DebitNoteTotal;
 			echo '<br/>PrevBillPrincipalAmount : ' . $PrevBillPrincipalAmount;
+			echo '<br/>Debit note total _NoInt : ' . $DebitNoteTotal_NoInt;
+			echo '<br/>PrevBillPrincipalAmount _NoInt : ' . $PrevBillPrincipalAmount_NoInt;
 		}
 		//======================
 		//==== Processing prev bill Credit
@@ -2465,11 +2686,55 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 				$this->strTrace .=  '<tr><td>PrevPrincipalDue : ' . $PrevPrincipalDue . '</td></tr>';
 				//echo '<br/>';
 			}
+			$CreditAmount_NoInt = 0;	//pending NoInt credit amount processing 
+			//pending : Processing of NoInt ledger credit note
+			//$PrevPrincipalDue = -100000; //pending cleanup
+			if($PrevPrincipalDue_NoInt < 0)
+			{
+				$CreditAmount_NoInt = $PrevPrincipalDue_NoInt * -1;
+				$PrevPrincipalDue_NoInt = 0;
+				
+				$this->strTrace .=  '<tr><td>There is a credit of : ' . $CreditAmount_NoInt . '</td></tr>';
+				$this->strTrace .=  '<tr><td>PrevBillPrincipalAmount : ' . $PrevBillPrincipalAmount_NoInt . '</td></tr>';
+	
+				if ($this->ShowDebugTrace == 1)
+				{
+					echo '<br/><br/>There is a credit of : ' . $CreditAmount_NoInt;
+					echo '<br/>PrevBillPrincipalAmount_NoInt : ' . $PrevBillPrincipalAmount_NoInt;
+				}
+				if($CreditAmount_NoInt  > $PrevBillPrincipalAmount_NoInt)
+				{			
+					$CreditAmount_NoInt  = $CreditAmount_NoInt  - $PrevBillPrincipalAmount_NoInt;
+					$PaidPrincipal_NoInt = $PrevBillPrincipalAmount_NoInt;
+					$PrevBillPrincipalAmount_NoInt = 0;
+					if ($this->ShowDebugTrace == 1)
+					{
+						echo '<br/><br/>Processed _NoInt credit of : ' . $CreditAmount_NoInt;
+						echo '<br/>PrevBillPrincipalAmount_NoInt : ' . $PrevBillPrincipalAmount_NoInt;
+					}
+					
+				}
+				else
+				{
+					$PrevBillPrincipalAmount_NoInt = $PrevBillPrincipalAmount_NoInt - $CreditAmount ;
+					$PaidPrincipal_NoInt = $CreditAmount_NoInt ;
+					$CreditAmount_NoInt  = 0;	
+				}						
+				//echo '<br/>There is a credit of : ' . $CreditAmount;
+				$this->strTrace .=  '<tr><td>Processed CreditAmount_NoInt credit of : ' . $CreditAmount_NoInt . '</td></tr>';
+				$this->strTrace .=  '<tr><td>PrevBillPrincipalAmount_NoInt : ' . $PrevBillPrincipalAmount_NoInt . '</td></tr>';
+				//echo '<br/>PrevPrincipalDue : ' . $PrevPrincipalDue;
+				$this->strTrace .=  '<tr><td>PrevPrincipalDue_NoInt : ' . $PrevPrincipalDue_NoInt . '</td></tr>';
+				//echo '<br/>';
+			}
 			if ($this->ShowDebugTrace == 1)
 			{
 				echo '<br/>There is a credit of : ' . $CreditAmount;
 				echo '<br/>PrevBillPrincipalAmount : ' . $PrevBillPrincipalAmount;
 				echo '<br/>PrevPrincipalDue : ' . $PrevPrincipalDue;
+				echo '<br/>There is a CreditAmount_NoInt credit of : ' . $CreditAmount_NoInt;
+				echo '<br/>PrevBillPrincipalAmount_NoInt : ' . $PrevBillPrincipalAmount_NoInt;
+				echo '<br/>PrevPrincipalDue_NoInt : ' . $PrevPrincipalDue_NoInt;
 			}
 
 			//Apply received amount to calculate
@@ -2509,6 +2774,8 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 				echo '<br/>creditNoteSql : ' . $creditNoteSql;
 				var_dump($CreditNoteResult);
 			}
+			$NoIntLedger = 234; //pending get from ledger table
+
 			//Array push work when variable is array so defining here $resultcheck as array
 			if(sizeof($resultCheck) == 0)
 			{
@@ -2659,6 +2926,8 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 								echo '<br/>Processing Previous PrevBill Principal arrears : ' . $PrevBillPrincipalAmount;
 							}
 								$this->ProcessPreviousBillPrincipal($PrevBillPrincipalAmount,$PaymentReceived, $CurrentBillInterestAmount, $PaidPrincipal, $societyInfo, $TransactionType, $PaymentDate, $PrevPeriodEndingDate, $PrevBillDueDate, $PrevPeriodBeginingDate);
+								$this->ProcessPreviousPrincipal_NoInt($PrevPrincipalDue_NoInt, $PaymentReceived, $CurrentBillInterestAmount, $PaidPrincipal, $societyInfo, $TransactionType, $PaymentDate, $PrevPeriodBeginingDate, $PrevPeriodEndingDate, $PrevBillDueDate);
+								$this->ProcessPreviousBillPrincipal_NoInt($PrevBillPrincipalAmount_NoInt,$PaymentReceived, $CurrentBillInterestAmount, $PaidPrincipal, $societyInfo, $TransactionType, $PaymentDate, $PrevPeriodEndingDate, $PrevBillDueDate, $PrevPeriodBeginingDate);
 
 								//Now process PrevPrincipal Arrears																		
 								if($ProcessPrincipalFirst==1)
@@ -2706,6 +2975,12 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 			{
 				$CurrentPeriod_CreditAmount = $BillSubTotal * -1;
 			}
+			$CurrentPeriod_CreditAmount_NoInt  = 0;
+		
+			if($BillSubTotal_NoInt < 0)
+			{
+				$CurrentPeriod_CreditAmount_NoInt = $BillSubTotal_NoInt * -1;
+			}
 			
 			if($PrevBillPrincipalAmount < 0)
 			{
@@ -2715,6 +2990,15 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 					//echo "<BR>Credit of PrevBillPrincipalAmount " . $PrevBillPrincipalAmount . " added to PrevPrincipalDue" . $PrevPrincipalDue;
 				}
 				$PrevBillPrincipalAmount = 0;
+			}
+			if($PrevBillPrincipalAmount_NoInt < 0)
+			{
+				$PrevPrincipalDue_NoInt = $PrevPrincipalDue_NoInt + $PrevBillPrincipalAmount_NoInt;				
+				if ($this->ShowDebugTrace == 1)
+				{				
+					//echo "<BR>Credit of PrevBillPrincipalAmount_NoInt " . $PrevBillPrincipalAmount_NoInt . " added to PrevPrincipalDue_NoInt" . $PrevPrincipalDue_NoInt;
+				}
+				$PrevBillPrincipalAmount_NoInt = 0;
 			}
 			
 			if ($PrevPrincipalDue > 0 && $dateDiff < 0)
@@ -2760,10 +3044,28 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 					$this->strTrace .=  '<tr><td>CurrentBillInterestAmount : ' . $CurrentBillInterestAmount . '</td></tr>';
 				}
 			}			
+
+			if ($PrevPrincipalDue_NoInt > 0 && $dateDiff < 0)
+			{
+				if ($this->ShowDebugTrace == 1)
+				{				
+					//echo "<BR>PrevPrincipalDue_NoInt" . $PrevPrincipalDue_NoInt;
+				}
+				if($CurrentPeriod_CreditAmount_NoInt > 0 && $CurrentPeriod_CreditAmount_NoInt > $PrevPrincipalDue_NoInt)
+				{
+					if ($this->ShowDebugTrace == 1)
+					{				
+						//echo '<br/>22CurrentPerid Credit Amount ' . $CurrentPeriod_CreditAmount_NoInt . ' is more than PrevPrincipalDue ' . $PrevPrincipalDue_NoInt . ' so interest not calculated on PrevPrincipalDue_NoInt' ;
+					}
+					$this->strTrace .=  '<tr><td>CurrentPerid Credit Amount_NoInt ' . $CurrentPeriod_CreditAmount_NoInt . ' is more than PrevPrincipalDue_NoInt ' . $PrevPrincipalDue_NoInt . ' so interest not calculated on PrevPrincipalDue_NoInt </td></tr>';
+					$CurrentPeriod_CreditAmount_NoInt = $CurrentPeriod_CreditAmount_NoInt - $PrevPrincipalDue_NoInt;
+					$PrevPrincipalDue_NoInt = 0;
+				}
+			}			
 			
 			if ($this->ShowDebugTrace == 1)
 			{				
-				echo "<BR>PrevBillPrincipalAmount" . $PrevBillPrincipalAmount;
+				echo "<BR>PrevBillPrincipalAmount_NoInt" . $PrevBillPrincipalAmount_NoInt;
 				echo "<BR>dateDiff" . $dateDiff;
 			}
 			if ($PrevBillPrincipalAmount > 0 && $dateDiff < 0)
@@ -2929,10 +3231,10 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 		$SGST = 0;
 		$CESS = 0;
 		$BillDate = getDBFormatDate($this->m_dbConn->escapeString($_REQUEST['bill_date']));
-
+		$TaxableAmount = 0;
 		//If INTEREST_ON_PRINCIPLE_DUE is taxable, then reversal credit of Interest would be considered for tax refund
-		$this->CalculateGST($UnitID, $Unit_taxable_no_threshold, $Main_BillDate, $TaxableLedgerTotal, $TaxableLedgerTotal_No_Threshold, $CurrentBillInterestAmount, $InterestOnArrearsReversalCharge, $societyInfo, $IGST, $CGST, $SGST,$CESS);
-		
+		$this->CalculateGST($UnitID, $Unit_taxable_no_threshold, $Main_BillDate, $TaxableLedgerTotal, $TaxableLedgerTotal_No_Threshold, $CurrentBillInterestAmount, $InterestOnArrearsReversalCharge, $societyInfo, $IGST, $CGST, $SGST,$CESS, $TaxableAmount);
+		echo '<br>****TaxableAmount  : ' . $TaxableAmount ;
 
 			if($InterestOnArrearsReversalCharge <> 0)
 			{
@@ -2975,7 +3277,7 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 			$PrevInterestDue = $this->getTwoDecimalPoints($PrevInterestDue);
 			
 			
-		$CurrentBillAmount = $BillSubTotal + $CurrentBillInterestAmount + $BillTax + $IGST + $CGST + $SGST + $CESS ;
+		$CurrentBillAmount = $BillSubTotal + $BillSubTotal_NoInt +$CurrentBillInterestAmount + $BillTax + $IGST + $CGST + $SGST + $CESS ;
 		
 		$this->strTrace .=  '<tr><td>CurrentBillAmount : ' . $CurrentBillAmount . '</td></tr>';
 		
@@ -2989,13 +3291,15 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 		//Total = Current Bill Amount + Principal Due + InterestDue
 		//echo '<br/>PrevPrincipalDue : ' . $PrevPrincipalDue;
 		$PrevPrincipalDue = $PrevPrincipalDue + $PrevBillPrincipalAmount;
+		$PrevPrincipalDue_NoInt = $PrevPrincipalDue_NoInt + $PrevBillPrincipalAmount_NoInt;
 		//echo '<br/>PrevPrincipalDue : ' . $PrevPrincipalDue;
 		$this->strTrace .=  '<tr><td>PrevPrincipalDue : ' . $PrevPrincipalDue . '</td></tr>';
+		$this->strTrace .=  '<tr><td>PrevPrincipalDue_NoInt : ' . $PrevPrincipalDue_NoInt . '</td></tr>';
 		$PrevPrincipalDue = $PrevPrincipalDue - $CreditAmount;
 		//echo '<br/>PrevPrincipalDue : ' . $PrevPrincipalDue;
 		$this->strTrace .=  '<tr><td>PrevPrincipalDue : ' . $PrevPrincipalDue . '</td></tr>';
 
-		$this->strTrace .=  '<tr><td>TotalBillPayable : ' . $TotalBillPayable . '</td></tr>';
+		$this->strTrace .=  '<tr><td>TotalBillPayable_NoInt : ' . $TotalBillPayable_NoInt . '</td></tr>';
 		$PrevDues = $PrevPrincipalDue + $PrevInterestDue;
 
 		if ($this->ShowDebugTrace == 1)
@@ -3006,6 +3310,7 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 			echo '<br/>CurrentBillInterestAmount : ' . $CurrentBillInterestAmount;
 			echo '<br/>CurrentBillAmount : ' . $CurrentBillAmount;
 			echo '<br/>PrevPrincipalDue : ' . $PrevPrincipalDue;
+			echo '<br/>PrevPrincipalDue_NoInt : ' . $PrevPrincipalDue_NoInt;
 			echo '<br/>PrevInterestDue : ' . $PrevInterestDue;
 			echo '<br/>PrevDues : ' . $PrevDues;
 			echo '<br/>TotalBillPayable : ' . $TotalBillPayable;
@@ -3024,7 +3329,7 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 			
 			//echo "<br>Total RoundOffAmt : ".$RoundOffAmt;
 			
-			$TotalBillPayable = $CurrentBillAmount + $PrevPrincipalDue + $PrevInterestDue;
+			$TotalBillPayable = $CurrentBillAmount + $PrevPrincipalDue + $PrevPrincipalDue_NoInt + $PrevInterestDue;
 			$Total = $TotalBillPayable;
 			$TotalBillPayable = $this->m_objUtility->getRoundValue2($Total);
 			//10.24
@@ -3037,32 +3342,67 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 		{
 			$TotalBillPayable = $CurrentBillAmount + $PrevPrincipalDue + $PrevInterestDue;
 			$PrevPrincipalDue_ = $this->m_objUtility->getRoundValue2($PrevPrincipalDue_);
+			$PrevPrincipalDue_NoInt_ = $this->m_objUtility->getRoundValue2($PrevPrincipalDue_NoInt_);
 			$PrevInterestDue_ = $this->m_objUtility->getRoundValue2($PrevInterestDue_);
 			$PrevBillPrincipal_ = $this->m_objUtility->getRoundValue2($PrevBillPrincipal_);
+			$PrevBillPrincipal__NoInt_ = $this->m_objUtility->getRoundValue2($PrevBillPrincipal__NoInt_);
 			$PrevBillInterest_ = $this->m_objUtility->getRoundValue2($PrevBillInterest_);
 			$BillSubTotal = $this->m_objUtility->getRoundValue2($BillSubTotal);
+			$BillSubTotal_NoInt = $this->m_objUtility->getRoundValue2($BillSubTotal_NoInt);
 			$CurrentBillInterestAmount = $this->m_objUtility->getRoundValue2($CurrentBillInterestAmount);
 			$CurrentBillAmount = $this->m_objUtility->getRoundValue2($CurrentBillAmount);
 			$PrevPrincipalDue = $this->m_objUtility->getRoundValue2($PrevPrincipalDue);
+			$PrevPrincipalDue_NoInt = $this->m_objUtility->getRoundValue2($PrevPrincipalDue_NoInt);
 			$PrevInterestDue = $this->m_objUtility->getRoundValue2($PrevInterestDue);
 			$TotalBillPayable = $this->m_objUtility->getRoundValue2($TotalBillPayable);
 		}
-
+		$AdjustmentCredit = 0;
+/*
 		$InsertQuery = "INSERT INTO `billdetails`(`UnitID`, `PeriodID`, `BillRegisterID`, `BillNumber`,
-		`ModifiedFlag`, `PrevPrincipalArrears`, `PrevInterestArrears`, `PrevBillPrincipal`, 
+		`ModifiedFlag`, `PrevPrincipalArrears`, `PrevPrincipalArrears_NoInt`, `PrevInterestArrears`, `PrevBillPrincipal`, `PrevBillPrincipal_NoInt`, 
 		`PrevBillInterest`, `PaymentReceived`, `PaidPrincipal`, `PaidInterest`,
-		`BillSubTotal`, `AdjustmentCredit`, `BillTax`,`IGST`,`CGST`,`SGST`,`CESS`,`BillInterest`, `LateDays`, 
-		`CurrentBillAmount`,`PrincipalArrears`, `InterestArrears`, `Ledger_round_off`, `TotalBillPayable`,`Note`,`BillType`) VALUES ("
+		`BillSubTotal`, `BillSubTotal_NoInt`, `AdjustmentCredit`, `TaxableAmount`, `BillTax`,`IGST`,`CGST`,`SGST`,`CESS`,`BillInterest`, `LateDays`, 
+		`CurrentBillAmount`,`PrincipalArrears`, `PrincipalArrears_NoInt`, `InterestArrears`, `Ledger_round_off`, `TotalBillPayable`,`Note`,`BillType`) VALUES ("
 			. $UnitID.",".$PeriodID."," . $BillRegisterID . ", " . $BillNo . ", '0'," 
 			. $PrevPrincipalDue_ .","
+			. $PrevPrincipalDue_NoInt_ .","
 			. $PrevInterestDue_.","
 			. $PrevBillPrincipal_ . ","
+			. $PrevBillPrincipal_NoInt_ . ","
 			. $PrevBillInterest_ .","
 			. $PaymentReceived_.','.$PaidPrincipal.','.$PaidInterest.','
-			. $BillSubTotal.",0,". $BillTax.",".$IGST.",".$CGST.",".$SGST.",".$CESS.","
+			. $BillSubTotal.','.$BillSubTotal_NoInt.",0,". $BillTax.",".$IGST.",".$CGST.",".$SGST.",".$CESS.","
 			. $CurrentBillInterestAmount.",".$LateDays.','
 			. $CurrentBillAmount.","
 			. $PrevPrincipalDue.","
+			. $PrevPrincipalDue_NoInt.","
+			. $PrevInterestDue.","
+			. $RoundOffAmt.","
+			. $TotalBillPayable.","
+			. "'" .$this->m_dbConn->escapeString($BillNote). "',"
+			. $this->IsSupplementaryBill().")";
+*/
+		$InsertQuery = "INSERT INTO `billdetails`(`UnitID`, `PeriodID`, `BillRegisterID`, `BillNumber`,
+		`ModifiedFlag`, `PrevPrincipalArrears`, `PrevPrincipalArrears_NoInt`, `PrevInterestArrears`, `PrevBillPrincipal`, `PrevBillPrincipal_NoInt`, 
+		`PrevBillInterest`, `PaymentReceived`, `PaidPrincipal`, `PaidInterest`,
+		`BillSubTotal`, `BillSubTotal_NoInt`, `AdjustmentCredit`, `TaxableAmount`, `BillTax`,`IGST`,`CGST`,`SGST`,`CESS`,`BillInterest`, `LateDays`, 
+		`CurrentBillAmount`,`PrincipalArrears`, `PrincipalArrears_NoInt`, `InterestArrears`, `Ledger_round_off`, `TotalBillPayable`,`Note`,`BillType`) VALUES ("
+			. $UnitID.",".$PeriodID."," . $BillRegisterID . ", " . $BillNo . ", '0'," 
+			. $PrevPrincipalDue_ .","
+			. $PrevPrincipalDue_NoInt_ .","
+			. $PrevInterestDue_.","
+			. $PrevBillPrincipal_ . ","
+			. $PrevBillPrincipal_NoInt_ . ","
+			. $PrevBillInterest_ .","
+			. $PaymentReceived_.','.$PaidPrincipal.','.$PaidInterest.','
+			. $BillSubTotal.','.$BillSubTotal_NoInt.','
+			. $AdjustmentCredit. ','
+			. $TaxableAmount. ','
+			. $BillTax.",".$IGST.",".$CGST.",".$SGST.",".$CESS.","
+			. $CurrentBillInterestAmount.",".$LateDays.','
+			. $CurrentBillAmount.","
+			. $PrevPrincipalDue.","
+			. $PrevPrincipalDue_NoInt.","
 			. $PrevInterestDue.","
 			.$RoundOffAmt.","
 			. $TotalBillPayable.","
@@ -3614,11 +3954,11 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 		
 		if($this->IsSupplementaryBill() == 1)
 		{
-			$sqlFetch = "select master.UnitID, master.AccountHeadID, master.AccountHeadAmount, master.BeginPeriod, master.EndPeriod, master.BillType, ledgertbl.taxable, ledgertbl.taxable_no_threshold from unitbillmaster as master JOIN ledger as ledgertbl ON master.AccountHeadID = ledgertbl.id where master.UnitID = '" . $UnitID . "' and ledgertbl.supplementary_bill = '1' and master.AccountHeadID != '" . INTEREST_ON_PRINCIPLE_DUE . "' and master.BeginPeriod <= '" . $beginDate . "' and master.BillType='".$this->IsSupplementaryBill()."' ORDER BY UnitID, AccountHeadID, EndPeriod ASC";
+			$sqlFetch = "select master.UnitID, master.AccountHeadID, master.AccountHeadAmount, master.BeginPeriod, master.EndPeriod, master.BillType, ledgertbl.NoInterest, ledgertbl.taxable, ledgertbl.taxable_no_threshold from unitbillmaster as master JOIN ledger as ledgertbl ON master.AccountHeadID = ledgertbl.id where master.UnitID = '" . $UnitID . "' and ledgertbl.supplementary_bill = '1' and master.AccountHeadID != '" . INTEREST_ON_PRINCIPLE_DUE . "' and master.BeginPeriod <= '" . $beginDate . "' and master.BillType='".$this->IsSupplementaryBill()."' ORDER BY UnitID, AccountHeadID, EndPeriod ASC";
 		}
 		else
 		{
-			$sqlFetch = "select master.UnitID, master.AccountHeadID, master.AccountHeadAmount, master.BeginPeriod, master.EndPeriod,master.BillType, ledgertbl.taxable, ledgertbl.taxable_no_threshold from unitbillmaster as master JOIN ledger as ledgertbl ON master.AccountHeadID = ledgertbl.id where master.UnitID = '" . $UnitID . "' and ledgertbl.show_in_bill = '1' and master.AccountHeadID != '" . INTEREST_ON_PRINCIPLE_DUE . "' and master.BeginPeriod <= '" . $beginDate . "' and master.BillType='".$this->IsSupplementaryBill()."' ORDER BY UnitID, AccountHeadID, EndPeriod ASC";
+			$sqlFetch = "select master.UnitID, master.AccountHeadID, master.AccountHeadAmount, master.BeginPeriod, master.EndPeriod,master.BillType, ledgertbl.NoInterest, ledgertbl.taxable, ledgertbl.taxable_no_threshold from unitbillmaster as master JOIN ledger as ledgertbl ON master.AccountHeadID = ledgertbl.id where master.UnitID = '" . $UnitID . "' and ledgertbl.show_in_bill = '1' and master.AccountHeadID != '" . INTEREST_ON_PRINCIPLE_DUE . "' and master.BeginPeriod <= '" . $beginDate . "' and master.BillType='".$this->IsSupplementaryBill()."' ORDER BY UnitID, AccountHeadID, EndPeriod ASC";
 		}
 		
 
@@ -3654,7 +3994,7 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 		return $resultFetch;
 	}
 	
-	public function GetBillSubTotal_Plain($UnitID, $PeriodID, $resultFetch, $AdditionalBillingHeads, &$TaxableLedgerTotal, &$TaxableLedgerTotal_No_Threshold, &$InterestOnArrearsReversalCharge, &$BillNote,$IsReturnOnlyTaxableledgerAmount = false)
+	public function GetBillSubTotal_Plain($UnitID, $PeriodID, $resultFetch, $AdditionalBillingHeads, &$TaxableLedgerTotal, &$TaxableLedgerTotal_No_Threshold, &$InterestOnArrearsReversalCharge, &$BillNote,&$IsReturnOnlyTaxableledgerAmount = false, &$BillSubTotal_NoInt) 
 	{
 		//$this->ShowDebugTrace = 1;
 		$BillSubTotal = 0;//-1;
@@ -3700,7 +4040,16 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 				{
 					$unit_inprocess = $resultFetch[$iCnt]['UnitID'];
 					$ledger_inprocess = $resultFetch[$iCnt]['AccountHeadID'];
-					$BillSubTotal += $resultFetch[$iCnt]['AccountHeadAmount'];
+
+					if($resultFetch[$iCnt]['NoInterest'] == 1)
+					{
+						echo "<BR>No interest ledger :" . $ledger_inprocess;
+						$BillSubTotal_NoInt += $resultFetch[$iCnt]['AccountHeadAmount'];
+					}
+					else
+					{
+						$BillSubTotal += $resultFetch[$iCnt]['AccountHeadAmount'];
+					}
 
 					if($this->ShowDebugTrace == 1)
 					{
@@ -3776,7 +4125,15 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 					}
 					else
 					{
-						$BillSubTotal += $AdditionalBillingHeads[$k]['AccountHeadAmount'];
+						if($resultFetch[$iCnt]['NoInterest'] == 1)
+						{
+							echo "<BR>AdditionalBillingHeads  No interest ledger :" . $ledger_inprocess;
+							$BillSubTotal_NoInt += $AdditionalBillingHeads[$k]['AccountHeadAmount'];
+						}
+						else
+						{
+							$BillSubTotal += $AdditionalBillingHeads[$k]['AccountHeadAmount'];
+						}
 						if($this->ShowDebugTrace == 1)
 						{
 							//echo "<BR>reversal credit : AccountHeadID :". $AdditionalBillingHeads[$k]['AccountHeadID'] . "  Amount :". $AdditionalBillingHeads[$k]['AccountHeadAmount'] . "  taxable? :". $AdditionalBillingHeads[$k]['Taxable'] ;
@@ -3819,6 +4176,7 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 		if($this->ShowDebugTrace == 1)
 		{
 			echo "<BR>BillSubTotal :" . $BillSubTotal ;
+			echo "<BR>BillSubTotal_NoInt :" . $BillSubTotal_NoInt ;
 			echo "<BR>TaxableLedgerTotal :" . $TaxableLedgerTotal;
 			echo "<BR>TaxableLedgerTotal_No_Threshold Total: " . $TaxableLedgerTotal_No_Threshold ;
 		}
@@ -3829,7 +4187,7 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 		return $BillSubTotal;
 	}
 	
-	public function CalculateGST($UnitID, $Unit_taxable_no_threshold, $BillDate, $TaxableLedgerTotal, $TaxableLedgerTotal_No_Threshold, $CurrentBillInterestAmount, $InterestOnArrearsReversalCharge, $societyInfo, &$IGST,&$CGST,&$SGST,&$CESS)
+	public function CalculateGST($UnitID, $Unit_taxable_no_threshold, $BillDate, $TaxableLedgerTotal, $TaxableLedgerTotal_No_Threshold, $CurrentBillInterestAmount, $InterestOnArrearsReversalCharge, $societyInfo, &$IGST,&$CGST,&$SGST,&$CESS, &$TaxableAmount)
 	{
 		if($this->ShowDebugTrace == 1)
 		{
@@ -4417,7 +4775,7 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 	}
 	
 	//When Gst Update Page call  then it update
-	public function UpdateGst($BillDetailID,$CGST,$SGST)
+	public function UpdateGst($BillDetailID, $CGST, $SGST, $TaxableAmount)
 	{
 		
 		$BillDetails = $this->m_dbConn->select("SELECT CGST, SGST FROM billdetails WHERE ID = '".$BillDetailID."'");
@@ -4431,7 +4789,7 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 			$msg = 'Data Not Found !!';
 			return $msg;
 		}
-		
+		$this->ShowDebugTrace = 1;
 		//Declaring Ledger Array to check GST ledger present in or not (for comparision)
 		$Ledgers = array();
 		$IsGstInsertOrUpdate = 0;
@@ -4613,7 +4971,7 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 				echo '<br> This need to Update '.$TotalBillPayable;
 			}
 			
-			$UpdateBillDetailsTable = $this->m_dbConn->update("Update `billdetails` set `CGST` = '".$CGST."', `SGST` = '".$SGST."', `CurrentBillAmount` = '".$CurrentBillAmount."', TotalBillPayable = '".$TotalBillPayable."' WHERE ID = '".$BillDetailID."'");	
+			$UpdateBillDetailsTable = $this->m_dbConn->update("Update `billdetails` set `TaxableAmount` = '".$TaxableAmount."', CGST` = '".$CGST."', `SGST` = '".$SGST."', `CurrentBillAmount` = '".$CurrentBillAmount."', TotalBillPayable = '".$TotalBillPayable."' WHERE ID = '".$BillDetailID."'");	
 			
 			
 			if($IsGstInsertOrUpdate == ADD)
@@ -4814,6 +5172,7 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 					print_r($LedgerDetails);*/
 					$Taxable = $LedgerDetails[$HeaderName]['General']['taxable'];
 					$Taxable_no_threshold = $LedgerDetails[$HeaderName]['General']['taxable_no_threshold'];
+					$noInterestFlag = $LedgerDetails[$HeaderName]['General']['NoInterest'];
 					if($HeaderName == INTEREST_ON_PRINCIPLE_DUE && $HeaderAmount <> 0)
 					{
 						//If Interest is add in the line item, then
@@ -4954,8 +5313,8 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 		//$TaxableLedgerTotal_No_Threshold = 0;
 		//BillDetailsUpdate
 		$societyInfo = $this->m_objUtility->GetSocietyInformation($_SESSION['society_id']);
-
-		$this->CalculateGST($UnitID, $Unit_taxable_no_threshold, $BillDate, $TaxableLedgerTotal, $TaxableLedgerTotal_No_Threshold, $CurrentBillInterestAmount, $InterestOnArrearsReversalCharge, $societyInfo, $IGSTAmount, $CGSTAmount, $SGSTAmount,$CESSAmount);
+		$TaxableAmount = 0;
+		$this->CalculateGST($UnitID, $Unit_taxable_no_threshold, $BillDate, $TaxableLedgerTotal, $TaxableLedgerTotal_No_Threshold, $CurrentBillInterestAmount, $InterestOnArrearsReversalCharge, $societyInfo, $IGSTAmount, $CGSTAmount, $SGSTAmount,$CESSAmount, $TaxableAmount);
 		
 		if(CGST_SERVICE_TAX > 0)
 		{
@@ -5065,7 +5424,7 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 		//$iLatestChangeID = $changeLog->setLog($desc, $_SESSION['login_id'], 'billregister', $resultCheck[0]['ID']);
 		//echo $BillRegisterUpdate = "UPDATE `billregister` SET `LatestChangeID`='" . $this->m_dbConn->escapeString($iLatestChangeID). "' WHERE ID ='" . $resultCheck[0]['BillRegisterID'] . "'";
 		//$resultBillRegister = $this->m_dbConn->update($BillRegisterUpdate);
-		 $sqlUpdate1 = "UPDATE `billdetails` SET `LatestChangeID`='" . $this->m_dbConn->escapeString($iLatestChangeID) . "',`BillSubTotal`='" . $BillSubTotal . "',`BillInterest`='" . $CurrentBillInterestAmount . "',`CurrentBillAmount`='" . $CurrentBillAmount . "',`PrincipalArrears`='" . $PrincipalArrears . "',`InterestArrears`='" . $InterestArrears . "', `AdjustmentCredit` = '" . $AdjustmentCredit . "', `TotalBillPayable`='" . $TotalBillPayable . "', `BillTax` = '" . $ServiceTax . "', `IGST` = '" . $IGSTAmount . "', `CGST` = '" . $CGSTAmount. "', `SGST` = '" . $SGSTAmount . "', `CESS` = '" . $CESSAmount . "',`Ledger_round_off` = '" . $RoundOffAmt . "' WHERE ID ='" . $resultCheck[0]['ID'] . "' and UnitID ='" . $UnitID . "' and PeriodID='" . $PeriodID . "' and BillType='".$SupplementaryBill ."'";
+		$sqlUpdate1 = "UPDATE `billdetails` SET `LatestChangeID`='" . $this->m_dbConn->escapeString($iLatestChangeID) . "',`BillSubTotal`='" . $BillSubTotal . "',`BillInterest`='" . $CurrentBillInterestAmount . "',`CurrentBillAmount`='" . $CurrentBillAmount . "',`PrincipalArrears`='" . $PrincipalArrears . "',`InterestArrears`='" . $InterestArrears . "', `AdjustmentCredit` = '" . $AdjustmentCredit . "', `TotalBillPayable`='" . $TotalBillPayable . "',  `TaxableAmount`='" . $TaxableAmount . "', `BillTax` = '" . $ServiceTax . "', `IGST` = '" . $IGSTAmount . "', `CGST` = '" . $CGSTAmount. "', `SGST` = '" . $SGSTAmount . "', `CESS` = '" . $CESSAmount . "',`Ledger_round_off` = '" . $RoundOffAmt . "' WHERE ID ='" . $resultCheck[0]['ID'] . "' and UnitID ='" . $UnitID . "' and PeriodID='" . $PeriodID . "' and BillType='".$SupplementaryBill ."'";
 		$resultUpdate1 = $this->m_dbConn->update($sqlUpdate1);
 		//log the Bill Edit 
 		// log start
@@ -5418,7 +5777,6 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 		}
 
 		if($IsUpdateRequest == false){
-
 			// log the deleted entry details
 			$previousDetails = $this->m_objLog->showChangeLog(TABLE_CREDIT_DEBIT_NOTE, $DebitorCreditID, true);
 
@@ -5461,6 +5819,7 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 	
 	public function AddCreditDebitNote($Detail,$UnitID,$bill_date,$BillType,$NoteType,$BillNote,$IseditModeSet,$CreditDebitEditable_ID,$IsCallUpdtCnt = 1,$ExternalCounter, $flag = 0,$GUID)
 	{
+
 		$CalculatedGSTDetails = 0;
 		return $this->AddCreditDebitNoteWithImport($Detail,$UnitID,$bill_date,$BillType,$NoteType,$BillNote,$IseditModeSet,$CreditDebitEditable_ID,$IsCallUpdtCnt,$ExternalCounter, $flag,$GUID,false,$CalculatedGSTDetails);
 	}
@@ -5624,11 +5983,13 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 		//Check Is a credit note or debit note according to that make entry in respective table
 		if($NoteType == CREDIT_NOTE)
 		{
+
 			//Storing $TransactionType for GST with respect to note type
 			$TransactionType = TRANSACTION_DEBIT;
 			$VoucherType = VOUCHER_CREDIT_NOTE;
 			for($i = 0 ; $i < sizeof($Detail); $i++)
 			{
+
 				$SrNo = $SrNo + 1;
 				//First We insert data in Voucher Table .
 				
@@ -5899,6 +6260,49 @@ $sqlPrevQuery = "Select bd.ID, BillRegisterID, PrincipalArrears, InterestArrears
 		//echo "<script>alert('test')<//script>";
 		$str.="<option value=''>Please Select</option>";
 	$data = $this->m_dbConn->select($query);
+	//echo "<script>alert('test2')<//script>";
+		if(!is_null($data))
+		{
+			$vowels = array('/', '*', '%', '&', ',', '(', ')', '"');
+			foreach($data as $key => $value)
+			{
+				$i=0;
+				foreach($value as $k => $v)
+				{
+					if($i==0)
+					{
+						if($id==$v)
+						{
+							$sel = 'selected';
+						}
+						else
+						{
+							$sel = '';
+						}
+						
+						$str.="<OPTION VALUE=".$v.' '.$sel.">";
+					}
+					else
+					{
+						$str.= str_replace($vowels, ' ', $v)."</OPTION>";
+						//$str.=$v."</OPTION>";
+					}
+					//echo "<script>alert('".$str."')<//script>";
+					$i++;
+				}
+			}
+		}
+		//return $str;
+		//print_r( $str);
+		//echo "<script>alert('test')<//script>";
+		return $str;
+	}
+	public function comboboxEx1($query)
+	{
+		$id=0;
+		//echo "<script>alert('test')<//script>";
+		//$str.="<option value=''>Please Select</option>";
+	 $data = $this->m_dbConn->select($query);
 	//echo "<script>alert('test2')<//script>";
 		if(!is_null($data))
 		{
@@ -6314,6 +6718,167 @@ function getCollectionOfDataToDisplay_optimize($society_id, $wing_id, $unit_id, 
 		
 		return $resData;
 	}		
+
+	public function getCollectionOfDataForContributionLedger_optimize_res($society_id, $wing_id, $unit_id, $period_id,$isBillSummary = false, $SupplementaryBill)
+	{
+		$sqlPeriod  = "Select ID from `period` where YearID = '".$_SESSION['default_year'] ."'";
+		if($_SESSION['res_flag'] == 1){
+			$resPeriod = $this->landLordDB->select($sqlPeriod);
+		}else{
+			$resPeriod = $this->m_dbConn->select($sqlPeriod);
+		}
+		// print_r($resPeriod);
+		$iFirst = true;
+		
+		for($iCntr = 0 ; $iCntr < sizeof($resPeriod); $iCntr++)
+		{
+			if($iFirst == false)
+			{
+				$periodList .= ',';
+			}
+			$iFirst = false;
+			$periodList .= $resPeriod[$iCntr]['ID'];
+		}
+
+		//echo $periodList;
+
+		//$sql = "SELECT `id`,`ledger_name` FROM `ledger`  WHERE `id` IN(SELECT vch.`To` from `voucher` as vch JOIN `billdetails` as bill on bill.ID = vch.`RefNo` where `To` <> '' and `RefTableID`=1 and bill.`PeriodID` IN (" . $periodList . ") ) and `id` NOT IN(".INTEREST_ON_PRINCIPLE_DUE.",".ADJUSTMENT_CREDIT.") ";
+		
+		$sql = "SELECT `id`,`ledger_name` FROM `ledger`  WHERE `id` IN(SELECT vch.`To` from `voucher` as vch JOIN `billdetails` as bill on bill.ID = vch.`RefNo` where `To` <> '' and `RefTableID`=1 and BillType = '" . $SupplementaryBill . "' and bill.`PeriodID` IN (" . $periodList . ") ) and `id` NOT IN(".INTEREST_ON_PRINCIPLE_DUE.",".ADJUSTMENT_CREDIT.",".IGST_SERVICE_TAX.",".CGST_SERVICE_TAX.",".SGST_SERVICE_TAX.",".CESS_SERVICE_TAX.") ";
+		if($_SESSION['res_flag'] == 1){
+			$result = $this->landLordDB->select($sql);
+		}else{
+			$result = $this->m_dbConn->select($sql);
+		}
+		
+		$sqlII = "SELECT  vch.`RefNo`, uni.`unit_id`, uni.`unit_no` as 'Unit No', mem.`tenant_name` as 'Tenant Name', bill.`BillNumber`, yr.`YearDescription` as 'Fin. Year', prd.`Type` as 'Bill For', prd.`ID` as 'PeriodID', ";
+		
+		for($m = 0; $m < sizeof($result); $m++)
+		{
+			$sqlII	.= " SUM( IF( vch.`To` =  '".$result[$m]['id']."', vch.`Credit` , 0.00 ) ) AS '".$result[$m]['ledger_name']."' ";
+			
+			if($m < sizeof($result))
+			{
+				$sqlII	.= " , ";
+			}
+		}
+
+		$societyInfo = $this->m_objUtility->GetSocietyInformation($_SESSION['society_id']);
+		$ApplyServiceTax = $societyInfo['apply_service_tax'];
+		if($ApplyServiceTax == 1)
+		{
+			$sqlII	.="	bill.`BillSubTotal` ,bill.`BillInterest` as InterestOnArrears,
+							bill.`AdjustmentCredit`, bill.`CGST` as CGST , bill.`SGST` as SGCT , bill.`PrincipalArrears` as PreviousPrincipalArrears , bill.`InterestArrears` as PreviousInterestArrears,
+							(bill.`BillSubTotal` + bill.`AdjustmentCredit`  + bill.`BillInterest` + bill.`PrincipalArrears` + bill.`InterestArrears` + bill.`CGST` + bill.`SGST` ) as Payable
+							FROM voucher AS vch JOIN billdetails AS bill ON vch.RefNo = bill.ID JOIN tenant_module AS mem ON bill.UnitID = mem.ledger_id
+							JOIN unit AS uni ON uni.unit_id = mem.unit_id JOIN year as yr ON yr.YearID = '".$_SESSION['default_year']."'  JOIN period as prd on bill.PeriodID = prd.ID WHERE bill.BillType = '". $SupplementaryBill . "' and bill.PeriodID IN (" . $periodList . ")";								
+		}
+		else
+		{
+			$sqlII	.="	bill.`BillSubTotal` ,bill.`BillInterest` as InterestOnArrears,
+							bill.`AdjustmentCredit`, bill.`PrincipalArrears` as PreviousPrincipalArrears , bill.`InterestArrears` as PreviousInterestArrears,
+							(bill.`BillSubTotal` + bill.`AdjustmentCredit`  + bill.`BillInterest` + bill.`PrincipalArrears` + bill.`InterestArrears`) as Payable
+							FROM voucher AS vch JOIN billdetails AS bill ON vch.RefNo = bill.ID JOIN tenant_module AS mem ON bill.UnitID = mem.ledger_id
+							JOIN unit AS uni ON uni.unit_id = mem.unit_id JOIN year as yr ON yr.YearID = '".$_SESSION['default_year']."'  JOIN period as prd on bill.PeriodID = prd.ID WHERE bill.BillType = '". $SupplementaryBill . "' and  bill.PeriodID IN (" . $periodList . ")";										
+		}										
+							
+		if($unit_id == 0)
+		{
+			$memberIDS = $this->m_objUtility->getMemberIDs($resultPeriod[0]['BillDate']);
+			//$sqlII	.="	and mem.member_id IN (".$memberIDS.") ";
+		}
+		else
+		{
+			$sqlII   .= " and mem.ledger_id = '" . $unit_id . "'";
+		}
+		
+		$sqlII   .= "    and bill.BillType='".$SupplementaryBill."' ";
+		$sqlII	.="	GROUP BY vch.`RefNo`  ORDER BY uni.sort_order,bill.PeriodID ASC";
+		if($_SESSION['res_flag'] == 1){
+			$resData = $this->landLordDB->select($sqlII);
+		}else{
+			$resData = $this->m_dbConn->select($sqlII);
+		}
+		
+		/********** CALCULATE SUM OF LEDGERS *************/
+		$sumArray = array();
+
+
+		for($iCnt = 0; $iCnt < sizeof($resData); $iCnt++)
+		{
+			$sqlPeriod = "SELECT max(id),PeriodID,BillDate,DueDate FROM `billregister` where `PeriodID` = '".$resData[$iCnt]['PeriodID']."' and BillType='".$SupplementaryBill."' ";
+			if($_SESSION['res_flag'] == 1){
+				$resultPeriod = $this->landLordDB->select($sqlPeriod);
+			}else{
+				$resultPeriod = $this->m_dbConn->select($sqlPeriod);
+			}
+			$prevPeriod = $this->getPreviousPeriodData($resData[$iCnt]['PeriodID']);
+			
+			$sqlPymtQuery2 = "Select Type, YearID, PrevPeriodID, Status, BeginingDate, EndingDate from period where ID='" . $resData[$iCnt]['PeriodID'] . "'";
+			if($_SESSION['res_flag'] == 1){
+				$Prevresult2 = $this->landLordDB->select($sqlPymtQuery2);	
+			}else{
+				$Prevresult2 = $this->m_dbConn->select($sqlPymtQuery2);
+			}
+
+			$paymentReceived = $this->GetPaymentsReceived($resData[$iCnt]['unit_id'], $resData[$iCnt]['PeriodID'], $prevPeriod, $Prevresult2[0]['BeginingDate'], $Prevresult2[0]['EndingDate']);
+			
+
+			$iPaidDetails = '';
+			$iPaidTotal = 0;
+			for($iPaidCnt = 0 ; $iPaidCnt < sizeof($paymentReceived) ; $iPaidCnt++)
+			{
+				$iPaidDetails .= ($iPaidCnt + 1) . ' - ' . $paymentReceived[$iPaidCnt] . '<br />';
+				$iPaidTotal +=  $paymentReceived[$iPaidCnt]['Amount'];
+			}
+			
+			if($isBillSummary == true)
+			{
+				$resData[$iCnt]['Paid'] = $iPaidTotal;
+				$resData[$iCnt]['Balance'] = $resData[$iCnt]['Payable'] - $iPaidTotal;
+				if($resData[$iCnt]['Balance'] < 0 )
+				{
+					$resData[$iCnt]['Balance'] = number_format($resData[$iCnt]['Balance'],2).' Cr'; 		
+				}
+				else
+				{
+					$resData[$iCnt]['Balance'] = number_format($resData[$iCnt]['Balance'],2).' Dr'; 		
+				}
+				$resData[$iCnt]['Payable'] = $resData[$iCnt]['Payable'];
+			}
+		}
+		
+		foreach ($resData as $k=>$subArray) 
+		{
+			foreach ($subArray as $id=>$value) 
+			{
+    			$sumArray[$id]+=$value;
+  			}
+		}
+		
+		//$sumArray[''] = "";
+		$sumArray['Unit No'] = $resData[0]['Unit No'];
+		if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+			$sumArray['Tenant Name'] = "Total";
+		}else{
+			$sumArray['Member Name'] = "Total";
+		}
+		$sumArray['BillNumber'] = " ";
+		$sumArray['Fin. Year'] = " ";
+		$sumArray['Bill For'] = " ";
+		$sumArray['Payable'] = " ";
+		$sumArray['Paid'] = " ";
+		$sumArray['Balance'] = " ";
+
+		array_push($resData,$sumArray);
+		
+		/********* REMOVE REFNO FROM ARRAY ******/
+		$this->recursiveRemoval($resData, 'RefNo');
+		$this->recursiveRemoval($resData, 'unit_id');
+		$this->recursiveRemoval($resData, 'PeriodID');
+		
+		return $resData;
+	}	
 	
 	public function setMaintenanceBillReadUnreadFlag($UnitID,$PeriodID,$BillType)
 	{
@@ -6945,92 +7510,6 @@ public function GetBlockUnit($UnitID)
 	$sql = "SELECT block_unit FROM `unit` where unit_id ='".$UnitID."'";
 	$result = $this->m_dbConn->select($sql);
 	return $result[0]['block_unit'];
-}
-
-
-public function getInvoiceCollectionOfData($society_id, $wing_id, $unit_id, $period_id,$isBillSummary = false, $SupplementaryBill)
-{
-	$sql = "SELECT `id`,`ledger_name` FROM `ledger`  WHERE `id` IN(SELECT vch.`To` from `voucher` as vch JOIN `sale_invoice` as sale on sale.ID = vch.`RefNo` where `To` <> '' and `RefTableID`=8) and `id` NOT IN(".INTEREST_ON_PRINCIPLE_DUE.",".ADJUSTMENT_CREDIT.",".IGST_SERVICE_TAX.",".CGST_SERVICE_TAX.",".SGST_SERVICE_TAX.",".CESS_SERVICE_TAX.", ".ROUND_OFF_LEDGER.") ";
-		$result = $this->m_dbConn->select($sql);
-		
-		
-		$sqlII = "SELECT  vch.`RefNo`, uni.`unit_id`, uni.`unit_no` as 'Unit No', mem.`owner_name` as 'Member Name', CONCAT('INV-', inv.`Inv_Number`) as 'Inv Number', ";
-		
-		for($m = 0; $m < sizeof($result); $m++)
-		{
-			$sqlII	.= " SUM( IF( vch.`To` =  '".$result[$m]['id']."', vch.`Credit` , 0.00 ) ) AS '".$result[$m]['ledger_name']."' ";
-			
-			if($m < sizeof($result))
-			{
-				$sqlII	.= " , ";
-			}
-		}
-
-		$societyInfo = $this->m_objUtility->GetSocietyInformation($_SESSION['society_id']);
-		$ApplyServiceTax = $societyInfo['apply_service_tax'];
-		if($ApplyServiceTax == 1)
-		{
-			$sqlII	.="	inv.`InvSubTotal`,
-							 inv.`CGST` as CGST , inv.`SGST` as SGCT , 
-							(inv.`InvSubTotal`+ inv.`CGST` + inv.`SGST` ) as Payable
-							FROM voucher AS vch JOIN sale_invoice AS inv ON vch.RefNo = inv.ID JOIN member_main AS mem ON inv.UnitID = mem.unit
-							JOIN unit AS uni ON uni.unit_id = inv.UnitID JOIN year as yr ON yr.YearID = '".$_SESSION['default_year']."'  WHERE  mem.ownership_status = 1";								
-		}
-		else
-		{
-			$sqlII	.="	inv.`InvSubTotal`, 
-							(inv.`InvSubTotal`) as Payable
-							FROM voucher AS vch JOIN sale_invoice AS inv ON vch.RefNo = inv.ID JOIN member_main AS mem ON inv.UnitID = mem.unit
-							JOIN unit AS uni ON uni.unit_id = inv.UnitID JOIN year as yr ON yr.YearID = '".$_SESSION['default_year']."'  WHERE  mem.ownership_status = 1";										
-		}
-		
-		if($unit_id == 0)
-		{
-			$memberIDS = $this->m_objUtility->getMemberIDs($resultPeriod[0]['Inv_Date']);
-			$sqlII	.="	and mem.member_id IN (".$memberIDS.") ";
-		}
-		else
-		{
-			$sqlII   .= "   and uni.unit_id = '" . $unit_id . "' AND vch.`Date` BETWEEN '".$_SESSION['default_year_start_date']."' and '".$_SESSION['default_year_end_date']."'";
-		}
-		
-		//$sqlII   .= "    and bill.BillType='".$SupplementaryBill."' ";
-		$sqlII	.="	GROUP BY vch.`RefNo`  ORDER BY uni.sort_order ASC";
-		//echo "sql ::=>".$sqlII;
-		$resData = $this->m_dbConn->select($sqlII);
-		
-		$sumArray = array();
-
-//var_dump($resData);
-		
-		foreach ($resData as $k=>$subArray) 
-		{
-			foreach ($subArray as $id=>$value) 
-			{
-    			$sumArray[$id]+=$value;
-  			}
-			
-		}
-		//var_dump($sumArray);
-		//$sumArray[''] = "";
-		$sumArray['Unit No'] = $resData[0]['Unit No'];
-		$sumArray['Member Name'] = "Total";
-		$sumArray['Inv Number'] = " ";
-		//$sumArray['Fin. Year'] = " ";
-		//$sumArray['Bill For'] = " ";
-		//$sumArray['Payable'] = " ";
-		//$sumArray['Paid'] = " ";
-		//$sumArray['Balance'] = " ";
-		
-		//$sumArray[];
-		array_push($resData,$sumArray);
-		
-		/********* REMOVE REFNO FROM ARRAY ******/
-		$this->recursiveRemoval($resData, 'RefNo');
-		$this->recursiveRemoval($resData, 'unit_id');
-		//$this->recursiveRemoval($resData, 'PeriodID');
-		//var_dump($resData);
-		return $resData;
 }
 }
 ?>

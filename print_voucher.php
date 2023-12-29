@@ -155,18 +155,41 @@ $prefix .= $VoucherArray[0]['ExternalCounter'];
 	}
 
 
-	function PrintPage() 
-	{
-		//Get the print button and put it into a variable
+	function PrintPage() {
+
+		var printPortrait = "<?php  echo $_SESSION['print_voucher_portrait']?>";
+		// Get the print button and put it into a variable
 		var btnPrint = document.getElementById("Print");
 		
 		btnPrint.style.visibility = 'hidden';
 		
-		//Print the page content
-        window.print();
-        
-		//Set the print button to 'visible' again 
-        btnPrint.style.visibility = 'visible';
+		// Set the print button to 'visible' again after printing
+		function setButtonVisible() {
+			btnPrint.style.visibility = 'visible';
+		}
+		if (window.matchMedia) {
+			var mediaQueryList = window.matchMedia('print');
+			mediaQueryList.addListener(function (mql) {
+				if (!mql.matches) {
+					setButtonVisible();
+				}
+			});
+		}
+
+		// Set the page orientation to portrait
+		var style = document.createElement('style');
+		if(printPortrait == 1) {
+			style.innerHTML = '@page { size: portrait; }';
+		}else{
+			style.innerHTML = '@page { size: landscape; }';
+		}
+		document.head.appendChild(style);
+
+		// Print the page content
+		window.print();
+
+		// Remove the added style after printing
+		document.head.removeChild(style);
 	}
 </script>
 </head>

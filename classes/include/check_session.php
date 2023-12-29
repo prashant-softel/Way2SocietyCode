@@ -3,6 +3,7 @@
 	include_once("../dbconst.class.php");
 	$m_dbConnRoot = new dbop(true);
 	$m_dbConn = new dbop();
+	$m_landLordDB = new dbop(false,false,false,false,true);
 	
 	//$protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
 	// changes server_protocol get always HTTP/1.1  and  HTTPS showing ON commented on above condition and added new condition 

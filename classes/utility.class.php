@@ -1,5 +1,6 @@
 <?php
 	//error_reporting(7);
+	include_once("include/dbop.class.php");
 	include_once "dbconst.class.php";	
 	include_once "adduser.class.php";
 	include_once "initialize.class.php";
@@ -14,7 +15,10 @@
 		public $obj_initialize;
 		//public $obj_utility;
 		public $m_bShowTrace;
-		function __construct($dbConn, $dbConnRoot = "")
+		public $landLordDB;
+		public $isLandLordDB;
+
+		function __construct($dbConn, $dbConnRoot = "", $landLordDB="")
 		{
 			//echo "ctor";
 			$this->m_bShowTrace = 0;
@@ -23,6 +27,10 @@
 			$this->obj_addduser = new adduser($this->m_dbConnRoot,$this->m_dbConn);
 			$this->obj_initialize = new initialize($this->m_dbConnRoot);
 			//$this->obj_utility = new utility($this->m_dbConn, $this->m_dbConnRoot);
+			$this->landLordDB = $landLordDB;
+			if($_SESSION['landLordDB']){
+				$this->isLandLordDB = true;
+			}
 		}
 		
 		function AddMappingAndSendActivationEmail($role, $unit_id, $society_id, $code, $NewUserEmailID, $name)
@@ -44,14 +52,21 @@
 		private $m_dbConn;
 		public $m_dbConnRoot;
 		public $m_changelog;
+		public $landLordDB;
+		public $isLandLordDB;
 		
-		function __construct($dbConn, $dbConnRoot = "")
+		function __construct($dbConn, $dbConnRoot = "", $landLordDB="")
 		{
 			//echo "ctor";
 			$this->m_dbConn = $dbConn;
 			$this->m_dbConnRoot = $dbConnRoot;
+			$this->landLordDB = $landLordDB;
 			$this->m_changelog = new changeLog($this->m_dbConn);
 			//$this->obj_fetch = new FetchData($this->m_dbConn);
+			$this->landLordDB = $landLordDB;
+			if($_SESSION['landLordDB']){
+				$this->isLandLordDB = true;
+			}
 		}
 		
 
@@ -591,6 +606,19 @@
 			$ResultFetchBankDetails = $this->m_dbConn->select($FetchBankDetails);
 			return $ResultFetchBankDetails	; 
 		}
+
+		public function GetBankLedger_pdc($bankLedgerID)
+		{
+			if($_SESSION['res_flag'] == 1){
+				$FetchBankDetails = "Select id, ledger_name from ledger where categoryid = '".$bankLedgerID."'";
+				$ResultFetchBankDetails = $this->landLordDB->select($FetchBankDetails);
+				return $ResultFetchBankDetails	; 
+			}else{
+				$FetchBankDetails = "Select id, ledger_name from ledger where categoryid = '".$bankLedgerID."'";
+				$ResultFetchBankDetails = $this->m_dbConn->select($FetchBankDetails);
+				return $ResultFetchBankDetails	; 
+			}
+		}
 		
 		public function GetDB_Schema_Ver()
 		{
@@ -965,7 +993,21 @@
 		{
 			$NextCounter = $ExVoucherNo + 1;
 			$updateVoucherCounter = "UPDATE `vouchercounter` SET CurrentCounter = '".$NextCounter."' where VoucherType = '".$voucherType."' AND YearID = '".$_SESSION['default_year']."' AND LedgerID = '".$LedgerID."'";
-			$Result = $this->m_dbConn->update($updateVoucherCounter);	
+			$Result = $this->m_dbConn->update($updateVoucherCounter);
+		}
+
+		public function UpdateExVCounter_pdc($voucherType, $ExVoucherNo, $LedgerID = 0)
+		{
+			if($_SESSION['res_flag'] == 1){
+				$NextCounter = $ExVoucherNo + 1;
+				$updateVoucherCounter = "UPDATE `vouchercounter` SET CurrentCounter = '".$NextCounter."' where VoucherType = '".$voucherType."' AND YearID = '".$_SESSION['default_year']."' AND LedgerID = '".$LedgerID."'";
+				$Result = $this->landLordDB->update($updateVoucherCounter);	
+			}
+			else{
+				$NextCounter = $ExVoucherNo + 1;
+				$updateVoucherCounter = "UPDATE `vouchercounter` SET CurrentCounter = '".$NextCounter."' where VoucherType = '".$voucherType."' AND YearID = '".$_SESSION['default_year']."' AND LedgerID = '".$LedgerID."'";
+				$Result = $this->m_dbConn->update($updateVoucherCounter);
+			}	
 			
 		}
 		 
@@ -1050,12 +1092,16 @@
 			
 		}
 
-		public function GetCategoryDetails($category, $subcategory, $groupname,$createNew = 0)
+		public function GetCategoryDetails($category, $subcategory, $groupname,$createNew = 0, $dbConn)
 		{	
+			if($dbConn == 0)
+			{
+				$dbConn = $this->m_dbConn;
+			}
 			$this->m_bShowTrace = 1;	  
 		  if($this->m_bShowTrace == 1)
 		  {
-			  echo "<br>GetCategoryDetails : SubCategory < ".$subcategory . " >     Category :< " .$category . " >    Group : < " . $groupname  . " >      Create new flag :" .$createNew ;
+			echo  "<br>GetCategoryDetails : SubCategory < ".$subcategory . " >     Category :< " .$category . " >    Group : < " . $groupname  . " >      Create new flag :" .$createNew ;
 		  }
 		  $category_id_array = array();
 		
@@ -1077,13 +1123,13 @@
 		}
 		$category_query = "select category_id, parentcategory_id, group_id from account_category where category_name='".$category."' and group_id = '".$group_id."'";
 		
-		$category_query_res = $this->m_dbConn->select($category_query );
+		$category_query_res = $dbConn->select($category_query );
 		$primary_category_id = 1;		  
 		if($category_query_res == '')
 		{
 		  if($this->m_bShowTrace == 1)
 		  {
-			  echo "<br>Category :" .$category . " not found in db<BR>";
+			"<br>Category :" .$category . " not found in db<BR>";
 		  }
 			
 		  if($createNew == 1)
@@ -1091,13 +1137,13 @@
 			  //create category as primary category
 			  $query4="insert into `account_category`(category_name, parentcategory_id, group_id) values('$category', '$primary_category_id', '$group_id')";
 			  $parentcategory_id = $primary_category_id;
-			  $category_id = $this->m_dbConn->insert($query4);
+			  $category_id = $dbConn->insert($query4);
 		
 				if($category_id > 0)
 				{
 				  if($this->m_bShowTrace == 1)
 				  {
-					  echo "<BR>Created new Category : " . $category . " with CategoryID :" . $category_id . " under Primary category";					  
+				   echo "<BR>Created new Category : " . $category . " with CategoryID :" . $category_id . " under Primary category";					  
 				  }
 				}
 				else
@@ -1107,7 +1153,7 @@
 					$parentcategory_id = -1;
 					  if($this->m_bShowTrace == 1)
 					  {
-						  echo "<BR>Error creating new SubCategory : " . $subcategory;
+					     echo "<BR>Error creating new SubCategory : " . $subcategory;
 						  
 					  }
 				}
@@ -1125,7 +1171,7 @@
 			  $category_id = $category_query_res[0]['category_id'];
 			  if($this->m_bShowTrace == 1)
 			  {
-				  echo "<BR>Found existing Category : " . $category . " ID : " . $category_id . " and parentcategory_id " . $parentcategory_id;
+				echo "<BR>Found existing Category : " . $category . " ID : " . $category_id . " and parentcategory_id " . $parentcategory_id;
 				  
 			  }
 		  }
@@ -1139,13 +1185,13 @@
 		  {
 			  $sub_category_query = "select category_id, parentcategory_id, group_id from account_category where category_name='".$subcategory."' and parentcategory_id = '".$category_id."'";
 		
-			  $sub_category_res = $this->m_dbConn->select($sub_category_query);
+			  $sub_category_res = $dbConn->select($sub_category_query);
 			  if($sub_category_res == '')
 			  {
 				  if($createNew == 1)
 				  {
 					  $SubCategoryInsertQuery="insert into `account_category` (category_name, parentcategory_id, group_id) values ('$subcategory', '$category_id', '$group_id')";
-					  $SubCategoryID = $this->m_dbConn->insert($SubCategoryInsertQuery);
+					  $SubCategoryID = $dbConn->insert($SubCategoryInsertQuery);
 					  if($SubCategoryID>0)
 					  {
 						$parentcategory_id = $category_id;
@@ -1163,7 +1209,7 @@
 						$parentcategory_id = -1;
 						  if($this->m_bShowTrace == 1)
 						  {
-							  echo "<BR>Error creating new SubCategory : " . $subcategory;
+						     echo "<BR>Error creating new SubCategory : " . $subcategory;
 							  
 						  }
 					  }
@@ -1182,7 +1228,7 @@
 				  $category_id = $sub_category_res[0]['category_id'];
 				  if($this->m_bShowTrace == 1)
 				  {
-					  echo "<BR>Found existing SubCategory : " . $subcategory . "  ID : " . $category_id . " and under Category " . $category;
+					echo "<BR>Found existing SubCategory : " . $subcategory . "  ID : " . $category_id . " and under Category " . $category;
 					  
 				  }
 			  }
@@ -1192,7 +1238,7 @@
 			  //There is no subcategory mentioned. So category id is returned
 			  if($this->m_bShowTrace == 1)
 			  {
-				  echo "<BR>No SubCategory : " . $subcategory . " mentioned returning Category " . $category;
+				echo "<BR>No SubCategory : " . $subcategory . " mentioned returning Category " . $category;
 				  
 			  }
 		  }
@@ -1209,9 +1255,9 @@
 		}  
 		
 		
-		public function GetCategory_ID($category, $subcategory, $groupname,$createNew = 0)
+		public function GetCategory_ID($category, $subcategory, $groupname,$createNew = 0, $dbConn)
 		{
-			$category_id_array = $this->GetCategoryDetails($category, $subcategory, $groupname,$createNew = 0);
+			$category_id_array = $this->GetCategoryDetails($category, $subcategory, $groupname,$createNew, $dbConn);
 			if($this->m_bShowTrace == 1)
 			{
 				var_dump($category_id_array);
@@ -1247,8 +1293,9 @@
 		
 		public function GetMemberIDNew($unitID)
 		{
-			$result=$this->m_dbConn->select("SELECT member_id from member_main where ownership_status='1' and unit='".$unitID."'");
-			return $result[0]['member_id'];	
+			$result=$this->m_dbConn->select("SELECT member_id,owner_name from member_main where ownership_status='1' and unit='".$unitID."'");
+			//return $result[0]['member_id'];	
+			return $result;	
 		}
 		public function ExistsMemberID()
 		{
@@ -1264,9 +1311,7 @@
 			$result=$this->m_dbConn->select("SELECT mm.member_id,mof.mem_other_family_id from mem_other_family as mof join member_main as mm on mof.member_id = mm.member_id where ownership_status=1 and other_name='".$OwnerName."' and mm.unit='".$unitID."'");
 			return $result;	
 		}
-	
-		
-		
+
 		public function getParentOfLedger($ledgerID)
 		{
 			$sqlSelect = "select categorytbl.group_id, categorytbl.category_name, ledgertbl.categoryid,ledgertbl.ledger_name from ledger As ledgertbl JOIN account_category As categorytbl ON ledgertbl.categoryid = categorytbl.category_id where ledgertbl.id = '" . $ledgerID . "'";
@@ -1280,6 +1325,35 @@
 			//print_r($aryParent);			
 			//return json_encode($aryParent);
 			return $aryParent;
+		}
+		
+		public function getParentOfLedger_pdc($ledgerID)
+		{
+			if($_SESSION['res_flag'] == 1){
+				$sqlSelect = "select categorytbl.group_id, categorytbl.category_name, ledgertbl.categoryid,ledgertbl.ledger_name from ledger As ledgertbl JOIN account_category As categorytbl ON ledgertbl.categoryid = categorytbl.category_id where ledgertbl.id = '" . $ledgerID . "'";
+				$result = $this->landLordDB->select($sqlSelect);
+				$aryParent = array();
+				$aryParent['group'] = $result[0]['group_id'];
+				$aryParent['group_name'] = $this->getGroupName($result[0]['group_id']);
+				$aryParent['category'] = $result[0]['categoryid'];
+				$aryParent['category_name'] = $result[0]['category_name'];
+				$aryParent['ledger_name'] = $result[0]['ledger_name'];
+				//print_r($aryParent);			
+				//return json_encode($aryParent);
+				return $aryParent;
+			}else{
+				$sqlSelect = "select categorytbl.group_id, categorytbl.category_name, ledgertbl.categoryid,ledgertbl.ledger_name from ledger As ledgertbl JOIN account_category As categorytbl ON ledgertbl.categoryid = categorytbl.category_id where ledgertbl.id = '" . $ledgerID . "'";
+				$result = $this->m_dbConn->select($sqlSelect);
+				$aryParent = array();
+				$aryParent['group'] = $result[0]['group_id'];
+				$aryParent['group_name'] = $this->getGroupName($result[0]['group_id']);
+				$aryParent['category'] = $result[0]['categoryid'];
+				$aryParent['category_name'] = $result[0]['category_name'];
+				$aryParent['ledger_name'] = $result[0]['ledger_name'];
+				//print_r($aryParent);			
+				//return json_encode($aryParent);
+				return $aryParent;
+			}
 		}
 		public function getParentOfLedgerGroup($ledgerID)
 		{
@@ -1411,7 +1485,59 @@
 			}		
 			return $ledger;	
 		}
-		
+
+		public function getLedgerName_pdc($LedgerID)
+		{
+			if($_SESSION['res_flag'] == 1){
+				$sql="select ledger_name from `ledger` where id=".$LedgerID." ";
+				$result = $this->landLordDB->select($sql);	
+				$ledger = $result[0]['ledger_name'];
+				$arParentDetails = $this->getParentOfLedger($LedgerID);
+				if(!(empty($arParentDetails)))
+				{			
+					$categoryID = $arParentDetails['category'];
+					if($categoryID == DUE_FROM_TENANTS)
+					{
+						$sqlQuery = "SELECT `tenant_name` FROM `tenant_module` WHERE `ledger_id` = '".$LedgerID."' and  `status` = 'Y'";
+						$memberName = $this->landLordDB->select($sqlQuery);
+						if(sizeof($memberName) > 0)
+						{
+							$ledger .= " - ".$memberName[0]['owner_name'];	
+						}
+					}
+					if($categoryID == DUE_FROM_MEMBERS)
+					{
+						$sqlQuery = "SELECT `owner_name` FROM `member_main` WHERE `unit` = '".$LedgerID."' and  `ownership_status` = 1";
+						$memberName = $this->m_dbConn->select($sqlQuery);
+						if(sizeof($memberName) > 0)
+						{
+							$ledger .= " - ".$memberName[0]['owner_name'];	
+						}
+					}			
+				}		
+				return $ledger;	
+			}
+			else{
+				$sql="select ledger_name from `ledger` where id=".$LedgerID." ";
+				$result = $this->m_dbConn->select($sql);	
+				$ledger = $result[0]['ledger_name'];
+				$arParentDetails = $this->getParentOfLedger($LedgerID);
+				if(!(empty($arParentDetails)))
+				{			
+					$categoryID = $arParentDetails['category'];
+					if($categoryID == DUE_FROM_MEMBERS)
+					{
+						$sqlQuery = "SELECT `owner_name` FROM `member_main` WHERE `unit` = '".$LedgerID."' and  `ownership_status` = 1";
+						$memberName = $this->m_dbConn->select($sqlQuery);
+						if(sizeof($memberName) > 0)
+						{
+							$ledger .= " - ".$memberName[0]['owner_name'];	
+						}
+					}			
+				}		
+				return $ledger;	
+			}
+		}
 		
 		
 		public function logGeneratorOLD($errorfile,$line_no,$errormsg)
@@ -1599,7 +1725,6 @@
 		//NOTE : JV are not considered in this balance
 		public function getOpeningBalance_ForBillType($LedgerID, $date, $BillType = 1)
 		{
-
 			$openingBalance = array("Credit" => 0 ,"Debit" => 0 ,"Total" => 0, "OpeningType" => 0 ,"OpeningDate" => $date);
 			
 			$sqlBillCrDr = "select sum(assettbl.Debit) as Debit, sum(assettbl.Credit) as Credit, assettbl.LedgerID as LedgerID, unittbl.unit_id from `assetregister` as assettbl JOIN `unit` as unittbl on assettbl.LedgerID=unittbl.unit_id JOIN `voucher` as vchrtbl on assettbl.VoucherID=vchrtbl.id JOIN `credit_debit_note` as CrDrNote ON vchrtbl.RefNo = CrDrNote.ID WHERE  CrDrNote.BillType = '" . $BillType . "' and unittbl.unit_id = '" . $LedgerID . "' and assettbl.Date < '" . $date . "' and vchrtbl.RefTableID = '".TABLE_CREDIT_DEBIT_NOTE."'";
@@ -1612,8 +1737,11 @@
 			 {
 				  $sqlBill = "select sum(assettbl.Debit) as Debit, sum(assettbl.Credit) as Credit, assettbl.LedgerID as LedgerID, unittbl.unit_id from `assetregister` as assettbl JOIN `unit` as unittbl on assettbl.LedgerID=unittbl.unit_id JOIN `voucher` as vchrtbl on assettbl.VoucherID=vchrtbl.id JOIN `sale_invoice` as saleInv on vchrtbl.RefNo=saleInv.ID where vchrtbl.RefTableID='".TABLE_SALESINVOICE."'  AND unittbl.unit_id = '" . $LedgerID . "' and assettbl.Date < '" . $date . "'";
 			}
-
-			$resultBill = $this->m_dbConn->select($sqlBill);
+			if($_SESSION['res_flag'] == 1){
+				$resultBill = $this->landLordDB->select($sqlBill);	
+			}else{
+				$resultBill = $this->m_dbConn->select($sqlBill);
+			}
 			
 			$openingBalance['Credit'] = $resultBill[0]['Credit'];
 			$openingBalance['Debit'] = $resultBill[0]['Debit'];
@@ -1621,7 +1749,12 @@
 			//This will check Is there any Debit or Credit note Applied or Not and Calculated it amount
 			if($sqlBillCrDr <> '')
 			{
-				$resultBillCrDr = $this->m_dbConn->select($sqlBillCrDr);
+				if($_SESSION['res_flag'] == 1){
+					$resultBillCrDr = $this->landLordDB->select($sqlBillCrDr); 	
+				}else{
+					$resultBillCrDr = $this->m_dbConn->select($sqlBillCrDr);
+				}
+				
 				if(!empty($resultBillCrDr))
 				{
 					//Adding amount for Opening Balance
@@ -1631,8 +1764,12 @@
 			}
 	
 			$sSqlReceipt = "select sum(assettbl.Debit) as Debit, sum(assettbl.Credit) as Credit, assettbl.LedgerID as LedgerID, unittbl.unit_id from `assetregister` as assettbl JOIN `unit` as unittbl on assettbl.LedgerID=unittbl.unit_id JOIN `voucher` as vchrtbl on assettbl.VoucherID=vchrtbl.id JOIN `chequeentrydetails` as chqdet on vchrtbl.RefNo=chqdet.ID where vchrtbl.RefTableID='2' AND chqdet.BillType = '" . $BillType . "' and unittbl.unit_id = '" . $LedgerID . "' and assettbl.Date < '" . $date . "'";
-
-			$resultReceipt = $this->m_dbConn->select($sSqlReceipt);
+			if($_SESSION['res_flag'] == 1){
+				$resultReceipt = $this->landLordDB->select($sSqlReceipt);	
+			}else{
+				$resultReceipt = $this->m_dbConn->select($sSqlReceipt);
+			}
+			
 /*
 echo "<BR>sSqlReceipt :" . $sSqlReceipt . "<BR>";
 print_r($resultReceipt);
@@ -1654,12 +1791,21 @@ echo "<BR>";
 			
 			//Check all return receipt. basically if receipt is return then it will be in both tables chequeentrydetail and paymentdetail table 
 			$sSqlPaymentReverse = "select sum(assettbl.Debit) - sum(assettbl.Credit) as Amount, p.BillType, p.ChkDetailID as base_id from `assetregister` as assettbl JOIN `voucher` as vchrtbl on assettbl.VoucherID=vchrtbl.id JOIN (SELECT b2.ChkDetailID, cheque.BillType FROM `chequeentrydetails` as cheque JOIN bankregister as b1 ON cheque.ID = b1.ChkDetailID JOIN bankregister as b2 ON (b1.ID = b2.Ref AND b1.ReceivedAmount = b2.PaidAmount)  WHERE b1.`Return` = 1 and b1.VoucherTypeID = '".VOUCHER_RECEIPT."' and cheque.PaidBy in('".$LedgerID."') group by b1.ChkDetailID order by b2.ChkDetailID) as p ON p.ChkDetailID = vchrtbl.refNo where vchrtbl.RefTableID='".TABLE_PAYMENT_DETAILS."' and assettbl.Date < '" . $date . "' group by p.ChkDetailID";
-			$resultPaymentReverse = $this->m_dbConn->select($sSqlPaymentReverse);
+			if($_SESSION['res_flag'] == 1){
+				$resultPaymentReverse = $this->landLordDB->select($sSqlPaymentReverse);
+			}else{
+				$resultPaymentReverse = $this->m_dbConn->select($sSqlPaymentReverse);
+			}
+			
 		
 			// its not a reverse entry.. This is made directly through payment to member
 			$sSqlDirectPayment = "select sum(assettbl.Debit) - sum(assettbl.Credit) as Amount, payment.Bill_Type as BillType, payment.id as base_id from `assetregister` as assettbl JOIN `voucher` as vchrtbl on assettbl.VoucherID=vchrtbl.id JOIN paymentdetails as payment ON (vchrtbl.RefNo = payment.id AND payment.id NOT IN(SELECT b2.ChkDetailID FROM `chequeentrydetails` as cheque JOIN bankregister as b1 ON cheque.ID = b1.ChkDetailID JOIN bankregister as b2 ON (b1.ID = b2.Ref AND b1.ReceivedAmount = b2.PaidAmount)  WHERE b1.`Return` = 1 and b1.VoucherTypeID = '".VOUCHER_RECEIPT."' and cheque.PaidBy in('".$LedgerID."')  group by b1.ChkDetailID order by b2.ChkDetailID)) where vchrtbl.RefTableID='".TABLE_PAYMENT_DETAILS."'  and payment.PaidTo IN ('".$LedgerID."') and payment.Bill_Type = '".$BillType."' and assettbl.Date < '" . $date . "' group by payment.id";
-
-			$resultDirectPayment = $this->m_dbConn->select($sSqlDirectPayment);
+			if($_SESSION['res_flag'] == 1){
+				$resultDirectPayment = $this->landLordDB->select($sSqlDirectPayment);
+			}else{
+				$resultDirectPayment = $this->m_dbConn->select($sSqlDirectPayment);
+			}
+			
 			/* Earlier Bill Type Column was not in payment details table. Hence While we add new column we give detault value as 0 which is Maintaince
 			   If any invoice and supplemetry bill get rejected before adding bill type column then opening balance was not comming right for maintaince bill type 
 			   So We have addded below code to check bill type from check entry detail table and If that entry is not present then only it will be consider as maintaince.	
@@ -1863,8 +2009,8 @@ echo "<BR>";
 				{
 					 $sqlBank = "SELECT SUM(ReceivedAmount) as Credit,
 								SUM(PaidAmount) as Debit,(SUM(ReceivedAmount) - SUM(PaidAmount)) as Total 
-								FROM `bankregister` where LedgerID = '".$LedgerID."' and  Date < '".getDBFormatDate($date)."' ";								
-					$result = $this->m_dbConn->select($sqlBank);
+								FROM `bankregister` where LedgerID = '".$LedgerID."' and  Date < '".getDBFormatDate($date)."' ";	
+					$result = $this->m_dbConn->select($sqlBank);						
 					$openingBalance['Credit'] = $result[0]['Credit'];
 					$openingBalance['Debit'] = $result[0]['Debit'];
 					$openingBalance['Total'] = $result[0]['Total'];
@@ -1878,8 +2024,6 @@ echo "<BR>";
 					{
 						$openingBalance['OpeningType'] = TRANSACTION_DEBIT;	
 					}
-
-						
 					
 				}
 				else if($LedgerGroupID == ASSET)
@@ -1887,7 +2031,7 @@ echo "<BR>";
 					$sqlAsset = "SELECT SUM(Credit) as Credit,
 								SUM(Debit) as Debit,(SUM(Debit) - SUM(Credit)) as Total 
 								FROM `assetregister` where LedgerID  = '".$LedgerID."' and  Date < '".getDBFormatDate($date)."' ";
-					$result = $this->m_dbConn->select($sqlAsset);
+					$result = $this->m_dbConn->select($sqlAsset);	
 					$openingBalance['Credit'] = $result[0]['Credit'];
 					$openingBalance['Debit'] = $result[0]['Debit'];
 					$openingBalance['Total'] = $result[0]['Total'];
@@ -1912,6 +2056,7 @@ echo "<BR>";
 								SUM(Debit) as Debit,(SUM(Credit) - SUM(Debit)) as Total 
 								FROM `incomeregister` where LedgerID  = '".$LedgerID."' and  Date < '".getDBFormatDate($date)."' ";
 					$result = $this->m_dbConn->select($sqlIncome);
+					
 					$openingBalance['Credit'] = $result[0]['Credit'];
 					$openingBalance['Debit'] = $result[0]['Debit'];
 					$openingBalance['Total'] = $result[0]['Total'];
@@ -1966,7 +2111,168 @@ echo "<BR>";
 			
 		}
 		
+		public function getOpeningBalance_res($LedgerID,$date)
+		{
 		
+			$openingBalance = array("LedgerName" => "","Credit" => 0 ,"Debit" => 0 ,"Total" => 0,"OpeningType" => 0 ,"OpeningDate" => $date);
+			
+			$arParentDetails = $this->getParentOfLedger_pdc($LedgerID);
+			if(!(empty($arParentDetails)))
+			{
+				$LedgerGroupID = $arParentDetails['group'];
+				$LedgerCategoryID = $arParentDetails['category'];
+				
+				if($LedgerGroupID == LIABILITY)
+				{
+					 $sqlLiability = "SELECT SUM(Credit) as Credit,
+									SUM(Debit) as Debit,(SUM(Credit) - SUM(Debit)) as Total
+									FROM `liabilityregister` where LedgerID = '".$LedgerID."' and  Date < '".getDBFormatDate($date)."' ";
+					if($_SESSION['res_flag'] == 1){
+						$result = $this->landLordDB->select($sqlLiability);
+					}else{
+						$result = $this->m_dbConn->select($sqlLiability);
+					}
+					$openingBalance['Credit'] = $result[0]['Credit'];
+					$openingBalance['Debit'] = $result[0]['Debit'];
+					$openingBalance['Total'] = $result[0]['Total'];
+					
+					
+					if($openingBalance['Total'] < 0)
+					{
+						$openingBalance['OpeningType'] = TRANSACTION_DEBIT;	
+						$openingBalance['Total'] = abs($openingBalance['Total']);	
+					}
+					else
+					{
+						$openingBalance['OpeningType'] = TRANSACTION_CREDIT;		
+					}
+					
+				}
+				else if($LedgerGroupID == ASSET && ($LedgerCategoryID == BANK_ACCOUNT || $LedgerCategoryID == CASH_ACCOUNT))
+				{
+					 $sqlBank = "SELECT SUM(ReceivedAmount) as Credit,
+								SUM(PaidAmount) as Debit,(SUM(ReceivedAmount) - SUM(PaidAmount)) as Total 
+								FROM `bankregister` where LedgerID = '".$LedgerID."' and  Date < '".getDBFormatDate($date)."' ";	
+					if($_SESSION['res_flag'] == 1){
+						$result = $this->landLordDB->select($sqlBank);
+					}else{
+						$result = $this->m_dbConn->select($sqlBank);
+					}							
+					$openingBalance['Credit'] = $result[0]['Credit'];
+					$openingBalance['Debit'] = $result[0]['Debit'];
+					$openingBalance['Total'] = $result[0]['Total'];
+					
+					if($openingBalance['Total'] < 0)
+					{
+						$openingBalance['OpeningType'] = TRANSACTION_CREDIT;
+						$openingBalance['Total'] = abs($openingBalance['Total']);			
+					}
+					else
+					{
+						$openingBalance['OpeningType'] = TRANSACTION_DEBIT;	
+					}
+					
+				}
+				else if($LedgerGroupID == ASSET)
+				{
+					$sqlAsset = "SELECT SUM(Credit) as Credit,
+								SUM(Debit) as Debit,(SUM(Debit) - SUM(Credit)) as Total 
+								FROM `assetregister` where LedgerID  = '".$LedgerID."' and  Date < '".getDBFormatDate($date)."' ";
+					if($_SESSION['res_flag'] == 1){
+						$result = $this->landLordDB->select($sqlAsset); 	
+					}else{
+						$result = $this->m_dbConn->select($sqlAsset);	
+					}
+					$openingBalance['Credit'] = $result[0]['Credit'];
+					$openingBalance['Debit'] = $result[0]['Debit'];
+					$openingBalance['Total'] = $result[0]['Total'];
+					
+					if($openingBalance['Total'] < 0)
+					{
+						
+						$openingBalance['OpeningType'] = TRANSACTION_CREDIT;
+						$openingBalance['Total'] = abs($openingBalance['Total']);			
+					}
+					else
+					{
+						$openingBalance['OpeningType'] = TRANSACTION_DEBIT;	
+						
+					}
+						
+					
+				}
+				else if($LedgerGroupID == INCOME)
+				{
+					$sqlIncome = "SELECT SUM(Credit) as Credit,
+								SUM(Debit) as Debit,(SUM(Credit) - SUM(Debit)) as Total 
+								FROM `incomeregister` where LedgerID  = '".$LedgerID."' and  Date < '".getDBFormatDate($date)."' ";
+					if($_SESSION['res_flag'] == 1){
+						$result = $this->landLordDB->select($sqlIncome); 	
+					}else{
+						$result = $this->m_dbConn->select($sqlIncome);
+					}
+					
+					$openingBalance['Credit'] = $result[0]['Credit'];
+					$openingBalance['Debit'] = $result[0]['Debit'];
+					$openingBalance['Total'] = $result[0]['Total'];
+					
+					if($openingBalance['Total'] < 0)
+					{
+						$openingBalance['OpeningType'] = TRANSACTION_DEBIT;
+						$openingBalance['Total'] = abs($openingBalance['Total']);			
+					}
+					else
+					{
+						$openingBalance['OpeningType'] = TRANSACTION_CREDIT;
+						
+					}
+					
+				}
+				else if($LedgerGroupID == EXPENSE)
+				{
+					$sqlExpense = "SELECT SUM(Credit) as Credit,
+								SUM(Debit) as Debit,(SUM(Debit) - SUM(Credit)) as Total 
+								FROM `expenseregister` where LedgerID  = '".$LedgerID."' and  Date < '".getDBFormatDate($date)."' ";
+					if($_SESSION['res_flag'] == 1){
+						$result = $this->landLordDB->select($sqlExpense); 	
+					}else{
+						$result = $this->m_dbConn->select($sqlExpense);
+					}
+					$openingBalance['Credit'] = $result[0]['Credit'];
+					$openingBalance['Debit'] = $result[0]['Debit'];
+					$openingBalance['Total'] = $result[0]['Total'];
+					
+					if($openingBalance['Total'] < 0)
+					{
+						$openingBalance['OpeningType'] = TRANSACTION_CREDIT;
+						$openingBalance['Total'] = abs($openingBalance['Total']);
+									
+					}
+					else
+					{
+						$openingBalance['OpeningType'] = TRANSACTION_DEBIT;	
+					}
+				}
+				
+			}
+			if($result <> "")
+			{
+				$sql = "select l.`ledger_name`, acc.category_name   from `ledger`  as l JOIN account_category as acc ON l.categoryid = acc.category_id where l.`id` = '".$LedgerID."'";
+				if($_SESSION['res_flag'] == 1){
+					$res = $this->landLordDB->select($sql);	
+				}else{
+					$res = $this->m_dbConn->select($sql);
+				}
+				if($res <> "")
+				{
+					$openingBalance['LedgerName'] = $res[0]['ledger_name'];	
+					$openingBalance['Ledger_Category'] = $res[0]['category_name'];		
+				}	
+			}
+				//print_r($openingBalance);		
+			return $openingBalance;
+			
+		}
 		
 		public function getOpeningBalanceOfCategory($CategoryID,$date , $isGroupCall = false)
 		{
@@ -2117,7 +2423,7 @@ echo "<BR>";
 		}
 		
 		
-		public function getDueAmount($unitID)
+		public function getDueAmount($unitID,$rental=false)
 		{
 			$sql = "SELECT SUM(`Debit`) as Debit , SUM(`Credit`) as Credit, (SUM(Debit) - SUM(Credit)) as Total FROM `assetregister` WHERE `LedgerID` = '".$unitID."'  ";
 			if(isset($_SESSION['default_year_start_date']) && $_SESSION['default_year_start_date'] <> 0  && isset($_SESSION['default_year_end_date']) && $_SESSION['default_year_end_date'] <> 0)
@@ -2127,8 +2433,15 @@ echo "<BR>";
 			}
 			$sql .= " GROUP BY LedgerID ";	
 			
+			if($rental == true)
+		 	{
+			 	$details=$this->landLordDB->select($sql);
+		 	}
+			else
+			{
+				$details = $this->m_dbConn->select($sql);
+			}
 			
-			$details = $this->m_dbConn->select($sql);
 			//$details[0]['Total'] = 0;
 			/*$OpeningBalance = $this->getOpeningBalance($unitID , getDBFormatDate($_SESSION['default_year_start_date']));
 				
@@ -2146,6 +2459,7 @@ echo "<BR>";
 			}*/
 			return $details[0]['Total'];	
 		}
+
 		function generateRandomString($length = 10) 
 		{
 		    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -2679,6 +2993,30 @@ echo "<BR>";
 			$strKeys = implode(',', $keys);
 			return $strKeys;
 		}
+
+		public  function getTenantIDs($date)
+		{
+			//echo "Date: " .$date;
+			$keys = array(0);
+			
+			//$sql = "SELECT member_id, owner_name, ownership_date FROM ( SELECT member_id, unit, owner_name, ownership_date FROM member_main where ownership_date <= '".$date."' ORDER BY ownership_date DESC ) AS t1 GROUP BY unit";
+			//$res = $this->m_dbConn->select($sql);	
+			
+			$res = $this->getUnitData2(0,$date);
+			if(sizeof($res) > 0)
+			{
+				/*for($i = 0;$i < sizeof($res);$i++)
+				{
+					array_push($keys,$res[$i]['member_id']);	
+				}	*/
+				foreach($res as  $k => $v)
+				{
+					array_push($keys,$res[$k]['tenant_id']);		
+				}
+			}
+			$strKeys = implode(',', $keys);
+			return $strKeys;
+		}
 		
 		public  function getUnitData($uid = 0,$date)
 		{
@@ -2699,7 +3037,6 @@ echo "<BR>";
 			$sql .= "  GROUP BY unit";
 			$res = $this->m_dbConn->select($sql);	
 			
-			
 			if(sizeof($res) > 0)
 			{
 				for($i = 0;$i < sizeof($res);$i++)
@@ -2707,6 +3044,42 @@ echo "<BR>";
 					$data[$res[$i]['unit']]['member_id'] =$res[$i]['member_id'] ;
 					$data[$res[$i]['unit']]['owner_name'] =$res[$i]['owner_name'] ;
 					$data[$res[$i]['unit']]['ownership_date'] =$res[$i]['ownership_date'] ;
+				}
+			}
+			return $data;
+		}
+
+		public  function getUnitData2($uid = 0,$date)
+		{
+			//echo "Date: " .$date;
+			$data = array();
+			
+			$sqlII = "SELECT tenant_id, unit_id, tenant_name, create_date FROM tenant_module where create_date <= '".$date."' and end_date >= curdate()";
+			if($uid > 0)
+			{
+				$sqlII .= " and   unit_id = '".$uid."'  ";	
+			}
+			$sqlII .= "  ORDER BY create_date DESC";
+			
+			$sql = "SELECT tenant_id, tenant_name, create_date,unit_id FROM (".$sqlII.") AS t1 ";
+			if($uid > 0)
+			{
+				$sql .= "where  unit_id = '".$uid."'  ";	
+			}
+			$sql .= "  GROUP BY unit_id";
+			if($this->isLandLordDB){
+				$res = $this->landLordDB->select($sql);	
+			}else{
+				$res = $this->m_dbConn->select($sql);	
+			}
+			
+			if(sizeof($res) > 0)
+			{
+				for($i = 0;$i < sizeof($res);$i++)
+				{
+					$data[$res[$i]['unit_id']]['tenant_id'] =$res[$i]['tenant_id'] ;
+					$data[$res[$i]['unit_id']]['tenant_name'] =$res[$i]['tenant_name'] ;
+					$data[$res[$i]['unit_id']]['create_date'] =$res[$i]['create_date'] ;
 				}
 			}
 			return $data;
@@ -3593,7 +3966,6 @@ echo "<BR>";
 		
 		function GetLedgerDetails($LedgerID = 0)
 		{
-
 			$LedgerDetails = array();
 
 			if($LedgerID == 0)
@@ -3613,6 +3985,52 @@ echo "<BR>";
 			}
 
 			return $LedgerDetails;
+		}
+
+		function GetLedgerDetails_pdc($LedgerID = 0)
+		{
+			if($_SESSION['res_flag'] == 1){
+				$LedgerDetails = array();
+
+				if($LedgerID == 0)
+				{
+					$sql = "SELECT * from `ledger`";		
+				}
+				else
+				{
+					$sql = "SELECT * from `ledger` WHERE `id` = '" . $LedgerID . "'";  
+				}
+	
+				$result = $this->landLordDB->select($sql);
+	
+				for($iCnt = 0; $iCnt < sizeof($result); $iCnt++)
+				{
+					$LedgerDetails[$result[$iCnt]['id']]['General'] = $result[$iCnt];
+				}
+	
+				return $LedgerDetails;
+			}
+			else{
+				$LedgerDetails = array();
+
+				if($LedgerID == 0)
+				{
+					$sql = "SELECT * from `ledger`";		
+				}
+				else
+				{
+					$sql = "SELECT * from `ledger` WHERE `id` = '" . $LedgerID . "'";  
+				}
+	
+				$result = $this->m_dbConn->select($sql);
+	
+				for($iCnt = 0; $iCnt < sizeof($result); $iCnt++)
+				{
+					$LedgerDetails[$result[$iCnt]['id']]['General'] = $result[$iCnt];
+				}
+	
+				return $LedgerDetails;
+			}
 		}
 
 		function GetMemberPersonalDetails($UnitID)
@@ -3671,12 +4089,28 @@ echo "<BR>";
         	//echo $result[0]['PGBeneficiaryBank'];
         	return $result[0]['PGBeneficiaryBank'];
         }
-        function GetPaymentGatewayTransactionStatus($TransactionID)
+
+		function GetPaymentGatewayTransactionStatus($TransactionID)
+		{
+			$result = $this->m_dbConn->select("select * from `paymentgatewaytransactions` where TranxID='".$TransactionID."'");
+			//echo $result[0]['PGBeneficiaryBank'];
+			return $result[0]['Status'];
+		}
+
+		function GetPaymentGatewayTransactionStatus_pdc($TransactionID)
         {
-        	$result = $this->m_dbConn->select("select * from `paymentgatewaytransactions` where TranxID='".$TransactionID."'");
-        	//echo $result[0]['PGBeneficiaryBank'];
-        	return $result[0]['Status'];
+			if($_SESSION['res_flag']==1){
+				$result = $this->landLordDB->select("select * from `paymentgatewaytransactions` where TranxID='".$TransactionID."'");
+				//echo $result[0]['PGBeneficiaryBank'];
+				return $result[0]['Status'];
+			}
+			else{
+				$result = $this->m_dbConn->select("select * from `paymentgatewaytransactions` where TranxID='".$TransactionID."'");
+        		//echo $result[0]['PGBeneficiaryBank'];
+        		return $result[0]['Status'];
+			}
         }
+
 		function GetGDriveDetails()
 		{
 			$sqlSelect = "select GDrive_W2S_ID,GDrive_Credentials,GDrive_UserID from `society`";
@@ -3943,6 +4377,7 @@ echo "<BR>";
 			//echo "<script>alert('test')<//script>";
 			return $str;
 		}
+		
 		public function GetListMobileAppUsers()
 		{
 			$sql = "select m.unit_id,m.desc from device_details as dd JOIN login as lg on  dd.login_id = lg.login_id JOIN mapping as m on lg.login_id = m.login_id where m.society_id = '".$_SESSION['society_id']."'  and dd.device_id !='' group by m.`unit_id` order by m.`society_id`";
@@ -4634,16 +5069,25 @@ function getPaymentOption()
 		return $result;
 	}
 
-	public function getSocietyCreatedOpeningDate(){
+	public function getSocietyCreatedOpeningDate($rental = false){
 
 		$qry = "SELECT BeginingDate FROM period as p JOIN society as s ON p.YearID = s.society_creation_yearid order by p.ID limit 1";
-		$result = $this->m_dbConn->select($qry);
+		if($rental == true)
+		 {
+			
+			 $result=$this->landLordDB->select($qry);
+		 }
+		 else
+		 {
+			
+			$result = $this->m_dbConn->select($qry);
+		 }
 		return $result[0]['BeginingDate'];
 
 	}
 
-	public function getDepositName($depositID){
-
+	public function getDepositName($depositID)
+	{
 		if($depositID == DEPOSIT_NEFT){
 
 			$depositGroupName = 'NEFT';
@@ -4663,6 +5107,52 @@ function getPaymentOption()
 			$depositGroupName = $result[0]['desc'];
 		}
 		return $depositGroupName;
+	}
+	
+	public function getDepositName_pdc($depositID)
+	{
+		if($_SESSION['res_flag'] == 1){
+			if($depositID == DEPOSIT_NEFT){
+
+				$depositGroupName = 'NEFT';
+			}
+			else if($depositID == DEPOSIT_CASH){
+	
+				$depositGroupName = 'Cash';
+			}
+			else if($depositID == DEPOSIT_ONLINE){
+				
+				$depositGroupName = 'Online';
+			}
+			else{
+	
+				$qry = "SELECT `desc` FROM `depositgroup` where id = '$depositID'";
+				$result = $this->landLordDB->select($qry);
+				$depositGroupName = $result[0]['desc'];
+			}
+			return $depositGroupName;
+		}
+		else{
+			if($depositID == DEPOSIT_NEFT){
+
+				$depositGroupName = 'NEFT';
+			}
+			else if($depositID == DEPOSIT_CASH){
+	
+				$depositGroupName = 'Cash';
+			}
+			else if($depositID == DEPOSIT_ONLINE){
+				
+				$depositGroupName = 'Online';
+			}
+			else{
+	
+				$qry = "SELECT `desc` FROM `depositgroup` where id = '$depositID'";
+				$result = $this->m_dbConn->select($qry);
+				$depositGroupName = $result[0]['desc'];
+			}
+			return $depositGroupName;
+		}
 	}
 
 	public function getLeftName($LeafID){
@@ -4798,6 +5288,11 @@ function getPaymentOption()
 			}
 				//print_r($closingBalance);		
 			return $endOfYearBalance;
-			
 		}
+		
+	public function getDBName($society_id){
+
+		return $this->m_dbConnRoot->select("SELECT `dbname` FROM `society` WHERE `society_id` = '".$society_id."'")[0]['dbname'];
+	}
+
 }

@@ -16,7 +16,7 @@ $obj_fetch = new FetchData($dbConn);
 class member_import 
 {
 	public $allColumns = array('BCode', 'WCode', 'FCode','FloorNo', 'Owner','Occupation', 
-			'DateOfBirth', 'AnnivarsaryDate', 'Gender', 'BloodGroup', 'OwnerAddress','FlatArea', 'GSTINNO', 'ResPhone', 'MobileNo','OffPhone', 'EMail', 'Email1', 'DisposeDate', 'Inactive', 'EmergencyPersonName','EmergencyMobileNo', 'EmergencyTelephoneNo','ParkingNo','FlatConfiguration','ExtnLedgerName','AssociateMemberName','VirtualAC');
+			'DateOfBirth', 'AnnivarsaryDate', 'Gender', 'BloodGroup', 'OwnerAddress','FlatArea', 'GSTINNO', 'ResPhone', 'MobileNo','OffPhone', 'EMail', 'Email1', 'DisposeDate', 'Inactive', 'EmergencyPersonName','EmergencyMobileNo', 'EmergencyTelephoneNo','ParkingNo','FlatConfiguration','ExtnLedgerName','AssociateMemberName','VirtualAC','Location',);
 
 	public $ci = array();
 	const BCODE = 0;
@@ -262,6 +262,13 @@ class member_import
 								$extnledgername=$row=[$ExtnLedgerName];
 								$associatemembername=$row=[$AssociateMemberName];
 								$virtualac=$row=[$VirtualAC];
+								$location = $row=[$Location];
+								$Propertytype=$row=[$property_type];
+								$plotno=$row=[$Plot_No];
+								$makanino=$row=[$Makani_No];
+								$premisesno=$row=[$Premises_No];
+								$propertyno=$row=[$property_No];
+
 
 								$get_society_id="select society_id from society where society_code='".$society_code."'";
 								$data2=$this->m_dbConn->select($get_society_id);
@@ -280,7 +287,7 @@ class member_import
 									$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"W");
 								}
 								
-								$get_unit_id="select `unit_id` from `unit` where `unit_no` = '".$unit_no."'  and `society_id` = '" . $society_id . "' and `wing_id` = '" . $wing_id . "'";
+								$get_unit_id="select `unit_id`,`unit_no` from `unit` where `unit_no` = '".$unit_no."'  and `society_id` = '" . $society_id . "' and `wing_id` = '" . $wing_id . "'";
 								$data4=$this->m_dbConn->select($get_unit_id);
 								$unit=$data4[0]['unit_id'];
 								
@@ -500,6 +507,14 @@ class member_import
 							    $ExtnLedgerName=array_search(ExtnLedgerName,$row,true);
 								$AssociateMemberName=array_search(AssociateMemberName,$row,true);
 							    $VirtualAC=array_search(VirtualAC,$row,true);
+								$Location = array_search(Location,$row,true);
+								$property_type = array_search(Property_Type,$row,true);
+								$Plot_No = array_search(Plot_No,$row,true);
+								$Makani_No = array_search(Makani_No,$row,true);
+								$property_No = array_search(Property_No,$row,true);
+								$Premises_No = array_search(Premises_No,$row,true);
+
+								//4 columns new add
 
 								if(!isset($BCode) || !isset($WCode)  || !isset($FCode) || !isset($Owner) || !isset($DateOfBirth) || !isset($AnnivarsaryDate) || !isset($BloodGroup) || !isset($MobileNo) ||  !isset($EMail)  || !isset($EMail1) || !isset($EmergencyPersonName) || !isset($EmergencyMobileNo) || !isset($EmergencyTelephoneNo) || !isset($Gender) || !isset($Occupation) || !isset($OffPhone))// !isset($FloorNo)
 									{
@@ -626,6 +641,33 @@ class member_import
 									//echo "hello";
 									$virtualac=$row[$VirtualAC];	
 								}
+								if($Location !== FALSE){
+									//echo "hello";
+									$location=$row[$Location];	
+									
+								}
+								if($property_type !== FALSE){
+									//echo "hello";
+									$Propertytype=$row[$property_type];	
+								}
+								if($Plot_No !== FALSE){
+									//echo "hello";
+									$plotno=$row[$Plot_No];	
+									
+								}
+								if($Makani_No !== FALSE){
+									//echo "hello";
+									$makanino=$row[$Makani_No];	
+								}
+								if($Premises_No !== FALSE){
+									//echo "hello";
+									$premisesno=$row[$Premises_No];	
+								}
+								if($property_No !== FALSE){
+									//echo "hello";
+									$propertyno=$row[$property_No];	
+								}
+								
 
 
 								
@@ -807,9 +849,38 @@ class member_import
 				$m_TraceDebugInfo .= "virtual account number : &lt;" .$virtualac . "&gt;";
 				//$this->obj_utility->logGenerator($errorfile,$rowCount,$m_TraceDebugInfo,"I");
 			}
-		
-           
-			
+		    if($location != '')
+			{
+				$m_TraceDebugInfo .= "Location : &lt;" .$location . "&gt";
+				// $this->obj_utility->logGenerator($errorfile,$rowCount,$m_TraceDebugInfo,"I");
+
+			}
+            if($Propertytype != '')
+			{
+				$m_TraceDebugInfo .= "property_type : &lt;" .$Propertytype . "&gt";
+				// echo "plotno: ".$Propertytype;
+                // exit;
+			}
+			if($plotno != '')
+			{
+				$m_TraceDebugInfo .= "Plot_No : &lt;" .$plotno . "&gt";
+				
+			}
+			if($makanino != '')
+			{
+				$m_TraceDebugInfo .= "Makani_No : &lt;" .$makanino . "&gt";
+				
+			}
+			if($premisesno != '')
+			{
+				$m_TraceDebugInfo .= "Premises_No : &lt;" .$premisesno . "&gt";
+				
+			}
+            if($propertyno != '')
+			{
+				$m_TraceDebugInfo .= "property_No : &lt;" .$propertyno . "&gt";
+				
+			}
 			$memberExists = true;
 
 			$getSocietyAndWingSQL = "SELECT wing.wing_id, society.society_id FROM wing JOIN society 
@@ -833,18 +904,20 @@ class member_import
 				$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"W");
 			}
 			
-			 $get_unit_id="select `unit_id` from `unit` where `unit_no` = '".$unit_no."'  and `society_id` = '" . $society_id . "' and `wing_id` = '" . $wing_id . "'";
+			 $get_unit_id="select `unit_id` from `unit` where `unit_no` like '%".$unit_no."%'  and `society_id` = '" . $society_id . "' and `wing_id` = '" . $wing_id . "'";
 			$data4=$this->m_dbConn->select($get_unit_id);
 			$unit=$data4[0]['unit_id'];
+            
 
-			$get_member_id = "select `member_id` FROM `member_main` where unit='".$unit."'";
+		    $get_member_id = "select `member_id` FROM `member_main` where unit='".$unit."'";
 			$res2 = $this->m_dbConn->select($get_member_id);
+			
 			$member_id=$res2[0]['member_id'];
 			
 			if($data4=='')
 			{
 				$memberExists = false;
-				$errormsg=" Unit &lt;".$unit_no."&gt;  not found in unit table for member: &lt;".$owner_name."&gt; and wing: &lt;".$wing_code."&gt;  ";
+			    $errormsg=" Unit &lt;".$unit_no."&gt;  not found in unit table for member: &lt;".$owner_name."&gt; and wing: &lt;".$wing_code."&gt;  ";
 				$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"W");
 			}
 			
@@ -1229,7 +1302,7 @@ class member_import
 				// $regexForEmail = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@" + "(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
 				
 				if(array_search($EMail,$indexes))
-				{
+			{
 				if (isset($EMail))
 				{
 					// Email to be updated	
@@ -1347,10 +1420,145 @@ class member_import
 					
 						$m_TraceDebugInfo.= "Updated emergency contact 2 where Flat No: <" .$unit_no. "><br>";
 				
+				    }
 				}
+			}
+			
+			
+			if(array_search($Location,$indexes))
+            {
+	
+				if (isset($Location))
+				{
+					if ($location != '')
+					{
+					   // FlatConfiguration to be Updated";
+				
+						   $sql2 = "Update `unit` set `Location`='".$location."' Where `unit_id`='".$unit."'";
+							$this->m_dbConn->update($sql2);
+						
+						    $m_TraceDebugInfo.= "Updated Location where Flat No: <" .$unit_no. "><br>";
+							echo "location".$Location;
 					}
+					else{
+						  $m_TraceDebugInfo.="Invalid Floor Number Format &lt;".$location."&gt;";
+
+					}
+					
 				}
 			}	
+			if(array_search($property_type,$indexes))
+            {
+	
+				if (isset($property_type))
+				{
+					if ($Propertytype != '')
+					{
+					   // FlatConfiguration to be Updated";
+				
+						    $sql2 = "Update `unit` set `property_type`='".$Propertytype."' Where `unit_id`='".$unit."'";
+							$this->m_dbConn->update($sql2);
+						   echo "location".$Propertytype ;
+						    $m_TraceDebugInfo.= "Updated property_type where Flat No: <" .$unit_no. "><br>";
+					
+					}
+					else{
+						  $m_TraceDebugInfo.="Invalid Floor Number Format &lt;".$Propertytype."&gt;";
+
+					}
+					
+				}
+			}	
+			if(array_search($Plot_No,$indexes))
+            {
+	
+				if (isset($Plot_No))
+				{
+					if ($plotno != '')
+					{
+					   // FlatConfiguration to be Updated";
+				
+						    $sql2 = "Update `unit` set `Plot_No`='".$plotno."' Where `unit_id`='".$unit."'";
+							$this->m_dbConn->update($sql2);
+						   
+						    $m_TraceDebugInfo.= "Updated plot_no where Flat No: <" .$unit_no. "><br>";
+					
+					}
+					else{
+						  $m_TraceDebugInfo.="Invalid Floor Number Format &lt;".$plotno."&gt;";
+
+					}
+					
+				}
+			}	
+			if(array_search($Makani_No,$indexes))
+            {
+	
+				if (isset($Makani_No))
+				{
+					if ($makanino != '')
+					{
+					   // FlatConfiguration to be Updated";
+				
+						    $sql2 = "Update `unit` set `Makani_No`='".$makanino."' Where `unit_id`='".$unit."'";
+							$this->m_dbConn->update($sql2);
+						
+						    $m_TraceDebugInfo.= "Updated Makani_No where Flat No: <" .$unit_no. "><br>";
+					
+					}
+					else{
+						  $m_TraceDebugInfo.="Invalid Floor Number Format &lt;".$makanino."&gt;";
+
+					}
+					
+				}
+			}	
+			if(array_search($Premises_No,$indexes))
+            {
+	
+				if (isset($Premises_No))
+				{
+					if ($premisesno != '')
+					{
+					   // FlatConfiguration to be Updated";
+				
+						    $sql2 = "Update `unit` set `Premises_No`='".$premisesno."' Where `unit_id`='".$unit."'";
+							$this->m_dbConn->update($sql2);
+						
+						    $m_TraceDebugInfo.= "Updated Premises_No where Flat No: <" .$unit_no. "><br>";
+					
+					}
+					else{
+						  $m_TraceDebugInfo.="Invalid Floor Number Format &lt;".$premisesno."&gt;";
+
+					}
+					
+				}
+			}	
+			if(array_search($property_No,$indexes))
+            {
+	
+				if (isset($property_No))
+				{
+					if ($propertyno != '')
+					{
+					   // FlatConfiguration to be Updated";
+				
+						    $sql2 = "Update `unit` set `property_No`='".$propertyno."' Where `unit_id`='".$unit."'";
+							$this->m_dbConn->update($sql2);
+						
+						    $m_TraceDebugInfo.= "Updated property_No where Flat No: <" .$unit_no. "><br>";
+					
+					}
+					else{
+						  $m_TraceDebugInfo.="Invalid Floor Number Format &lt;".$propertyno."&gt;";
+
+					}
+					
+				}
+			}	
+
+		}	
 
 				
 			}

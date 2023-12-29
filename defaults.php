@@ -54,6 +54,7 @@
 	$default_bank_account = 0;
 	$default_cash_account = 0;
 	$default_due_from_member = 0;
+	$default_due_from_tenant = 0;
 	$default_income_expenditure_account = 0;
 	$default_adjustment_credit = 0;
    	$default_suspense_account = 0;
@@ -67,6 +68,8 @@
 	$igst_input = 0;
 	$default_sinking_fund = 0;
 	$default_investment_register = 0;
+	$default_sd_category = 0;
+	$default_bank_id = 0;
 	//$defaultEmailID = '';
 		
 	$defaultValues = $obj_defaults->getDefaults($default_society, false);
@@ -87,6 +90,7 @@
 		$default_bank_account = $defaultValues[0][APP_DEFAULT_BANK_ACCOUNT];
 		$default_cash_account = $defaultValues[0][APP_DEFAULT_CASH_ACCOUNT];
 		$default_due_from_member = $defaultValues[0][APP_DEFAULT_DUE_FROM_MEMBERS];
+		$default_due_from_tenant = $defaultValues[0][APP_DEFAULT_DUE_FROM_TENANTS];
 		$default_contribution_from_member = $defaultValues[0][APP_DEFAULT_CONTRIBUTION_FROM_MEMBERS];
 		$default_Sundry_debetor = $defaultValues[0][APP_DEFAULT_SUNDRY_DEBETOR];
 		$default_income_expenditure_account = $defaultValues[0][APP_DEFAULT_INCOME_EXPENDITURE_ACCOUNT];
@@ -103,6 +107,8 @@
 		$default_Sundry_creditor = $defaultValues[0][APP_DEFAULT_SUNDRY_CREDITOR];
 		$default_sinking_fund = $defaultValues[0][APP_DEFAULT_SINKING_FUND];
 		$default_investment_register  = $defaultValues[0][APP_DEFAULT_INVESTMENT_REGISTER];
+		$default_sd_category = $defaultValues[0][APP_DEFAULT_SD_CATEGORY];
+		$default_bank_id = $defaultValues[0][APP_DEFAULT_BANK_ID];
 		//$defaultEmailID = $defaultValues[0][APP_DEFAULT_EMAILID];
 	}
 	 if($_SESSION['profile'][PROFILE_MANAGE_MASTER] == 1 && $_SESSION['role'] == ROLE_SUPER_ADMIN)
@@ -372,6 +378,17 @@
            </select>
        </td>
    </tr>
+
+   <tr>
+       	<td><?php //echo $star;?>Default Bank: &nbsp;</td>
+        <td><select name="default_bank_id" id="default_bank_id" <?php echo $attrDisplay;?>>
+                	<?php 
+						echo $combo_period = $obj_defaults->combobox("select id, concat_ws(' - ' , ledgertable.ledger_name,'(',categorytbl.category_name, ')') from `ledger` as ledgertable join `account_category` as categorytbl on categorytbl.category_id=ledgertable.categoryid where  categorytbl.group_id=" . ASSET . " and society_id='" . $default_society .  "' ORDER BY ledgertable.ledger_name ASC", $default_bank_id, "Please Select"); 
+					?>
+           </select>
+       </td>
+   </tr>
+
   </table>
   
   <table style="width:5%; float:left;"><tr><td></td></tr></table>
@@ -428,6 +445,16 @@
            </select>
        </td>
     </tr>
+
+	<tr>
+       <td><?php ?>Dues From Tenants : &nbsp;</td>
+       <td><select name="default_due_from_tenant" id="default_due_from_tenant" <?php echo $attrDisplay;?>>
+                	<?php 
+						echo $combo_period = $obj_defaults->combobox("select category_id,category_name from account_category where group_id=".ASSET." ORDER BY category_name ASC", $default_due_from_tenant, "Please Select"); 
+					?>
+           </select>
+       </td>
+    </tr>
     
     <tr>
        <td><?php ?>Sundry debtor : &nbsp;</td>
@@ -469,6 +496,17 @@
            </select>
        </td>
    </tr>
+
+   <tr>
+       	<td><?php //echo $star;?>SD Category: &nbsp;</td>
+        <td><select name="default_sd_category" id="default_sd_category" <?php echo $attrDisplay;?>>
+                	<?php 
+						echo $combo_period = $obj_defaults->combobox("select category_id, category_name from account_category where group_id=".LIABILITY." ORDER BY category_name ASC", $default_sd_category, "Please Select"); 
+					?>
+           </select>
+       </td>
+   </tr>
+
   </table>
   </td>
  </tr>

@@ -5,7 +5,9 @@ include_once("utility.class.php");
 include_once("dbconst.class.php");// enviroment.
 include_once("register.class.php");
 include_once("changelog.class.php");
-class account_subcategory extends dbop
+$dbConn = new dbop();
+$dbConnRoot = new dbop(true);
+class account_subcategory
 {
 	public $actionPage = "../ledger.php";
 	public $m_dbConn;
@@ -23,7 +25,6 @@ class account_subcategory extends dbop
 		//$this->curdate_show	= $this->display_pg->curdate_show();
 		//$this->curdate_time	= $this->display_pg->curdate_time();
 		//$this->ip_location	= $this->display_pg->ip_location($_SERVER['REMOTE_ADDR']);*/
-
 		$this->obj_utility = new utility($this->m_dbConn);
 		$this->obj_register = new regiser($this->m_dbConn);
 		$this->isCatError = false;
@@ -591,19 +592,37 @@ class account_subcategory extends dbop
 	{
 		//$sql1 = "select ledger_table.id,ledger_table.society_id,Account.category_name,ledger_table.ledger_name,ledger_table.show_in_bill,ledger_table.taxable,ledger_table.sale,ledger_table.purchase,ledger_table.income,ledger_table.expense,ledger_table.payment,ledger_table.receipt,ledger_table.opening_type,ledger_table.opening_balance,ledger_table.note from `account_category` as `Account` Join `ledger` as `ledger_table` where Account.category_id = ledger_table.categoryid";
 		
-		$sql11= "SELECT `APP_DEFAULT_DUE_FROM_MEMBERS`,`APP_DEFAULT_BANK_ACCOUNT`,`APP_DEFAULT_CASH_ACCOUNT` FROM `appdefault` WHERE `APP_DEFAULT_SOCIETY`='".$_SESSION['society_id']."'";
+if($_SESSION['res_flag'] == 1){
+		$sql11= "SELECT `APP_DEFAULT_DUE_FROM_MEMBERS`,`APP_DEFAULT_DUE_FROM_TENANTS`,`APP_DEFAULT_MAYANK_PATEL_TENANTS`,`APP_DEFAULT_JUMA_SUHAIL_TENANTS`, `APP_DEFAULT_BANK_ACCOUNT`,`APP_DEFAULT_CASH_ACCOUNT` FROM `appdefault` WHERE `APP_DEFAULT_SOCIETY`='".$_SESSION['society_id']."'";
+		}
+		else
+		{
+			$sql11= "SELECT `APP_DEFAULT_DUE_FROM_MEMBERS`,`APP_DEFAULT_BANK_ACCOUNT`,`APP_DEFAULT_CASH_ACCOUNT` FROM `appdefault` WHERE `APP_DEFAULT_SOCIETY`='".$_SESSION['society_id']."'";
+			
+			}
 		$result1 = $this->m_dbConn->select($sql11);
+
+
 		/*$sql1 = "select ledger_table.id,CONCAT(Account.category_name,CONCAT('(',Account.category_id,')')) as 'Category Name',CONCAT(ledger_table.ledger_name, CONCAT('(',ledger_table.id,')')) as 'ledger',ledger_table.opening_balance,IF(ledger_table.opening_type = '0', 'None',IF(ledger_table.opening_type = '1', 'Credit',IF(ledger_table.opening_type = '2', 'Debit',''))) as opening_type, ledger_table.show_in_bill,ledger_table.taxable,ledger_table.sale,ledger_table.purchase,ledger_table.income,ledger_table.expense,ledger_table.payment,ledger_table.receipt,ledger_table.note,DATE(DATE_ADD(ledger_table.opening_date, INTERVAL 1 DAY)) as opening_date from `account_category` as `Account`,`ledger` as `ledger_table`, `society` as `society_table` where Account.category_id = ledger_table.categoryid and society_table.society_id = ledger_table.society_id and society_table.society_id =".$_SESSION['society_id']; */
-		// $sql1 = "select ledger_table.id,CONCAT(Account.category_name,CONCAT('(',Account.category_id,')')) as 'Category Name',CONCAT(ledger_table.ledger_name, CONCAT('(',ledger_table.id,')')) as 'ledger',FORMAT(ledger_table.opening_balance,2) as opening_balance,IF(ledger_table.opening_type = '0', 'None',IF(ledger_table.opening_type = '1', 'Credit',IF(ledger_table.opening_type = '2', 'Debit',''))) as opening_type, ledger_table.show_in_bill,ledger_table.note,DATE_FORMAT(DATE(DATE_ADD(ledger_table.opening_date, INTERVAL 1 DAY)),'%d-%m-%Y') as opening_date from `account_category` as `Account`,`ledger` as `ledger_table`, `society` as `society_table` where Account.category_id = ledger_table.categoryid and society_table.society_id = ledger_table.society_id and society_table.society_id =".$_SESSION['society_id']; 
-	  $sql1 ="select ledger_table.id, if(ledger_table.srno IS NULL OR ledger_table.srno = 0, '--', ledger_table.srno) as 'Sr. No.',g.groupname 'Group Name',Account.category_name as 'Category Name',ledger_table.ledger_name as 'ledger',FORMAT(ledger_table.opening_balance,2) as opening_balance,FORMAT(ledger_table.temp,2) as endOfYearBalance,IF(ledger_table.opening_type = '0', 'None',IF(ledger_table.opening_type = '1', 'Credit',IF(ledger_table.opening_type = '2', 'Debit',''))) as opening_type, ledger_table.taxable,ledger_table.show_in_bill,ledger_table.note,ld.GSTIN_No,DATE_FORMAT(DATE(DATE_ADD(ledger_table.opening_date, INTERVAL 1 DAY)),'%d-%m-%Y') as opening_date  from `account_category` as `Account` join `ledger` as `ledger_table` on Account.category_id = ledger_table.categoryid join `society` as `society_table` on society_table.society_id = ledger_table.society_id left join `ledger_details` as ld on ledger_table.id=ld.LedgerID join `group` as g on Account.group_id = g.id where society_table.society_id ='".$_SESSION['society_id']."' and Account.category_id NOT IN ('".$result1[0]['APP_DEFAULT_DUE_FROM_MEMBERS']."','".$result1[0]['APP_DEFAULT_BANK_ACCOUNT']."','".$result1[0]['APP_DEFAULT_CASH_ACCOUNT']."') order by ledger_table.id";
-	//  $sql = "select ledger_table.id, if(ledger_table.srno IS NULL OR ledger_table.srno = 0, '--' ,ledger_table.srno) as 'Sr.No', g.groupname 'Group Name', Account.category_name as 'Category Name', ledger_table.ledger_name as 'ledger', FORMAT(ledger_table.opening_balance,2) as opening_balance,ex.Credit as End_Balance,IF(ledger_table.opening_type = '0', 'None', IF(ledger_table.opening_type = '1', 'Credit', IF(ledger_table.opening_type = '2', 'Debit',))) as opening_type,"
+		// $sql1 = "select ledger_table.id,CONCAT(Account.category_name,CONCAT('(',Account.category_id,')')) as 'Category Name',CONCAT(ledger_table.ledger_name, CONCAT('(',ledger_table.id,')')) as 'ledger',FORMAT(ledger_table.opening_balance,2) as opening_balance,IF(ledger_table.opening_type = '0', 'None',IF(ledger_table.opening_type = '1', 'Credit',IF(ledger_table.opening_type = '2', 'Debit',''))) as opening_type, ledger_table.show_in_bill,ledger_table.note,DATE_FORMAT(DATE(DATE_ADD(ledger_table.opening_date, INTERVAL 1 DAY)),'%d-%m-%Y') as opening_date from `account_category` as `Account`,`ledger` as `ledger_table`, `society` as `society_table` where Account.category_id = ledger_table.categoryid and society_table.society_id = ledger_table.society_id and society_table.society_id =".$_SESSION['society_id'];
+		if($_SESSION['res_flag'] == 1){
+			$sql1 ="select ledger_table.id, if(ledger_table.srno IS NULL OR ledger_table.srno = 0, '--', ledger_table.srno) as 'Sr. No.',g.groupname 'Group Name',Account.category_name as 'Category Name',ledger_table.ledger_name as 'ledger',FORMAT(ledger_table.opening_balance,2) as opening_balance,IF(ledger_table.opening_type = '0', 'None',IF(ledger_table.opening_type = '1', 'Credit',IF(ledger_table.opening_type = '2', 'Debit',''))) as opening_type, ledger_table.taxable,ledger_table.show_in_bill,ledger_table.note,ld.GSTIN_No,DATE_FORMAT(DATE(DATE_ADD(ledger_table.opening_date, INTERVAL 1 DAY)),'%d-%m-%Y') as opening_date  from `account_category` as `Account` join `ledger` as `ledger_table` on Account.category_id = ledger_table.categoryid join `society` as `society_table` on society_table.society_id = ledger_table.society_id left join `ledger_details` as ld on ledger_table.id=ld.LedgerID join `group` as g on Account.group_id = g.id where society_table.society_id ='".$_SESSION['society_id']."' order by ledger_table.id";
+			$result = $this->m_dbConn->select($sql1);	
+		}
+		elseif($_SESSION['rental_flag'] == 1){
+			$sql1 ="select ledger_table.id, if(ledger_table.srno IS NULL OR ledger_table.srno = 0, '--', ledger_table.srno) as 'Sr. No.',g.groupname 'Group Name',Account.category_name as 'Category Name',ledger_table.ledger_name as 'ledger',FORMAT(ledger_table.opening_balance,2) as opening_balance,IF(ledger_table.opening_type = '0', 'None',IF(ledger_table.opening_type = '1', 'Credit',IF(ledger_table.opening_type = '2', 'Debit',''))) as opening_type, ledger_table.taxable,ledger_table.show_in_bill,ledger_table.note,ld.GSTIN_No,DATE_FORMAT(DATE(DATE_ADD(ledger_table.opening_date, INTERVAL 1 DAY)),'%d-%m-%Y') as opening_date  from `account_category` as `Account` join `ledger` as `ledger_table` on Account.category_id = ledger_table.categoryid join `society` as `society_table` on society_table.society_id = ledger_table.society_id left join `ledger_details` as ld on ledger_table.id=ld.LedgerID join `group` as g on Account.group_id = g.id where society_table.society_id ='".$_SESSION['society_id']."' and Account.category_id NOT IN ('".$result1[0]['APP_DEFAULT_BANK_ACCOUNT']."','".$result1[0]['APP_DEFAULT_CASH_ACCOUNT']."', '".$result1[0]['APP_DEFAULT_DUE_FROM_MEMBERS']."') order by ledger_table.id";
+			$result = $this->m_dbConn->select($sql1);
+		}else{
+			$sql1 ="select ledger_table.id, if(ledger_table.srno IS NULL OR ledger_table.srno = 0, '--', ledger_table.srno) as 'Sr. No.',g.groupname 'Group Name',Account.category_name as 'Category Name',ledger_table.ledger_name as 'ledger',FORMAT(ledger_table.opening_balance,2) as opening_balance,FORMAT(ledger_table.temp,2) as endOfYearBalance,IF(ledger_table.opening_type = '0', 'None',IF(ledger_table.opening_type = '1', 'Credit',IF(ledger_table.opening_type = '2', 'Debit',''))) as opening_type, ledger_table.taxable,ledger_table.show_in_bill,ledger_table.note,ld.GSTIN_No,DATE_FORMAT(DATE(DATE_ADD(ledger_table.opening_date, INTERVAL 1 DAY)),'%d-%m-%Y') as opening_date  from `account_category` as `Account` join `ledger` as `ledger_table` on Account.category_id = ledger_table.categoryid join `society` as `society_table` on society_table.society_id = ledger_table.society_id left join `ledger_details` as ld on ledger_table.id=ld.LedgerID join `group` as g on Account.group_id = g.id where society_table.society_id ='".$_SESSION['society_id']."' and Account.category_id NOT IN ('".$result1[0]['APP_DEFAULT_BANK_ACCOUNT']."','".$result1[0]['APP_DEFAULT_CASH_ACCOUNT']."', '".$result1[0]['APP_DEFAULT_DUE_FROM_MEMBERS']."','".$result1[0]['APP_DEFAULT_DUE_FROM_TENANTS']."') order by ledger_table.id";
+			$result = $this->m_dbConn->select($sql1);
+		}
+	 
 	 
 	 // 05102021
 	 //$sql1 ="select ledger_table.id,g.groupname 'Group Name',Account.category_name as 'Category Name',ledger_table.ledger_name as 'ledger',FORMAT(ledger_table.opening_balance,2) as opening_balance,IF(ledger_table.opening_type = '0', 'None',IF(ledger_table.opening_type = '1', 'Credit',IF(ledger_table.opening_type = '2', 'Debit',''))) as opening_type, ledger_table.taxable,ledger_table.show_in_bill,ledger_table.note,ld.GSTIN_No,DATE_FORMAT(DATE(DATE_ADD(ledger_table.opening_date, INTERVAL 1 DAY)),'%d-%m-%Y') as opening_date  from `account_category` as `Account` join `ledger` as `ledger_table` on Account.category_id = ledger_table.categoryid join `society` as `society_table` on society_table.society_id = ledger_table.society_id left join `ledger_details` as ld on ledger_table.id=ld.LedgerID join `group` as g on Account.group_id = g.id where society_table.society_id ='".$_SESSION['society_id']."' order by ledger_table.id";
 	 
 	 
 	 // $sql1 ="select ledger_table.id,CONCAT(Account.category_name,CONCAT('(',Account.category_id,')')) as 'Category Name',CONCAT(ledger_table.ledger_name, CONCAT('(',ledger_table.id,')')) as 'ledger',ld.GSTIN_No,FORMAT(ledger_table.opening_balance,2) as opening_balance,IF(ledger_table.opening_type = '0', 'None',IF(ledger_table.opening_type = '1', 'Credit',IF(ledger_table.opening_type = '2', 'Debit',''))) as opening_type, ledger_table.show_in_bill,ledger_table.note,DATE_FORMAT(DATE(DATE_ADD(ledger_table.opening_date, INTERVAL 1 DAY)),'%d-%m-%Y') as opening_date  from `account_category` as `Account` join `ledger` as `ledger_table` on Account.category_id = ledger_table.categoryid join `society` as `society_table` on society_table.society_id = ledger_table.society_id left join `ledger_details` as ld on ledger_table.id=ld.LedgerID where society_table.society_id ='".$_SESSION['society_id']."' order by ledger_table.id";
-		$result = $this->m_dbConn->select($sql1);
 
 		$currentYearOpeningDate = $this->obj_utility->getCurrentYearBeginingDate($_SESSION['default_year']);	
 		$endingYearClosingDate = $this->obj_utility->getBeginningAndEndingDate($_SESSION['default_year']);
@@ -659,6 +678,8 @@ class account_subcategory extends dbop
 		}
 		$this->display1($result);
 	}
+
+
 	public function selecting()
 	{
 		$sql = "select id,`society_id`,`categoryid`,`ledger_name`,`show_in_bill`,`taxable`,`sale`,`purchase`,`income`,`expense`,`payment`,`receipt`,`opening_type`,`opening_balance`,`note`,`opening_type`,DATE_FORMAT(opening_date, '%d-%m-%Y') as opening_date, `supplementary_bill`, `taxable_no_threshold`, `srno` from ledger where id='".$_REQUEST['account_subcategoryId']."'";

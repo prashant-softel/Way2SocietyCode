@@ -1,5 +1,5 @@
 <?php //include_once("includes/head_s.php");
-//error_reporting(0);
+error_reporting(0);
 include_once("includes/header_empty.php");
 	include_once("classes/initialize.class.php");
 	include_once("classes/utility.class.php");

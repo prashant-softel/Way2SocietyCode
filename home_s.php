@@ -482,7 +482,7 @@ $obj_servicerequest->getRenovationId();
 										for($i=0 ; $i < sizeof($ServiceRequestList);$i++ )
 										{ ?>
 					
-											<a href="viewrequest.php?rq=<?php echo $ServiceRequestList[$i]['request_no'];?>&View=MEMBER" style="color: white;text-decoration: none;"> [ <?php echo $ServiceRequestList[$i]['unit_no']; ?> ] - <?php echo substr($ServiceRequestList[$i]['summery'], 0,25);?></a>
+											<a href="viewrequest.php?rq=<?php echo $ServiceRequestList[$i]['request_no'];?>&socid=<?php echo $ServiceRequestList[$i]['society_id']; ?>&View=MEMBER" style="color: white;text-decoration: none;"> [ <?php echo $ServiceRequestList[$i]['unit_no']; ?> ] - <?php echo substr($ServiceRequestList[$i]['summery'], 0,25);?></a>
 											<br>
 										<?php 
                        

@@ -11,14 +11,14 @@ include_once("classes/FixedDeposit.class.php");
 <?php
 include_once("classes/view_ledger_details.class.php");
 $m_dbConnRoot = new dbop(true);
+$m_landLordDB = new dbop();
 $obj_ledger_details = new view_ledger_details($m_dbConn);
-$m_objUtility = new utility($m_dbConn, $m_dbConnRoot);
+$m_objUtility = new utility($m_dbConn, $m_dbConnRoot,$m_landLordDB);
 $sHeader = $m_objUtility->getSocietyDetails();
-
 $obj_FixedDeposit = new FixedDeposit($m_dbConn);
 $fdAccountArray = $obj_FixedDeposit->FetchFdCategories();
 $bIsFdCategory = false;
-$showLogAllowedTable = array_keys($logModulesArr); // logModulesArr set in dbconst.class.php
+$showLogAllowedTable = array_keys($logModulesArr);
 $ledgerName = $m_objUtility->getLedgerName($_REQUEST['lid']);
 $loginDetails = $m_objUtility->getSocietyAllLoginDetails(false,false, true);
 // Lock buttons freez year 
@@ -31,7 +31,6 @@ else
 {
 	$btnDisplay = "none";
 }
-
 $societyCreationDate = $m_objUtility->getSocietyCreatedOpeningDate();
 $minDate = getDisplayFormatDate($societyCreationDate);
 $maxDate = getDisplayFormatDate($m_objUtility->getMaxDate());
@@ -69,9 +68,7 @@ else if(isset($_SESSION['from_date']) && isset($_SESSION['to_date']) && isset($_
 	
 }
 
-
 $get_details = $obj_ledger_details->details($_REQUEST["gid"],$_REQUEST['lid'], $from_date, $to_date, true);
-
 if($_REQUEST["gid"] == 1 || $_REQUEST["gid"] == 2)
 {
 	

@@ -7,7 +7,9 @@
 	include_once("includes/head_s.php"); 
 	include_once("classes/servicerequest.class.php");
 	include_once("classes/dbconst.class.php");
-	$obj_servicerequest = new servicerequest($m_dbConn,$m_dbConnRoot);
+	$obj_initialize = new initialize($m_dbConnRoot);
+
+	$obj_servicerequest = new servicerequest($m_dbConn, $m_dbConnRoot, $m_landLordDB);
 	//$details = $obj_servicerequest->getDetails();
 	  //print_r($_SESSION);
     //  $loginID = $_SESSION["login_id"];
@@ -28,14 +30,18 @@
 	}
 
 	$MemberDetails = $obj_servicerequest->m_objUtility->GetMemberPersonalDetails($_SESSION["unit_id"]);
+
 	
 	$UnitBlock = $_SESSION["unit_blocked"];
+
 	$MemberUnitNo = $obj_servicerequest->m_objUtility->GetUnitNo($_SESSION["unit_id"]);
+
 	$MemberUnitNoForDD = $obj_servicerequest->m_objUtility->GetUnitNoForDD();
 
 	$LoginDetails = $obj_servicerequest->m_objUtility->GetMyLoginDetails();
     //print_r($LoginDetails);
     $loginEmailID = $LoginDetails[0]["member_id"];
+
 ?>
 <script type="text/javascript" src="js/ajax.js"></script>
 <script type="text/javascript" src="js/ajax_new.js"></script>
@@ -283,7 +289,7 @@
 			document.getElementById("uploadTd3").style.display = "none";
 			document.getElementById("uploadTd4").style.display = "none";
 			document.getElementById("uploadTd5").style.display = "none";
-		}//
+		}
 		else
 		{
 			document.getElementById("detailsTr").style.display = "table-row";	
@@ -296,8 +302,32 @@
 		}
 	}
 </script>
+<script>
+$(document).ready(function() { 
+	var socId = '<?php echo $_SESSION['landLordSocID']; ?>';
+	if(socId) {
+		document.getElementById("socid").value = socId;
+	}
+});
 
-<?php if(isset($_POST["ShowData"])){?>
+function selectSociety() {
+	let id=document.getElementById('socid').value;
+	$.ajax({
+		url: "process/servicerequest.process.php",
+		type:"post",
+		data: {'selSocID':id},
+		success: function(data)
+		{
+			location.reload();
+		}
+	});
+}
+
+
+</script>
+
+<?php 
+ if(isset($_POST["ShowData"])){?>
 <body onLoad="go_error();">
 <?php } ?>
 <br><br>
@@ -306,7 +336,8 @@
      Create New Service Request
 </div>
 <br />
-<?php if($_SESSION['role'] && ($_SESSION['role']==ROLE_ADMIN || $_SESSION['role']==ROLE_SUPER_ADMIN))
+<?php 
+if($_SESSION['role'] && ($_SESSION['role']==ROLE_ADMIN || $_SESSION['role']==ROLE_SUPER_ADMIN))
 		{
 			$Url = "servicerequest.php?type=open";
 		}
@@ -319,6 +350,16 @@
 </center>
 <br>
 <center>
+<?php if($_SESSION['res_flag']) { ?>
+<h2 style="padding: 0;">Select A Landlord to Create Service Request</h2>
+<select id="socid" name="socid" style="width:auto; height:auto;">
+	<?php  echo $mapList = $obj_initialize->combobox("Select societytbl.society_id, concat_ws(' - ', societytbl.society_name, maptbl.desc) from mapping as maptbl JOIN society as societytbl ON maptbl.society_id = societytbl.society_id JOIN dbname as db ON db.society_id = societytbl.society_id WHERE maptbl.login_id = '" . $_SESSION['login_id'] . "' and societytbl.status = 'Y' and maptbl.status = '2' ORDER BY societytbl.society_name ASC ", $_SESSION['current_mapping']);
+
+	?>			
+</select>
+<br /><br />
+<button class="btn btn-primary" onclick="selectSociety();">Select</button>
+<?php } ?>
 <form name="addrequest" id="addrequest" method="post" action="process/servicerequest.process.php" enctype="multipart/form-data" onSubmit="return validate(); ">
 <?php $star = "<font color='#FF0000'>*&nbsp;</font>";?>
 <table align='center'>
@@ -348,10 +389,9 @@
         <td>
         <input type = "hidden" id = "unit_no" name = "unit_no" value = "0"/> 
         <select id="unit_no2" name="unit_no2" value="<?php echo $_SESSION['unit_id'];?>"> 
-            	<?php echo $obj_servicerequest->comboboxEx("SELECT u.unit_id, concat_ws(' - ', u.`unit_no`, m.`owner_name`) FROM `member_main` as m join `unit` as u on u.`unit_id` = m.`unit`",$_SESSION['unit_id']); ?>
-                
-            </select>
-            </td>
+            	<?php echo $obj_servicerequest->getCreatedUnit($_SESSION['unit_id']); ?>
+		</select>
+		</td>
 	</tr>
     <tr><td colspan="4"><input type="hidden" name="reportedby" id="reportedby" value="<?php echo $_SESSION['name'];?>"> </td></tr>
     

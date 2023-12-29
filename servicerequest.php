@@ -11,7 +11,8 @@ include_once("classes/dbconst.class.php");
 include_once("classes/servicerequest.class.php");
 include_once( "include/fetch_data.php");
 include_once("include/utility.class.php");
-$obj_request = new servicerequest($m_dbConn);
+
+$obj_request = new servicerequest($m_dbConn, $m_dbConnRoot, $m_landLordDB);
 //$requests = $obj_request->GetUnitNoIfNZero($_REQUEST['id']);
 $objfetch=new FetchData($m_dbConn);
 
@@ -21,7 +22,7 @@ $obj=new utility($m_dbConn);
 
 
 if(isset($_REQUEST['type']) && $_REQUEST['type'] == "resolved")
-{
+{   
 	$requests = $obj_request->getRecords($_REQUEST['cm'],$_REQUEST['type']);
 }
 
@@ -31,10 +32,11 @@ else if(isset($_REQUEST['type']) && $_REQUEST['type'] == "assign")
 }
 else if(isset($_REQUEST['type']) && $_REQUEST['type'] =="createdme")
 {
+
 	$requests = $obj_request->getRecords($_REQUEST['cm'],$_REQUEST['type']);
 }
 else
-{
+{    
 	$requests = $obj_request->getRecords($_REQUEST['cm']);
 }
 
@@ -94,11 +96,13 @@ if($_SESSION['is_year_freeze'] == 0)
     		</li>
         </ul>
 		<br/>
+
             <table id="example" class="display" cellspacing="0" width="100%">
                 <thead>
                     <tr>
                         <th>No.</th>
-                        <th>Unit No.</th>
+                        <?php echo $_SESSION['res_flag'] ?  "<th>Landlord Name</th>" : ""; ?>
+                        <?php echo $_SESSION['res_flag'] ?  "" : "<th>Unit No.</th>"; ?>
                         <th>Reported By</th>
                         <th>Raised Date</th>
                         <th>Priority</th>
@@ -106,7 +110,7 @@ if($_SESSION['is_year_freeze'] == 0)
                         <th>Summary</th>                        
                         <th>Status</th> 
                         <th style="width:87px;">Re-Open Count</th>
-                         <th >Edit</th>
+                        <th >Edit</th>
                         <th>Delete</th>                                                                      
                     </tr>
                 </thead>
@@ -115,41 +119,46 @@ if($_SESSION['is_year_freeze'] == 0)
 						$prevRequestNo = "";
 						for($i = 0; $i < sizeof($requests); $i++)
 						{
+                            $landlord_name =  $m_dbConnRoot->select("SELECT `society_name` FROM `society` WHERE `society_id` = '".$requests[$i]['society_id']."'")[0]['society_name'];
 							$cnt=0;
 							$count=0;
 							 $unitNo=$objfetch->GetUnitNumber($requests[$i]['unit_id']);
 							 $memID=$obj->GetMemberIDNew($requests[$i]['unit_id']);
 							 
 							$CategoryDetails = $obj_request->GetCategoryDetails( $requests[$i]['category']);
-							if($prevRequestNo != $requests[$i]['request_no'])
-							{
-								//$status = $obj_request->getUpdatedStatus($requests[$i]['request_no']);
+							// if($prevRequestNo != $requests[$i]['request_no'])
+							// {
+
+								$status = $obj_request->getUpdatedStatus($requests[$i]['request_no'], $requests[$i]['society_id']);
 								$prevRequestNo = $requests[$i]['request_no'];
 					?>
                     <tr>
-                        <td><a href="viewrequest.php?rq=<?php echo $requests[$i]['request_no'];?>" target="_blank"><?php echo $requests[$i]['request_no'];?></a></td>
+                        <td><a href="viewrequest.php?rq=<?php echo $requests[$i]['request_no'];?>&socid=<?php echo $requests[$i]['society_id'];?>" target="_blank"><?php echo $i+1;?></a></td>
                         
                           <?php
-						  $details = $obj_request->getViewDetails($requests[$i]['request_no'],true);
+		// 				  $details = $obj_request->getViewDetails($requests[$i]['request_no'],true);
 	
-						for($j =0; $j<sizeof($details);$j++ )
-							{
-							if($details[$j]['status']=="Reopen")
-							{
-								$cnt=$cnt+1;
+		// 				for($j =0; $j<sizeof($details);$j++ )
+		// 					{
+		// 					if($details[$j]['status']=="Reopen")
+		// 					{
+		// 						$cnt=$cnt+1;
 			
-							}
-		}
+		// 					}
+		// }
 		//var_dump()
 	
 	?>	
-    					<td><a href="view_member_profile.php?scm&id=<?php echo $memID;?>&tik_id=<?php echo time();?>&m&view" target="_blank" ><?php echo $unitNo;?></a></td>
+                        <?php echo $_SESSION['res_flag'] ?  "<td>".$landlord_name."</td>" : ""; ?>
+                       <?php if(empty($_SESSION['res_flag'])){ ?>
+                            <td><a href="view_member_profile.php?scm&id=<?php echo $memID;?>&tik_id=<?php echo time();?>&m&view" target="_blank" ><?php echo $unitNo;?></a></td>
+                        <?php }?>
                         <td><?php echo $requests[$i]['reportedby'];?></td>
                         <td><?php echo getDisplayFormatDate($requests[$i]['dateofrequest']);?></td>
                         <td><?php echo $requests[$i]['priority'];?></td>
                         <td><?php echo $CategoryDetails[0]['category'];?></td>
-                        <td><a href="viewrequest.php?rq=<?php echo $requests[$i]['request_no'];?>" target="_blank"><?php echo $requests[$i]['summery'];?></td>
-                        <td><?php echo $requests[$i]['status'];?></td> 
+                        <td><a href="viewrequest.php?rq=<?php echo $requests[$i]['request_no'];?>&socid=<?php echo $requests[$i]['society_id'];?>" target="_blank"><?php echo $requests[$i]['summery'];?></td>
+                        <td><?php echo $status;?></td> 
                         <td style="text-align:center;"><?php echo $cnt?></td> 
                         
                         
@@ -181,7 +190,7 @@ if($_SESSION['is_year_freeze'] == 0)
                            <?php }?>
                   </td>  </tr>
                     <?php
-							}
+							// }
 						}
 					?>
                 </tbody>

@@ -227,8 +227,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </td>
     <td>
     	<div id="block_data">
-        <button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='billmaster.php'">Manage Bill (Tariff) Master</button>
-	    <button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='bill_year.php'">Manage Financial Year</button>
+        <?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1)
+		{ ?>
+        <button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='billmaster_res.php'">Manage Bill (Tariff) Master</button>
+	    <?php }
+		else
+		{?>
+		<button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='billmaster.php'">Manage Bill (Tariff) Master</button>
+		<?php }?>
+        <button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='bill_year.php'">Manage Financial Year</button>
        	<button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='bill_period.php'">Manage Bill Periods</button>
        
         <button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='viewSMSQuota.php'">Manage SMS</button>

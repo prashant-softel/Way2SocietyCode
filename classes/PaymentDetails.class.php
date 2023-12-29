@@ -31,8 +31,10 @@ class PaymentDetails extends dbop
 	private $multEntryID;
 	private $prevMultEntryDetails;
 	public $debug_trace;
+	public $landLordDB;
+	public $isLandLordDB;
 	
-	function __construct($dbConn)
+	function __construct($dbConn,$landLordDB)
 	{
 		$this->m_dbConn = $dbConn;
 		$this->m_dbConnRoot = new dbop(true);
@@ -43,12 +45,13 @@ class PaymentDetails extends dbop
 		//$this->curdate_show	= $this->display_pg->curdate_show();
 		//$this->curdate_time	= $this->display_pg->curdate_time();
 		//$this->ip_location	= $this->display_pg->ip_location($_SERVER['REMOTE_ADDR']);*/
-		$this->m_voucher = new voucher($dbConn);
-		$this->m_latestcount = new latestCount($dbConn);
-		$this->m_register = new regiser($dbConn);
-		$this->m_objUtility = new utility($dbConn,$this->m_dbConnRoot);
+		$this->m_voucher = new voucher($dbConn, $landLordDB);
+		$this->m_latestcount = new latestCount($dbConn, $landLordDB);
+		$this->m_register = new regiser($dbConn,$landLordDB);
+		$this->m_objUtility = new utility($dbConn,$this->m_dbConnRoot, $landLordDB);
 		$_POST['EnteredBy'] = $_SESSION['login_id'];
-		$this->m_objLog = new changeLog($dbConn);
+		$this->m_objLog = new changeLog($dbConn, $landLordDB);
+		$this->landLordDB = $landLordDB;
 		$this->prevRefForMultEntry = 0;
 		$this->m_PrevDataVoucher = 0;
 		$this->m_PrevLatestVoucher = 0;
@@ -56,6 +59,9 @@ class PaymentDetails extends dbop
 		$this->prevMultEntryDetails = array();
 		$this->debug_trace = 0;
 		//dbop::__construct();
+		
+		
+		
 	}
 
 /*	public function startProcess()
@@ -878,13 +884,14 @@ class PaymentDetails extends dbop
 						$dataVoucher  = $this->m_voucher->SetVoucherDetails(getDBFormatDate($VoucherDate),$data,TABLE_PAYMENT_DETAILS,
 					
 					$LatestVoucherNo,1,$VoucherType, $Payer,TRANSACTION_DEBIT,$Amount, $Comments,$ExVoucherNo);	
-																	
+																
 								
 					$dataVoucher1  = $this->m_voucher->SetVoucherDetails(getDBFormatDate($VoucherDate),$data,TABLE_PAYMENT_DETAILS,
 					$LatestVoucherNo,2,$VoucherType,$PaidTo,TRANSACTION_CREDIT,$Amount, $Comments ,$ExVoucherNo);
 					
 					if($IsCallUpdtCnt == 1)
-					{	
+					{
+
 						if($IsSameCountChecked == 1)
 						{
 							if(in_array($PayerBank,$CashLedgers))
@@ -907,12 +914,13 @@ class PaymentDetails extends dbop
 					
 					if($actionMode == ADD)
 					{
+
 						if($ExVoucherNo <> $SystemDefineVNo)
 						{
 							$ChangeMsg = 'Voucher Number '.$SystemDefineVNo.' Changed to '.$ExVoucherNo.' On Payment Insert';
 							$this->m_objLog->setLog($ChangeMsg, $_SESSION['login_id'], 'Payment', $data);
 						}
-						
+					
 					}
 					else if($actionMode == EDIT)
 					{
@@ -932,7 +940,8 @@ class PaymentDetails extends dbop
 							$this->m_PrevLatestVoucher = $LatestVoucherNo;	
 							$this->prevMultEntryDetails['SrNo'] = 3; 
 						}
-					//}									
+					//}	
+						
 						$this->m_register->SetBankRegister(getDBFormatDate($VoucherDate),$Payer, $dataVoucher, $VoucherType,
 						TRANSACTION_PAID_AMOUNT, $Amount, $LeafID, $data, 0, getDBFormatDate($VoucherDate), 0, getDBFormatDate($reconcileDate), $reconcileStatus, $reconcile, $return);
 						
@@ -943,6 +952,7 @@ class PaymentDetails extends dbop
 						}
 						else
 						{
+
 							/*if($bIsCreditor == 1)
 							{
 								$LiabilityID = $this->m_register->SetLiabilityRegister(getDBFormatDate($VoucherDate),$PaidTo,$dataVoucher1,
@@ -994,6 +1004,7 @@ class PaymentDetails extends dbop
 			//echo "actionType:".$this->actionType;
 			if($this->actionType == ADD)
 			{
+
 				if($society_details[0]['notify_payment_voucher_daily'] == 1)
 				{
 					
@@ -1002,6 +1013,7 @@ class PaymentDetails extends dbop
 					$email_id = $this->m_dbConnRoot->insert($email_queue_query);*/
 					
 					$this->m_committeenotification->sentPaymentVoucherNotificationToCommittee($data,ADD,$_SESSION['dbname'],$_SESSION['society_id'],$_SESSION['society_client_id'],true);
+
 					
 				}
 				

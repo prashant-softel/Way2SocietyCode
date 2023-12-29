@@ -116,13 +116,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </tr>
 <tr>
 	<td>
-        <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('dues_advance_frm_member_report.php?sid=<?php echo $_SESSION['society_id']; ?>','_blank')">Due-Advance From Member</button>
-        
-        <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('memberdues_regularreport.php','_blank')">Dues From Member Regular</button>
-       	<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('ContributionLedgerDetailed.php','_blank')">Member Bill Register</button>
-        <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('bill_receipt_report.php', '_blank')">Member Receipt Report</button> 
-        <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('multiple_ledger_print.php','_blank');">Multiple Ledger Report</button>
-		<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('member_ledger_report.php?uid=0', '_blank')">Member Ledger Report</button>
+		
+        <?php 
+		if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1)
+		{?>
+        	<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('dues_advance_frm_member_report.php?sid=<?php echo $_SESSION['society_id']; ?>','_blank')">Due-Advance From Tenant</button>
+			<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('tenantdues_regularreport.php','_blank')">Dues From Tenant Regular</button>
+			<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('ContributionLedgerDetailed.php','_blank')">Tenant Bill Register</button>
+			<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('bill_receipt_report.php', '_blank')">Tenant Receipt Report</button> 
+		<?php 
+		}
+		else
+		{?>
+        	<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('dues_advance_frm_member_report.php?sid=<?php echo $_SESSION['society_id']; ?>','_blank')">Due-Advance From Member</button>
+			<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('memberdues_regularreport.php','_blank')">Dues From Member Regular</button>
+			<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('ContributionLedgerDetailed.php','_blank')">Member Bill Register</button>
+			<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('bill_receipt_report.php', '_blank')">Member Receipt Report</button> 
+			<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('multiple_ledger_print.php','_blank');">Multiple Ledger Report</button>
+			<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('member_ledger_report.php?uid=0', '_blank')">Member Ledger Report</button>
+		<?php }
+		if($_SESSION['res_flag'] == 1){ ?>
+			<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('tenant_ledger_report.php?uid=0&rec=1', '_blank')"> Tenant Ledger Report</button>	
+		<?php }else{ ?>
+			<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('tenant_ledger_report.php?uid=0', '_blank')"> Tenant Ledger Report</button>
+		<?php } ?>
+
         <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('ownership_transferhistory_report.php', '_blank')">Ownership Transfer History Report</button>
         <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('ParkingDetails.php', '_blank')">Vehicle Parking Report</button>
         <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('VehicleParkingDetails.php', '_blank')">Vehicle Summary Report</button>
@@ -148,6 +166,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
          <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('ledger_voucher_report.php','_blank')"> All Vouchers Reports</button>
         <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('reverse_charges.php?&uid=0', '_blank')"> Reversal Charges Report</button>
          <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('TDS_Challans.php', '_blank')"> TDS Challan Report</button>
+		 
      
      <?php if($result[0]['security_dbname'] <> '')
 	 {?>
@@ -206,16 +225,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
    
    <td>
    		<div id="block_data">
-        <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('i_register_UI.php','_blank')">I - Register</button>
-        </div>
-        <div id="block_data">
-        <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('j_register.php','_blank')">J - Register</button>
-        </div>
-        <div id="block_data">
-        <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('nomination_register.php','_blank')">Nomination - Register</button>
-        </div>
-        <div id="block_data">
-        <button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('share_register.php','_blank')">Share - Register</button>
+		   <?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+			}else{ ?>
+				<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('i_register_UI.php','_blank')">I - Register</button>
+				</div>
+				<div id="block_data">
+				<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('j_register.php','_blank')">J - Register</button>
+				</div>
+				<div id="block_data">
+				<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('nomination_register.php','_blank')">Nomination - Register</button>
+				</div>
+				<div id="block_data">
+				<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('share_register.php','_blank')">Share - Register</button>
+			<?php } ?>
         </div>    	
    </td>
    

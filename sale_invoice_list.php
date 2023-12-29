@@ -48,7 +48,13 @@
                if(!isset($_REQUEST['Note'])) {
                  //**** Create Invoice Button only Show to super admin and admin only ?>
             <button type="button" class="btn btn-primary" onClick="window.open('Invoice.php?add', '_blank'); return true;" style="float:center;margin-right:0%">Create New Invoice</button>
+            <?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1) { ?>
+               <button type="button" class="btn btn-primary" onClick="window.open('import_rc_invoice.php', '_blank'); return true;" style="float:center;margin-right:0%">Import Invoice</button>
+			<?php
+		} else{ ?>
             <button type="button" class="btn btn-primary" onClick="window.open('import_invoice.php', '_blank'); return true;" style="float:center;margin-right:0%">Import Invoice</button>
+		<?php
+			}?>
              <button type="button" class="btn btn-primary" onClick="open_range()" style="float:center;margin-right:0%">Export PDF</button>
             <br><br>
             <div id="loader" style="display: none;"><img id="loading-image" src="images/loader/page-loader_2.gif" alt="Loading..." /></div>

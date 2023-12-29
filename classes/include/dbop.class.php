@@ -1,7 +1,7 @@
 <?php
  	//Turn off all error reporting
 
-   	//error_reporting(1);
+   	error_reporting(0);
 	
 	include('DbConnection.class.php');
 	date_default_timezone_set('Asia/Kolkata');	
@@ -11,9 +11,9 @@
 		//public $obj_con;
 		private $m_bIsTransaction;
 		
-		function __construct($bAccessRoot = false , $dbName = "", $AccessSM = false, $AccessSMRoot = false)
+		function __construct($bAccessRoot = false , $dbName = "", $AccessSM = false, $AccessSMRoot = false, $landLordDB = false, $landLordDBRoot = false)
 		{
-			DbConnection::__construct($bAccessRoot , $dbName,$AccessSM, $AccessSMRoot);
+			DbConnection::__construct($bAccessRoot , $dbName, $AccessSM, $AccessSMRoot, $landLordDB, $landLordDBRoot);
 			$this->m_bIsTransaction = false;
 			mysqli_autocommit($this->mMysqli, true);
 			//$this->kill_processlist();	  
@@ -170,6 +170,7 @@
 			$selected_DB = $DBDetail->fetch_row()[0];
 			//$SocietyIDArr = array('59','272','304','310');
 			$SocietyIDArr = array('-1');
+			//$SocietyIDArr = array('288');
 			if($selected_DB == $_SESSION['dbname'] && in_array($_SESSION['society_id'], $SocietyIDArr)){
 
 				$login_id = $_SESSION['login_id'];

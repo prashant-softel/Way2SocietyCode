@@ -279,6 +279,7 @@ $BillNumber = $detail_values[0]["BillNumber"];
 $AdjCredit = $detail_values[0]["AdjustmentCredit"];
 $InterestOnArrears = $detail_values[0]["BillInterest"];
 $PrinciplePreviousArrears = $detail_values[0]["PrincipalArrears"];//$detail_values[0]["PrevPrincipalArrears"];
+$PrinciplePreviousArrears_NoInt = $detail_values[0]["PrincipalArrears_NoInt"];
 $IntrestOnPreviousarrears = $detail_values[0]["InterestArrears"];//$detail_values[0]["PrevInterestArrears"];
 $BillTax = $detail_values[0]["BillTax"];
 $IGST = $detail_values[0]["IGST"];
@@ -1202,7 +1203,7 @@ var NewRowCounter=0;
 				}
 				else
 				{*/
-					$BalanceAmout = $SubTotal + $AdjCredit + $InterestOnArrears + $ServiceTax + $PrinciplePreviousArrears + $IntrestOnPreviousarrears + $IGST + $SGST + $CGST + $CESS+$LedgerRoundOff;
+					$BalanceAmout = $SubTotal + $AdjCredit + $InterestOnArrears + $ServiceTax + $PrinciplePreviousArrears + $PrinciplePreviousArrears_NoInt + $IntrestOnPreviousarrears + $IGST + $SGST + $CGST + $CESS+$LedgerRoundOff;
 
 				//}
 				if($bApplyServiceTax && $bApplyGSTOnInterest)
@@ -1276,9 +1277,22 @@ var NewRowCounter=0;
                 </tr>
                 <?php }else{?>
                  <tr>
-                	<td style="width:14%;border:1px solid black;text-align:right;font-size: <?php echo $BillFont?>px;">Principal&nbsp;</td>
+                 <?php if($_SESSION['society_id'] == 441)
+				 {?>
+					 <td style="width:14%;border:1px solid black;text-align:right;font-size: <?php echo $BillFont?>px;">Principal No Int: <?php echo number_format($PrinciplePreviousArrears_NoInt,2); ?></td>
+                    <td style="width:14%;border:1px solid black;text-align:right;font-size: <?php echo $BillFont?>px;">Principal&nbsp;&nbsp;: &nbsp; 
+                   <?php echo number_format($PrinciplePreviousArrears,2); ?></td>
+                    <td style="border:none;"></td>
+				 <?php 
+				 }
+				 else
+				 {?>
+                 <td style="width:14%;border:1px solid black;text-align:right;font-size: <?php echo $BillFont?>px;">Principal&nbsp;</td>
                     <td id="sub_total" style="text-align:right;width:16%;border:1px solid black;font-size:<?php echo $BillFont?>px;"><?php echo number_format($PrinciplePreviousArrears,2); ?></td>
                     <td style="border:none;"></td>
+                    
+                	
+                    <?php }?>
                 </tr>
                 <?php }
 				if(isset($_REQUEST['edt'])){?>
@@ -1291,13 +1305,13 @@ var NewRowCounter=0;
                         <input type="text" name="" id="IntrestOnPreviousarrears" value="<?php echo ($IntrestOnPreviousarrears); ?>" style="text-align:right;" readonly />
                         <?php } ?>
                     </td>
-                    <td style="text-align:right;width:20%;border:1px solid black;border-right:none;border-top:none;"><?php echo number_format($IntrestOnPreviousarrears + $PrinciplePreviousArrears,2); ?></td>
+                    <td style="text-align:right;width:20%;border:1px solid black;border-right:none;border-top:none;"><?php echo number_format($IntrestOnPreviousarrears + $PrinciplePreviousArrears + $PrinciplePreviousArrears_NoInt,2); ?></td>
                 </tr>
                 <?php }else{?>
                 <tr>
                 	<td style="width:14%;border:1px solid black;text-align:right;font-size:<?php echo $BillFont?>px;">Interest&nbsp;</td>
                     <td id="sub_total" style="text-align:right;width:16%;border:1px solid black;font-size:<?php echo $BillFont?>px;"><?php echo number_format($IntrestOnPreviousarrears,2); ?></td>
-                    <td style="text-align:right;width:20%;border:1px solid black;border-right:none;border-top:none;font-size:<?php echo $BillFont?>px;"><?php echo number_format($IntrestOnPreviousarrears + $PrinciplePreviousArrears,2); ?></td>
+                    <td style="text-align:right;width:20%;border:1px solid black;border-right:none;border-top:none;font-size:<?php echo $BillFont?>px;"><?php echo number_format($IntrestOnPreviousarrears + $PrinciplePreviousArrears  + $PrinciplePreviousArrears_NoInt,2); ?></td>
                 </tr>
                 <?php }
 					//} // end of IsSupplemetary Bill?>

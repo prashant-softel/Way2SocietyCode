@@ -16,6 +16,7 @@ include_once("classes/dbconst.class.php");
 include_once("classes/latestcount.class.php");
 include_once("classes/unit.class.php");
 //include_once ("classes/include/exportToExcel.php");
+$landLordDB = new dbop(false,false,false,false,true);
 $obj_unit_class = new unit($m_dbConn);
 if(isset($_GET['ssid'])){if($_GET['ssid']<>$_SESSION['society_id']){?><script>window.location.href = "logout.php";</script><?php }}
 
@@ -47,7 +48,7 @@ if($_SESSION['default_ledger_round_off'] == 0 && $objFetchData->objSocietyDetail
 
 
 include_once("classes/genbill.class.php");
-$obj_genbill = new genbill($m_dbConn, $m_dbConnRoot);
+$obj_genbill = new genbill($m_dbConn, $m_dbConnRoot,$landLordDB);
 $lblPeriodID = "";
 
 include_once('classes/billDetailsValidation.class.php');
@@ -264,7 +265,17 @@ $_SESSION['wwid'] = $_REQUEST['wwid'];
             <td>&nbsp; : &nbsp;</td>
 			<td>
                 <select name="unit_id" id="unit_id" style="width:142px;">
-                	<?php echo $combo_unit = $obj_genbill->combobox("select u.unit_id, CONCAT(CONCAT(u.unit_no,' '), mm.owner_name) AS 'unit_no' from unit AS u JOIN `member_main` AS mm ON u.unit_id = mm.unit where u.status = 'Y' and u.society_id = '" . $_SESSION['society_id'] . "' and mm.ownership_status=1 ORDER BY u.sort_order ", $_REQUEST['unit_id'], "All", '0');
+                
+                	<?php 
+					if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1)
+					{
+					    echo $combo_unit = $obj_genbill->combobox("select u.unit_id, CONCAT(CONCAT(u.unit_no,' '), mm.tenant_name) AS 'unit_no' from unit AS u JOIN `tenant_module` AS mm ON u.unit_id = mm.unit_id where u.status = 'Y' and u.society_id = '" . $_SESSION['society_id'] . "' and mm.end_date >= NOW() ORDER BY u.sort_order", $_REQUEST['unit_id'], "All", '0');
+					}
+					else
+					{
+                
+					echo $combo_unit = $obj_genbill->combobox("select u.unit_id, CONCAT(CONCAT(u.unit_no,' '), mm.owner_name) AS 'unit_no' from unit AS u JOIN `member_main` AS mm ON u.unit_id = mm.unit where u.status = 'Y' and u.society_id = '" . $_SESSION['society_id'] . "' and mm.ownership_status=1 ORDER BY u.sort_order ", $_REQUEST['unit_id'], "All", '0');
+					}
 					?>
 				</select>
             </td>
@@ -487,8 +498,16 @@ if($_SESSION['profile'][PROFILE_GENERATE_BILL] == 0)
 			</td>
 		</tr>
 </table>
-<br><br>	
+<br><br>
+<?php if($_SESSION['rental_flag'] == 1 || $_SESSION['res_flag'] == 1 )
+{?>	
+
+<?php }
+else
+{?>
 <div id="GenPDFCnt"></div>
+<?php }
+?>
 <table align="center">
 <tr>
 <td align="center"> 

@@ -370,7 +370,13 @@ $m_objHead_S = new head($m_dbConnRoot);
                         <ul class="nav" id="side-menu">
                             
                             <li>
-                                <a href="home_s.php"><i class="fa fa-dashboard fa-fw"></i> HOME</a>
+                                <?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+                                    <a href="home_res.php"><i class="fa fa-dashboard fa-fw"></i> HOME</a>
+                                 <?php   
+                                } else { ?>
+                                    <a href="home_s.php"><i class="fa fa-dashboard fa-fw"></i> HOME</a>
+                               <?php
+                                } ?>
                             </li>
                             
                             <li>
