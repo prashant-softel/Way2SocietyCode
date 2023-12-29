@@ -1,5 +1,4 @@
 <?php	
-// comment
 	include_once("../classes/include/dbop.class.php");
 	include_once("../classes/servicerequest.class.php");
 	include_once("../classes/dbconst.class.php");

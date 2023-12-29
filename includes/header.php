@@ -169,7 +169,11 @@ $msgCounter = 0;
 				$URL = "";
 				if($_SESSION['role'] == "Super Admin" || $_SESSION['role'] == "Admin" || $_SESSION['role'] == "Accountant")
 				{
-					$URL = "home_s.php?View=ADMIN";
+					if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+						$URL = "home_res.php?View=ADMIN";
+					}else{
+						$URL = "home_s.php?View=ADMIN";
+					}
 				}
 				else
 				{
@@ -179,7 +183,13 @@ $msgCounter = 0;
                         
                 <table><tr><td style="text-align:center;font-size:50%" onclick="window.location.href='<?php echo $URL; ?>'"><!--<a class="navbar-brand" href="home.php" style="color:#990000;">--><a href="<?php echo $URL; ?>"><img width="60%" src="images/logo_t.gif" /></a><!--</a>--></td>
                 
-                <td style="vertical-align:middle"><b>Way2Society.com - Housing Society Social & Accounting Software</b><br /><font color="#039"><a href="initialize.php?imp"><?php if(isset($_SESSION['society_id']) && $_SESSION['society_id'] <> 0) { echo $societyName = $m_objHead_S->GetSocietyName($_SESSION['society_id']);} if($_SESSION['desc'] != $_SESSION['role']){ echo ' - ['.$_SESSION['desc'].' - '.$_SESSION['role']. ']';}else{ echo ' - ['.$_SESSION['desc'].']';} ?> </a>
+                <td style="vertical-align:middle">
+				<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+					<b>Way2Society.com - Rental Properties Management Software</b>
+				<?php }else{ ?>
+					<b>Way2Society.com - Housing Society Social & Accounting Software</b>
+				<?php } ?>
+				<br /><font color="#039"><a href="initialize.php?imp"><?php if(isset($_SESSION['society_id']) && $_SESSION['society_id'] <> 0) { echo $societyName = $m_objHead_S->GetSocietyName($_SESSION['society_id']);} if($_SESSION['desc'] != $_SESSION['role']){ echo ' - ['.$_SESSION['desc'].' - '.$_SESSION['role']. ']';}else{ echo ' - ['.$_SESSION['desc'].']';} ?> </a>
 				<?php if($_SESSION['role'] ==  ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN || $_SESSION['role'] == ROLE_ADMIN_MEMBER || $_SESSION['role'] == ROLE_ACCOUNTANT || $_SESSION['role'] == ROLE_MANAGER)
 				{?>
 					&nbsp;&nbsp;&nbsp;<a href="defaults.php" title="click here to change year"><?php if(isset($_SESSION['society_id']) && $_SESSION['society_id'] <> 0) { echo '[' . $m_objHead_S->GetYearDesc($_SESSION['default_year']). ']';} ?></a>
@@ -795,10 +805,17 @@ $msgCounter = 0;
             <div class="navbar-default sidebar" role="navigation" <?php if($bIsHide == true){ echo 'style="display:none;"';} ?>>
                     <div class="sidebar-nav navbar-collapse">
                         <ul class="nav" id="side-menu">
-                            
-                            <li>
-                                <a href="home_s.php"><i class="fa fa-dashboard fa-fw"></i> HOME</a>
-                            </li>
+						<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+						<li>
+						<a href="home_res.php"><i class="fa fa-dashboard fa-fw"></i> HOME</a>
+						</li>
+						<?php
+						}else{ ?>
+							<li>
+							<a href="home_s.php"><i class="fa fa-dashboard fa-fw"></i> HOME</a>
+							</li>
+							<?php }
+							?>
                             <li>
                                 <a href="#">
                                     <i class="fa  fa-building  fa-fw"></i>Society
@@ -806,12 +823,29 @@ $msgCounter = 0;
                                     </span>
                                 </a>
                                 <ul class="nav nav-second-level">
+									<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+                                   		<li>
+										   <a href="society.php?id=<?php echo $_SESSION['society_id'];?>&show&imp">View Company</a>
+										</li>
+										<?php
+										}else{ ?>
+											<li>
+											<a href="society.php?id=<?php echo $_SESSION['society_id'];?>&show&imp">View Society</a>
+											</li>
+											<?php }
+											?>
+                                   
+                                    <?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
                                     <li>
-                                        <a href="society.php?id=<?php echo $_SESSION['society_id'];?>&show&imp">View Society</a>
+                                        <a href="list_member2.php?scm">View Landlord</a>
                                     </li>
-                                    <li>
+                                    <?php }
+									else
+									{?>
+                                     <li>
                                         <a href="list_member2.php?scm">View Members</a>
                                     </li>
+									<?php }?>
 
 									<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
                                    		<li>
@@ -819,19 +853,65 @@ $msgCounter = 0;
 										</li>
 										<?php
 										}?>
-                                   
-								   <?php if($_SESSION['role'] == "Super Admin" || $_SESSION['role'] == "Admin" || $_SESSION['role'] == "Accountant" || $_SESSION['role'] == "Manager")
-                                    { ?>
-                                    	<li>
-                                        	<a href="mem_rem_data.php?scm">Member Record Status</a>
-                                    	</li>
-                                    <?php }
-                                    ?>
-                                    <li>
-                                        	<a href="approvals.php?type=active">Approval Vote</a>
-                                    	</li>
+                                
+				<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+
+								   }else{
+										if($_SESSION['role'] == "Super Admin" || $_SESSION['role'] == "Admin" || $_SESSION['role'] == "Accountant" || $_SESSION['role'] == "Manager")
+										{ ?>
+											<li>
+												<a href="mem_rem_data.php?scm">Member Record Status</a>
+											</li>
+										<?php }
+										?>
+										<li>
+												<a href="approvals.php?type=active">Approval Vote</a>
+											</li>
+								   <?php }?>
                                 </ul>
                             </li>
+                            <!-- Alshola -->
+                            <?php 
+                            if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+                             <li>
+                                <a href="#">
+                                    <i class="fa  fa-edit  fa-fw"></i>Complain Utility
+                                    <span class="fa arrow">
+                                    </span>
+                                </a>
+                                <ul class="nav nav-second-level">
+                                    <li>
+                                        <a href="servicerequest.php?type=open">Service Request </a>
+                                    </li>
+                                    <li>
+                                       <a href="legalcase.php?type=open">Legal Cases</a>
+                                    </li>
+                                    <li>
+                                        <a href="notices.php?in=0">Notices</a>
+                                    </li>
+                                    <?php /*if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+                                    <li>
+                                        <a href="list_member2.php?scm">View Landlord</a>
+                                    </li>
+                                    <?php }
+									else
+									{?>
+                                     <li>
+                                        <a href="list_member2.php?scm">View Members</a>
+                                    </li>
+									<?php }?>
+
+									<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+                                   		<li>
+											<a href="list_member3.php?scm">View Tenant</a>
+										</li>
+										<?php
+										}*/?>
+                                   
+								  
+                                </ul>
+                            </li>
+                            <?php }?>
                              <li>
                                   <a href="#"><i class="fa  fa-calculator  fa-fw"></i>Billing<span class="fa arrow"></span></a>
                                     

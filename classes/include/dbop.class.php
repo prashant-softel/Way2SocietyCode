@@ -170,6 +170,7 @@
 			$selected_DB = $DBDetail->fetch_row()[0];
 			//$SocietyIDArr = array('59','272','304','310');
 			$SocietyIDArr = array('-1');
+			//$SocietyIDArr = array('288');
 			if($selected_DB == $_SESSION['dbname'] && in_array($_SESSION['society_id'], $SocietyIDArr)){
 
 				$login_id = $_SESSION['login_id'];

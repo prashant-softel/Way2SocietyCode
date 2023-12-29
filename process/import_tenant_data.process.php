@@ -8,6 +8,8 @@ require_once ("../classes/CsvOperations.class.php");
 
 		$dbConn = new dbop();
 		$dbConnRoot = new dbop(true);
+		$landLordDB = new dbop(false,false,false,false,true);
+                $landLordDBRoot = new dbop(false,false,false,false,false,true);
 		$ErrorLog='';
 		$actionPage="";
 		$csv = new CsvOperations();
@@ -39,7 +41,7 @@ require_once ("../classes/CsvOperations.class.php");
 				$checkBoxIndexes = explode(',', $data);
 			
 				$obj_member_import = new import_tenantdata($dbConnRoot, $dbConn);
-				$obj_tenant_import = new import_rc_tenantdata($dbConnRoot, $dbConn);
+				$obj_tenant_import = new import_rc_tenantdata($dbConnRoot, $dbConn, $landLordDB, $landLordDBRoot);
 			
 				if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
 					$validator = $obj_tenant_import->UploadData1($fileName, $fileData, $bvalidate);

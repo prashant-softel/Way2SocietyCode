@@ -159,7 +159,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     	<?php if($_SESSION['society_client_id'] <> 1 && $_SESSION['society_client_id'] <> 9 )
 		 {
 		?>
+		  <?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1) { ?>
+        	<button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='import_tenant_opening_balance.php'">Tenant Opening Balance</button>
+			<?php
+		} else{ ?>
         	<button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='import_opening_balance.php'">Member Opening Balance</button>
+		<?php
+			}?>
          <?php
 		 }
 		 ?>
@@ -194,16 +200,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <td>
   	     <!--<a href="#" id="data_link"></a><br>-->
          
-          	<button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='import_ledger.php'">Import Ledgers Data</button>  
-            
-         <button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='import_payments_receipts.php?type=receipts'">Import General Receipt </button>
-         
+          	<button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='import_ledger.php'">Import Ledgers Data</button> 
+		<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+			<button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='import_rc_payments_receipts.php?type=receipts'">Import General Receipt </button>
+		<?php }else{ ?>
+            <button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='import_payments_receipts.php?type=receipts'">Import General Receipt </button>
+			<?php } ?>
       	<button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='import_payments_receipts.php?type=payment'">Import Payment</button>
         
         <button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='import_JV.php'">Import Journal Voucher</button>
             
+		  <?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1) { ?>
+			<button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='import_rc_invoice.php'">Import Invoice</button>
+			<?php
+		} else{ ?>
       	<button type="button"  style="border:none;" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.location.href='import_invoice.php'">Import Invoice</button>
-      
+		<?php
+			}?>
     	
          <?php //if($_SESSION['society_client_id'] == 2 || $_SESSION['society_client_id'] == 8) removed the condition by amit on prashant sir request
 		 {

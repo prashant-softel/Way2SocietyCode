@@ -57,13 +57,13 @@
 					<div class="wrap-col">
 						<h4>Way2Society</h4>
 						<ul class="address">
-							<li><a href="http://way2society.com/?page_id=5326">About Us</a></li>
-                            <li><a href="http://way2society.com/?page_id=5246">Services</a></li>
-                             <li><a href="http://way2society.com/?page_id=5410">Blog</a></li>
+							<li><a href="https://way2society.com/?page_id=5326">About Us</a></li>
+                            <li><a href="https://way2society.com/?page_id=5246">Services</a></li>
+                             <li><a href="https://way2society.com/?page_id=5410">Blog</a></li>
                              <li><a href="https://way2society.com/?page_id=6323">Careers</a></li>
-                             <li><a href="http://way2society.com/?page_id=23">Contact Us</a></li>
-							<li><a href="http://way2society.com/?page_id=5640">Terms and Conditions</a></li>
-							<li><a href="http://way2society.com/?page_id=5638">Privacy Policy</a></li>
+                             <li><a href="https://way2society.com/?page_id=23">Contact Us</a></li>
+							<li><a href="https://way2society.com/?page_id=5640">Terms and Conditions</a></li>
+							<li><a href="https://way2society.com/?page_id=5638">Privacy Policy</a></li>
                             
                         </ul>
 					</div>
@@ -72,8 +72,8 @@
 					<div class="wrap-col">
 						<h4>Society Related</h4>
 						<ul class="address">
-							<li><a href="http://way2society.com/?page_id=5250">Bye-Laws</a></li>
-							<li><a href="http://way2society.com/?page_id=5252">Common Forms</a></li>
+							<li><a href="https://way2society.com/?page_id=5250">Bye-Laws</a></li>
+							<li><a href="https://way2society.com/?page_id=5252">Common Forms</a></li>
 						</ul>
 					</div>
 					</section>

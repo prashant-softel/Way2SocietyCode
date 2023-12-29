@@ -14,6 +14,7 @@ class unit
 	public $actionPage= "../unit.php";//"../unit_search.php";
 	public $m_dbConn;
 	public $m_dbConnRoot;
+	public $landLordDB;
 	public $tempConn;
 	public $obj_utility;
 	public $m_objLog;
@@ -21,10 +22,11 @@ class unit
 	public $obj_genbill;
 	public $debug_trace;
 	
-	function __construct($dbConn, $dbConnRoot = '', $tempConn)
+	function __construct($dbConn, $dbConnRoot = '',$landLordDB= '', $tempConn)
 	{
 		$this->m_dbConn = $dbConn;
 		$this->m_dbConnRoot = $dbConnRoot;
+		$this->landLordDB = $landLordDB;
 		$this->tempConn = $tempConn;
 		$this->obj_utility = new utility($this->m_dbConn);
 		$this->display_pg=new display_table($this->m_dbConn);
@@ -603,7 +605,6 @@ class unit
 		}
 		return $str;
 	}
-
 	
 	public function combobox00($query,$id)
 	{
@@ -659,8 +660,16 @@ class unit
 		//$memberIDS = $this->obj_utility->getMemberIDs($_SESSION['default_year_end_date']);	
 		$sqlPeriod = "SELECT max(id),PeriodID,BillDate,DueDate FROM `billregister` where `PeriodID` = '".$period_id."' ";
 		$resultPeriod = $this->m_dbConn->select($sqlPeriod);
-		$sql1 = 'select bill.UnitID, bill.PeriodID, unittbl.unit_id, unittbl.unit_no, wingtbl.wing, societytbl.society_name, membertbl.owner_name,membertbl.member_id, societytbl.society_code,unittbl.unit_presentation  from billdetails as bill JOIN unit as unittbl on bill.UnitID = unittbl.unit_id JOIN wing as wingtbl on unittbl.wing_id = wingtbl.wing_id JOIN society as societytbl on unittbl.society_id = societytbl.society_id JOIN member_main as membertbl ON unittbl.unit_id = membertbl.unit where unittbl.status = "Y" and bill.PeriodID = "' . $period_id . '" and societytbl.society_id = "' . $society_id . '"  and bill.BillType="'. $BillType.'" and membertbl.member_id IN (SELECT `member_id` FROM (select  DISTINCT(unit),`member_id` from `member_main` where ownership_date <="'.$resultPeriod[0]['BillDate'].'"  ORDER BY ownership_date desc) as member_id Group BY unit) '; 
-		
+		if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag']== 1)
+		{
+			//$sql1 ='select bill.UnitID, bill.PeriodID, unittbl.unit_id, unittbl.unit_no, wingtbl.wing, societytbl.society_name, membertbl.tenant_name as owner_name,membertbl.tenant_id, societytbl.society_code,unittbl.unit_presentation from billdetails as bill JOIN unit as unittbl on bill.UnitID = unittbl.unit_id JOIN wing as wingtbl on unittbl.wing_id = wingtbl.wing_id JOIN society as societytbl on unittbl.society_id = societytbl.society_id JOIN tenant_module as membertbl ON unittbl.unit_id = membertbl.unit_id where unittbl.status = "Y" and bill.PeriodID =  "' . $period_id . '" and societytbl.society_id =  "' . $society_id . '" and bill.BillType="'. $BillType.'" and membertbl.tenant_id IN (SELECT `tenant_id` FROM (select DISTINCT(unit_id),`tenant_id` from `tenant_module` ORDER BY end_date desc) as member_id Group BY unit_id) ';
+			
+			$sql1 ='select bill.UnitID, bill.PeriodID, unittbl.unit_id, unittbl.unit_no, wingtbl.wing, societytbl.society_name, membertbl.tenant_name as owner_name,membertbl.tenant_id, societytbl.society_code,unittbl.unit_presentation from billdetails as bill JOIN tenant_module as membertbl ON bill.UnitID = membertbl.ledger_id JOIN unit as unittbl on unittbl.unit_id = membertbl.unit_id JOIN wing as wingtbl on unittbl.wing_id = wingtbl.wing_id JOIN society as societytbl on unittbl.society_id = societytbl.society_id where unittbl.status = "Y" and bill.PeriodID = "' . $period_id . '" and societytbl.society_id = "' . $society_id . '" and bill.BillType="'. $BillType.'" and membertbl.tenant_id IN (SELECT `tenant_id` FROM (select DISTINCT(unit_id),`tenant_id` from `tenant_module` ORDER BY end_date desc) as member_id Group BY unit_id) '; //Group BY unittbl.unit_id ORDER BY unittbl.`sort_order` ASC
+		}
+		else
+		{
+			$sql1 = 'select bill.UnitID, bill.PeriodID, unittbl.unit_id, unittbl.unit_no, wingtbl.wing, societytbl.society_name, membertbl.owner_name,membertbl.member_id, societytbl.society_code,unittbl.unit_presentation  from billdetails as bill JOIN unit as unittbl on bill.UnitID = unittbl.unit_id JOIN wing as wingtbl on unittbl.wing_id = wingtbl.wing_id JOIN society as societytbl on unittbl.society_id = societytbl.society_id JOIN member_main as membertbl ON unittbl.unit_id = membertbl.unit where unittbl.status = "Y" and bill.PeriodID = "' . $period_id . '" and societytbl.society_id = "' . $society_id . '"  and bill.BillType="'. $BillType.'" and membertbl.member_id IN (SELECT `member_id` FROM (select  DISTINCT(unit),`member_id` from `member_main` where ownership_date <="'.$resultPeriod[0]['BillDate'].'"  ORDER BY ownership_date desc) as member_id Group BY unit) '; 
+		}
 		if($wing_id <> 0)
 		{
 			$sql1 .= ' and unittbl.wing_id = "' . $wing_id . '"';
@@ -690,8 +699,15 @@ class unit
 			$result[$i]['unit_presentation'] = str_replace(' No.', '', $unit_array[$result[$i]['unit_presentation']]);
 			
 		}
+		if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1)
+		{
+			$this->show_unit_rec($result, true,true,true,$IsReadonlyPage, $BillType);
+		}
+		else
+		{
+			$this->show_unit($result, true,true,true,$IsReadonlyPage, $BillType);
+		}
 		
-		$this->show_unit($result, true,true,true,$IsReadonlyPage, $BillType);
 	}
 	
 	public function pgnation($bShowViewLink = false,$IsReadonlyPage =false)
@@ -947,7 +963,14 @@ class unit
             <th width="10">Wing</th>
              <th width="10">Unit Type</th>
             <th width="10">Unit No.</th>
+            <?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1)
+			{?>
+            <th width="50">Tenant Name</th>
+				<?php }
+			else{?>
             <th width="50">Member Name</th>
+				<?php }?>
+            
             <th width="20">Due</th>
             <th width="50">Reverse charge/Credit</th>
 			<?php if($bShowEdit == true && $isBill == true && $_SESSION['role']==ROLE_SUPER_ADMIN) {
@@ -1053,6 +1076,198 @@ class unit
             <td align="center">
             <?php if($this->chk_delete_perm_admin()==1){?>
             <a href="javascript:void(0);" onclick="getunit('delete-<?php echo $res[$k]['unit_id']?>');"><img src="images/del.gif" /></a>
+            <?php }else{?>
+            <a href="del_control_admin.php?prm" target="_blank" style="text-decoration:none;"><font color=#FF0000 style='font-size:10px;'><b>Not Allowed</b></font></a>
+            <?php }?>
+            </td>
+            <?php }?>
+             
+            </tr>
+        <?php 
+		}?>
+        </tbody>
+        </table>
+
+		<?php
+		}
+		else
+		{
+			?>
+            <table align="center" border="0">
+            <tr>
+            	<td><font color="#FF0000" size="2"><b>No Records Found.</b></font></td>
+            </tr>
+            </table>
+            <?php		
+		}
+	}
+	
+	public function show_unit_rec($res, $bShowViewLink = false, $bShowEdit = false,$isBill = false,$IsReadonlyPage = false, $BillType = 0)
+	{
+		//print_r($res);
+		$EncodeUnitArray;
+		$EncodeUrl;
+		if($BillType != 1)
+		{
+			$BillType = 0;
+		}
+		$UnitArray = $this->getAllUnits();
+		
+		if(sizeof($UnitArray) > 0)
+		{
+			$EncodeUnitArray = json_encode($UnitArray);
+			$EncodeUrl = urlencode($EncodeUnitArray);
+		}
+		if($bShowViewLink == true)
+		{
+			$sqlPeriod = "Select periodtbl.type, periodtbl.BeginingDate, yeartbl.YearDescription from period as periodtbl JOIN year as yeartbl ON periodtbl.YearID = yeartbl.YearID where periodtbl.ID = '" . $_REQUEST['period_id'] . "'";
+		
+			$sqlResult = $this->m_dbConn->select($sqlPeriod);
+			$startyear = array();
+			$BeginingDate = array();
+			$startyear = explode('-',$sqlResult[0]["YearDescription"]);
+			$BeginingDate = explode('-',$sqlResult[0]["BeginingDate"]);
+			if($startyear[0] >= $BeginingDate[0])
+			{
+				$RetrunVal .= " " . $startyear[0];
+			}
+			else if($startyear[0] <= $BeginingDate[0])
+			{
+				$RetrunVal .= " " . $BeginingDate[0];
+			}
+			$RetrunVal;
+			//var_dump($BeginingDate);
+			//echo "<b><font color='#0000FF'> Bill's For : " . $sqlResult[0]['type'] . " "  . $sqlResult[0]['YearDescription'] . "</font></b><br><br>";
+		}
+		if($res<>"")
+		{
+					
+			//print_r($res);
+			if(!isset($_REQUEST['page']))
+			{
+				$_REQUEST['page'] = 1;
+			}
+			$iCounter = 1 + (($_REQUEST['page'] - 1) * 50);
+	
+		?>
+		<table id="example" class="display" cellspacing="0" width="100%">
+        <thead>
+		<tr height="30">
+        	<th width="10">Sr No.</th>
+        	<!--<th width="300">Society Name</th>-->
+            <th width="10">Wing</th>
+             <th width="10">Unit Type</th>
+            <th width="10">Unit No.</th>
+            <th width="50">Tenant Name</th>
+			<th width="20">Due</th>
+            <th width="50">Reverse charge/Credit</th>
+			<?php if($bShowEdit == true && $isBill == true && $_SESSION['role']==ROLE_SUPER_ADMIN) {
+				//echo "test"; ?> 
+           		<!--<th width="50">Edit</th>-->
+			<?php }
+			else if($bShowEdit == true && $isBill == false){
+				 if($_SESSION['role'] != ROLE_ADMIN_MEMBER && $IsReadonlyPage == false && $_SESSION['is_year_freeze'] == 0){?>
+            	<th width="50">Edit</th>
+                <?php } ?>
+                    <th width="20">Transfer History</th>
+            <?php }if($bShowViewLink == true) { ?> 
+             	<th width="20">Bill</th>
+			 	
+               <?php }
+                if($_SESSION['role'] == ROLE_SUPER_ADMIN && $isBill == true && $_SESSION['is_year_freeze'] == 0)
+                {?>
+                 <th width="70">Delete</th>
+                <?php } 
+                if($isBill == true)
+                {?>
+                 <th width="500">PDF</th>
+                <?php }?>
+            
+            
+            <?php if(isset($_SESSION['admin'])){?>
+                <th width="100">Code</th>
+				<?php }?>
+            
+            <?php if(isset($_GET['ws'])){?>
+        	<th width="70">Edit</th>
+            <th width="70">Delete</th>
+            <?php }?>
+            
+        </tr>
+        </thead>
+        <tbody>
+		<script>var unitArray = []; </script> 
+        <?php 
+		//echo "<pre>";
+		//print_r($res);
+		//echo "</pre>";
+		foreach($res as $k => $v){
+			$specialChars = array('/', '.', '*', '%', '&', ',', '(', ')', '"');
+        		$UnitNo = str_replace($specialChars, '', $res[$k]['unit_no']);?>
+			<script>unitArray.push(<?php echo $res[$k]['UnitID']; ?>)</script>
+			
+        	<tr height="25" bgcolor="#BDD8F4" align="center">
+        	<td align="center"><?php echo $iCounter++;?></td>
+        	<!--<td align="center"><?php //echo $res[$k]['society_name'];?></td>-->
+            <td align="center"><?php echo $res[$k]['wing'];?></td>
+            <td align="center"><?php echo $res[$k]['unit_presentation'];?></td>
+            <td align="center" id="<?php echo 'unit_no_'.$res[$k]['UnitID']?>"> <a href="view_tenant_profile.php?scm&id=<?php echo $res[$k]['tenant_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $res[$k]['unit_no'];?></a></td>
+            
+            <td align="center" id="<?php echo 'owner_name_'.$res[$k]['UnitID']?>"><a href="view_tenant_profile.php?scm&id=<?php echo $res[$k]['tenant_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $res[$k]['owner_name'];?></a></td>
+            <?php 
+			if(sizeof($UnitArray) > 0)
+			{
+				$Url = "tenant_ledger_report.php?&uid=".$res[$k]['UnitID']."&tid=". $res[$k]['tenant_id']."&rec=";
+			}
+			else
+			{
+				$Url = "tenant_ledger_report.php?&uid=".$res[$k]['UnitID']."&tid=". $res[$k]['tenant_id']."&rec=";
+			}
+			?>
+            <td align="center"><a href="#" onClick="window.open('<?php echo $Url; ?>','popup','type=fullWindow,fullscreen,scrollbars=yes');" style="color:#0000FF;"><?php echo $this->obj_utility->getDueAmount($res[$k]['unit_id']);;?></a></td>
+            <td align="center">
+            <a href="reverse_charges.php?&uid=<?php echo $res[$k]['unit_id'];?>" style="color:#0000FF;"><b>Reverse charge/Credit</b></a>
+            </td>
+            <?php 				
+			if($bShowEdit == true && $isBill == true && $_SESSION['role']==ROLE_SUPER_ADMIN && $_SESSION['is_year_freeze'] == 0) { ?> 
+           		<!-- <td align="center"><?php echo "<a href='Maintenance_billrec.php?UnitID=".$res[$k]['UnitID']."&PeriodID=".$_REQUEST['period_id']."&BT=".$BillType."&edt' target='_blank'><img src='images/edit.gif' /></a>" ?> </td>-->
+			<?php }
+			else if($bShowEdit == true && $isBill == false && $_SESSION['is_year_freeze'] == 0){
+             if($_SESSION['role'] != ROLE_ADMIN_MEMBER && $IsReadonlyPage == false){?>
+            	<td align="center"><a href="unit.php?uid=<?php echo $res[$k]['UnitID']?>"><img src="images/edit.gif" /></a></td>
+                <?php }
+			
+				?>
+                <td align="center">
+            <div onClick="viewMemberStatus('<?php echo $res[$k]['UnitID'];?>');" style="color:#0000FF;cursor: pointer;"><img src='images/view.jpg' border='0' alt='View' style='cursor:pointer;' width="18" height="15" /></div>
+            </td>
+            <?php }
+			if($bShowViewLink == true) 
+			{ ?> 
+            	<script>//unitArray.push(<?php //echo $res[$k]['unit_id']; ?>)</script>
+             <td align="center"><?php echo "<A href='Maintenance_billrec.php?UnitID=".$res[$k]['UnitID']."&PeriodID=".$_REQUEST['period_id']."&BT=".$BillType."' target='_blank'>View</A>" ?> </td>
+            <?php 
+			
+			if($_SESSION['role'] == ROLE_SUPER_ADMIN && $isBill == true && $_SESSION['is_year_freeze'] == 0)
+            {
+				//echo $_SESSION['login_id'];?>
+             <td align="center" style="width:1%;"><a onClick='billDelete("<?php echo $res[$k]['UnitID']?>","<?php echo $_REQUEST['period_id']?>","<?php echo $_SESSION['login_id']?>");'><img src='images/del.gif' border='0' alt='Delete' style='cursor:pointer;'/></a></td>
+          <?php } ?>
+             <td align="center" width="1%"><iframe src="<?php echo 'pdfbill.php?pdffile=maintenance_bills/' . $res[$k]['society_code'] . '/' . $sqlResult[0]['type'].''.$RetrunVal.'/bill-' . $res[$k]['society_code'] . '-' . $UnitNo . '-' . $sqlResult[0]['type'].''.$RetrunVal. '-'.$BillType.'.pdf'; ?>" name="pdfexport_<?php echo $res[$k]['UnitID']; ?>" id="pdfexport_<?php //echo $res[$k]['unit_id']; ?>" style="border:0px solid #0F0;width:130px;height:50px;"></iframe></td>
+            <!--<td align="center"><div id="status_<?php //echo $res[$k]['unit_id']; ?>" style="color:#0033FF; font-weight:bold;"></div></td>-->
+             
+             <!--<td align="center"><?php //echo "<a href='Maintenance_bill_edit.php?UnitID=".$res[$k]['unit_id']."&PeriodID=".$_REQUEST['period_id']."' target='_blank'>Edit</a>" ?> </td>--><?php }?>
+			
+            <?php if(isset($_SESSION['admin'])){?><td align="center"><?php echo $res[$k]['rand_no'];?></td><?php } ?>
+            
+            <?php if(isset($_GET['ws'])){?>
+            <td align="center">
+            <a href="javascript:void(0);" onclick="getunit('edit-<?php echo $res[$k]['UnitID']?>')"><img src="images/edit.gif" /></a>
+            </td>
+            
+            <td align="center">
+            <?php if($this->chk_delete_perm_admin()==1){?>
+            <a href="javascript:void(0);" onclick="getunit('delete-<?php echo $res[$k]['UnitID']?>');"><img src="images/del.gif" /></a>
             <?php }else{?>
             <a href="del_control_admin.php?prm" target="_blank" style="text-decoration:none;"><font color=#FF0000 style='font-size:10px;'><b>Not Allowed</b></font></a>
             <?php }?>
@@ -1565,6 +1780,273 @@ class unit
 				//echo "in if1";
 				$sqlApprovalDetails2 = "Select * from approval_details where referenceId = '".$Tenant_Id."' and module_id = '".TENANT_SOURCE_TABLE_ID."';";
 				$approvalDetails_res = $this->m_dbConn->select($sqlApprovalDetails2);
+				if($approvalDetails_res[0]['verifiedStatus'] == 'Y')
+				{
+					//echo "in if2";
+					
+					//var_dump($approvalDetails_res);
+					
+					if($approvalDetails_res[0]['firstLevelApprovalStatus'] == "Y")
+					{
+						$data[$iTenant]['Approval (1st Level)'] = "Yes";
+						if($approvalDetails_res[0]['secondLevelApprovalStatus'] == "Y")
+						{
+							$data[$iTenant]['Approval (2nd Level)'] = "Yes";
+						}
+						else
+						{
+							if($approvalStatus)
+							{
+								$data[$iTenant]['Approval (2nd Level)'] = "No<br><a href='tenant.php?mem_id=".$data[$iTenant]['member_id']."&tik_id=".time()."&edit=".$data[$iTenant]['tenant_id']."&action=approve'><span style='color:red;font-weight: bold;'>Click Here To Approve</span></a>";
+							}
+							else
+							{	
+								$data[$iTenant]['Approval (2nd Level)'] = "No";
+							}
+						}
+					}
+					else
+					{
+						if($approvalStatus)
+						{
+							$data[$iTenant]['Approval (1st Level)'] = "No<br><a href='tenant.php?mem_id=".$data[$iTenant]['member_id']."&tik_id=".time()."&edit=".$data[$iTenant]['tenant_id']."&action=approve'><span style='color:red;font-weight: bold;'>Click Here To Approve</span></a>";
+							$data[$iTenant]['Approval (2nd Level)'] = "No";
+						}
+						else
+						{
+							$data[$iTenant]['Approval (1st Level)'] = "No<br><a href='tenant.php?mem_id=".$data[$iTenant]['member_id']."&tik_id=".time()."&edit=".$data[$iTenant]['tenant_id']."&action=approve'><span style='color:red;font-weight: bold;'>Click Here To Approve</span></a>";
+							$data[$iTenant]['Approval (2nd Level)'] = "No";
+						}
+					}
+				}
+				else
+				{
+					$data[$iTenant]['Approval (1st Level)'] = "No";
+					$data[$iTenant]['Approval (2nd Level)'] = "No";
+				}
+			}
+			unset($data[$iTenant]['tenant_id']);
+			unset($data[$iTenant]['member_id']);
+			unset($data[$iTenant]['ApprovalLevel']);
+			unset($data[$iTenant]['Verified2']);
+			
+			if($_REQUEST['TenantList'] == 4)
+			{
+				unset($data[$iTenant]['member_id']);
+				
+			}
+		}
+		
+		return $data;
+	}
+	
+	public function fetchTenantDetails_res($TenantList)
+	{
+		$todayDate= date("Y-m-d");
+		//echo $todayDate;
+		if($TenantList== 0)
+		{
+			$sql="select  t.`tenant_id`, w.`wing` as Wing, u.`unit_no` as Unit,CONCAT(t.`tenant_name`,'',t.`tenant_MName`,'',t.`tenant_LName`) as `Lessee Name` ,t.members as 'Lessee Occupying in the Flat', t.`start_date` as 'Start Date' ,t.`end_date` as 'End Date',d.`Document` as 'Lease Document' ,t.`active` as Verified, mm.`member_id`, t.`ApprovalLevel` from `member_main` as mm,`tenant_module` as t JOIN `unit` as u on t.unit_id=u.unit_id join wing as w on u.wing_id= w.wing_id left join documents as d on t.doc_id = d.doc_id and d.`source_table` = '1'  where t.status='Y' and mm.`unit` = u.`unit_id` and mm.`ownership_status` = 1 order by u.sort_order asc, t.end_date desc";
+			/*$sql="select  t.`tenant_id`, w.`wing` as Wing, u.`unit_no` as Unit,CONCAT(t.`tenant_name`,'',t.`tenant_MName`,'',t.`tenant_LName`) as `Lessee Name` ,t.members as 'Lessee Occupying in the Flat', t.`start_date` as 'Start Date' ,t.`end_date` as 'End Date',d.`Document` as 'Lease Document' ,t.`active` as Verified, mm.`member_id`, ad.`verifiedById`, ad.`firstApprovalById`, ad.`secondApprovalById`, ad.`verifiedByDesignation`, ad.`firstApprovalByDesignation`, ad.`SecondApprovalByDesignation`,ad.`verifiedStatus`,ad.`firstLevelApprovalStatus`, ad.`secondLevelApprovalStatus` from `approval_details` as ad,`member_main` as mm,`tenant_module` as t JOIN `unit` as u on t.unit_id=u.unit_id join wing as w on u.wing_id= w.wing_id left join documents as d on t.doc_id=d.doc_id  where t.status='Y' and mm.`unit` = u.`unit_id` and ad.`referenceId` = t.`tenant_id` and ad.`module_id` = '".TENANT_SOURCE_TABLE_ID."' order by u.sort_order asc, t.end_date desc";*/
+
+		}
+		else if($TenantList==1)
+		{
+			$sql="select  t.`tenant_id`, w.`wing` as Wing, u.`unit_no` as Unit, CONCAT(t.`tenant_name`,'',t.`tenant_MName`,'',t.`tenant_LName`) as `Lessee Name`,t.members as 'Lessee Occupying in the Flat', t.`start_date` as 'Start Date' ,t.`end_date` as 'End Date',d.`Document` as 'Lease Document' ,t.`active` as Verified, mm.`member_id`, t.`ApprovalLevel` from `member_main` as mm,`tenant_module` as t JOIN `unit` as u on t.unit_id=u.unit_id join wing as w on u.wing_id= w.wing_id left join documents as d on t.doc_id=d.doc_id and d.`source_table` = '1' where t.status='Y' and  t.end_date >= CURDATE() and mm.`unit` = u.`unit_id` and mm.`ownership_status` = 1 order by u.sort_order asc,  t.end_date desc ";
+				
+		}
+		else if($TenantList==2)
+		{
+			$sql="select  t.`tenant_id`, w.`wing` as Wing, u.`unit_no` as Unit, CONCAT(t.`tenant_name`,' ',t.`tenant_MName`,' ',t.`tenant_LName`) as `Lessee Name` ,t.members as 'Lessee Occupying in the Flat', t.`start_date` as 'Start Date' ,t.`end_date` as 'End Date',d.`Document` as 'Lease Document' ,t.`active` as Verified , mm.`member_id`,  t.`ApprovalLevel` from `member_main` as mm,`tenant_module` as t JOIN `unit` as u on t.unit_id=u.unit_id join wing as w on u.wing_id= w.wing_id left join documents as d on t.doc_id=d.doc_id and d.`source_table` = '1' where t.status='Y' and  t.end_date < CURDATE() and mm.`unit` = u.`unit_id` and mm.`ownership_status` = 1 order by u.sort_order asc,  t.end_date desc ";
+		}
+		else if($TenantList==3)
+		{
+			$sql="select t.`tenant_id`, w.`wing` as Wing, u.`unit_no` as Unit, CONCAT(t.`tenant_name`,' ',t.`tenant_MName`,' ',t.`tenant_LName`) as `Lessee Name` ,t.members as 'Lessee Occupying in the Flat', t.`start_date` as 'Start Date' ,t.`end_date` as 'End Date',d.`Document` as 'Lease Document' ,t.`active` as Verified, mm.`member_id`, t.`ApprovalLevel` from `member_main` as mm,`tenant_module` as t JOIN `unit` as u on t.unit_id=u.unit_id join wing as w on u.wing_id= w.wing_id left join documents as d on t.doc_id=d.doc_id and d.`source_table` = '1' where t.status='Y' and t.end_date >= DATE(now()) and t.end_date <= DATE_ADD(DATE(now()), INTERVAL 3 Month) and mm.`unit` = u.`unit_id` and mm.`ownership_status` = 1 order by u.sort_order asc, t.end_date desc";
+		}
+		else if($TenantList==4)
+		{
+			$sql="select t.`tenant_id`, w.`wing` as Wing, u.`unit_no` as Unit, CONCAT(t.`tenant_name`,' ',t.`tenant_MName`,' ',t.`tenant_LName`) as `Lessee Name` ,t.members as 'Lessee Occupying in the Flat', t.`start_date` as 'Start Date' ,t.`end_date` as 'End Date',d.`Document` as 'Lease Document' ,t.`active` as Verified2,mm.member_id, mm.`member_id`, t.`ApprovalLevel` from `tenant_module` as t JOIN `unit` as u on t.unit_id=u.unit_id join wing as w on u.wing_id= w.wing_id left join documents as d on t.doc_id=d.doc_id join `member_main` as mm on mm.unit=u.unit_id where t.status='Y' and mm.`ownership_status` = 1 and t.end_date >= '".$todayDate."' order by u.sort_order asc, t.end_date desc";
+		}
+		else if($TenantList==5)
+		{
+			$sql="select  t.`tenant_id`, w.`wing` as Wing, u.`unit_no` as Unit, CONCAT(t.`tenant_name`,' ',t.`tenant_MName`,' ',t.`tenant_LName`) as `Lessee Name` ,t.members as 'Lessee Occupying in the Flat', t.`start_date` as 'Start Date' ,t.`end_date` as 'End Date',d.`Document` as 'Lease Document' ,t.`active` as Verified , mm.`member_id`,  t.`ApprovalLevel` from `member_main` as mm,`tenant_module` as t JOIN `unit` as u on t.unit_id=u.unit_id join wing as w on u.wing_id= w.wing_id left join documents as d on t.doc_id=d.doc_id and d.`source_table` = '1' where t.status='Y' and  t.end_date < CURDATE() and mm.unit=u.unit_id and t.`unit_id` NOT IN (select  t.`unit_id` from `member_main` as mm,`tenant_module` as t JOIN `unit` as u on t.unit_id=u.unit_id join wing as w on u.wing_id= w.wing_id left join documents as d on t.doc_id=d.doc_id and d.`source_table` = '1' where t.status='Y' and  t.end_date >= CURDATE() and mm.`unit` = u.`unit_id` and mm.`ownership_status` = 1 order by u.sort_order asc,  t.end_date desc ) and mm.`ownership_status` = 1 order by u.sort_order asc,  t.end_date desc ";
+			//$sql="select  t.`tenant_id`, w.`wing` as Wing, u.`unit_no` as Unit, CONCAT(t.`tenant_name`,' ',t.`tenant_MName`,' ',t.`tenant_LName`) as `Lessee Name` ,t.members as 'Lessee Occupying in the Flat', t.`start_date` as 'Start Date' ,t.`end_date` as 'End Date',d.`Document` as 'Lease Document' ,t.`active` as Verified , mm.`member_id`,  t.`ApprovalLevel` from `member_main` as mm,`tenant_module` as t JOIN `unit` as u on t.unit_id=u.unit_id join wing as w on u.wing_id= w.wing_id left join documents as d on t.doc_id=d.doc_id and d.`source_table` = '1' where t.status='Y' and  t.end_date < CURDATE() and mm.`unit` = u.`unit_id` and mm.`ownership_status` = 1  order by u.sort_order asc,  t.end_date desc ";
+		}
+		//echo $sql;
+		$verificationStatus = $this->checkVerificationAccess();
+		//var_dump($verificationStatus);
+		$approvalStatus = $this->checkApprovalAccess();
+		//var_dump($approvalStatus);
+		if($_SESSION['res_flag'] == 1){
+			$data = $this->landLordDB->select($sql);
+		}else{
+			$data = $this->m_dbConn->select($sql);
+		}
+		
+		/*if($_SESSION['society_id'] == 59)
+		{
+			$this->debug_trace = 1;
+		}
+		
+		if($this->debug_trace)
+		{
+			echo "<pre>";
+			print_r($data);
+			echo "</pre>";
+		}
+		*/
+		
+		
+		for($iTenant = 0; $iTenant < sizeof($data); $iTenant++)
+		{
+			$data[$iTenant]['Lessee Name'] = "<a href='tenant.php?mem_id=".$data[$iTenant]['member_id']."&tik_id=".time()."&view=".$data[$iTenant]['tenant_id']."'><span>".$data[$iTenant]['Lessee Name']."</span></a>";
+			$data[$iTenant]['Active']= ($this->obj_utility->getDateDiff($data[$iTenant]["End Date"], date("Y-m-d")	) >= 0) ? 'Yes' : "No";	
+			//$data[$iTenant]['Date Of  Birth']= getDisplayFormatDate($data[$iTenant]['Date Of  Birth']);
+			$data[$iTenant]['Start Date']= getDisplayFormatDate($data[$iTenant]['Start Date']);
+			$data[$iTenant]['End Date']= getDisplayFormatDate($data[$iTenant]['End Date']);
+			$data[$iTenant]['Lease Document']= "<a href='https://way2society.com/Uploaded_Documents/".$data[$iTenant]['Lease Document']. "'download><img src='images/download1.ico'  width='20'></a>";
+			if($this->debug_trace)
+			{
+				echo "<pre>";
+				print_r($data[$iTenant]['Verified2']);
+				echo "</pre>";
+			}
+			
+			
+			if($data[$iTenant]['Verified2'] == "0")//Not Verified
+	   		{
+		   		if(getDBFormatDate($data[$iTenant]['End Date']) >= date("Y-m-d") && $_REQUEST['TenantList'] == 4 && $verificationStatus)
+		 		{
+		   			$data[$iTenant]['Verified']="NO <br><a href='tenant.php?mem_id=".$data[$iTenant]['member_id']."&tik_id=".time()."&edit=".$data[$iTenant]['tenant_id']."&action=verify'><span style='color:red;font-weight: bold;'>Click Here To Verify</span></a>";
+		   		}
+		   		else
+		   		{
+			 			$data[$iTenant]['Verified']="No"; 
+		   		}
+			} 
+			else //	$data[$iTenant]['Verified'] == "1" //Verified
+			{
+				$data[$iTenant]['Verified']='Yes';
+			}
+			$Tenant_Id=$data[$iTenant]['tenant_id'];
+			if($Tenant_Id<>'')
+			{
+				$sqldata="select `tenant_id`,`mem_name` as 'Additional Member',`relation` as Relation,`mem_dob`,`contact_no`,`email`  from `tenant_member` where `tenant_id`='".$Tenant_Id."'";		
+				if($_SESSION['res_flag'] == 1){
+					$res1=$this->landLordDB->select($sqldata);
+				}else{
+					$res1=$this->m_dbConn->select($sqldata);
+				}				
+				
+				
+				$data[$iTenant]['Lessee Occupying in the Flat'] = '<table table-bordered table-hover table-striped">';
+				for($i=0;$i<sizeof($res1);$i++)
+				{
+					$res1[$i]['mem_dob']=getDisplayFormatDate($res1[$i]['mem_dob']);		
+			 		$data[$iTenant]['Lessee Occupying in the Flat'] .= '<tr align="left"><td>' . $res1[$i]['Additional Member'] . '</td><td>(' . $res1[$i]['Relation'] . ')</td><td>' .  $res1[$i]['mem_dob']. '</td><td>&nbsp;&nbsp;&nbsp;' .  $res1[$i]['contact_no']. '</td></tr>';
+				}
+				$data[$iTenant]['Lessee Occupying in the Flat'] .= '</table>';
+				
+				$sqldata1="select * from `documents` where `refID`='".$Tenant_Id."' and `source_table` = '1' and status = 'N'";	
+				if($_SESSION['res_flag'] == 1){
+					$res2=$this->landLordDB->select($sqldata1);
+				}else{
+					$res2=$this->m_dbConn->select($sqldata1);
+				}					
+				
+				$data[$iTenant]['Lease Document'] = '<table table-bordered table-hover table-striped">';
+				for($j=0;$j<sizeof($res2);$j++)
+				{
+					$doc_version=$res2[$j]['doc_version'];
+					$URL = "";
+	                $gdrive_id = $res2[$j]['attachment_gdrive_id'];
+	                if($doc_version == "1")
+	                {
+	                	$URL = "Uploaded_Documents/". $res2[$j]["Document"];
+	                }
+	                else if($doc_version == "2")
+	                {
+	                    if($gdrive_id == "" || $gdrive_id == "-")
+	                    {
+	                         $URL = "Uploaded_Documents/". $res2[$j]["Document"];
+	                    }
+	                    else
+	                    {
+	                        $URL = "https://drive.google.com/file/d/". $gdrive_id."/view";
+	                    }
+	                }
+					$data[$iTenant]['Lease Document'] .= '<tr align="left"><td ><a href="'.$URL.'" target="_blank">' . $res2[$j]['Name'] . '</td></tr>';
+				}
+				$data[$iTenant]['Lease Document'] .= '</table>';
+				
+			}
+			//var_dump($data);
+			$ApprovalLevel = $data[$iTenant]['ApprovalLevel'];
+			//echo "ApprovalLevel : ".$ApprovalLevel;
+			if($ApprovalLevel == "0")
+			{
+				
+				if($data[$iTenant]['Verified2'] == '1')//Verified
+				{
+					$data[$iTenant]['Approval (1st Level)'] = "Yes";
+					$data[$iTenant]['Approval (2nd Level)'] = "Yes";
+				}
+				else//Not Verified
+				{
+					$data[$iTenant]['Approval (1st Level)'] = "No";
+					$data[$iTenant]['Approval (2nd Level)'] = "No";
+				}
+			}
+			if($ApprovalLevel == "1")
+			{//
+				//echo "in if";
+				$sqlApprovalDetails = "Select * from approval_details where referenceId = '".$Tenant_Id."' and module_id = '".TENANT_SOURCE_TABLE_ID."';";
+				if($_SESSION['res_flag'] == 1){
+					$approvalDetails_res = $this->landLordDB->select($sqlApprovalDetails);
+				}else{
+					$approvalDetails_res = $this->m_dbConn->select($sqlApprovalDetails);
+				}
+					
+				//var_dump ($approvalDetails_res);
+				if($data[$iTenant]['Verified2'] == "1" )//Verified
+				{
+					//echo "in if";
+					if($approvalDetails_res[0]['firstLevelApprovalStatus'] == "Y")
+					{
+						$data[$iTenant]['Approval (1st Level)'] = "Yes";
+						$data[$iTenant]['Approval (2nd Level)'] = "Yes";
+					}
+					else//Not Verified
+					{
+						//echo "in else";
+						if($approvalStatus)
+						{
+							//echo "in if";
+							$data[$iTenant]['Approval (1st Level)'] = "No<br><a href='tenant.php?mem_id=".$data[$iTenant]['member_id']."&tik_id=".time()."&edit=".$data[$iTenant]['tenant_id']."&action=approve'><span style='color:red;font-weight: bold;'>Click Here To Approve</span></a>";
+							$data[$iTenant]['Approval (2nd Level)'] = "No";
+						}
+						else
+						{
+							$data[$iTenant]['Approval (1st Level)'] = "No";
+							$data[$iTenant]['Approval (2nd Level)'] = "No";
+						}
+					}
+				}
+				else
+				{
+					$data[$iTenant]['Approval (1st Level)'] = "No";
+					$data[$iTenant]['Approval (2nd Level)'] = "No";
+				}
+			}
+			if($ApprovalLevel == "2")
+			{
+				//echo "in if1";
+				$sqlApprovalDetails2 = "Select * from approval_details where referenceId = '".$Tenant_Id."' and module_id = '".TENANT_SOURCE_TABLE_ID."';";
+				if($_SESSION['res_flag'] == 1){
+					$approvalDetails_res = $this->landLordDB->select($sqlApprovalDetails2);
+				}else{
+					$approvalDetails_res = $this->m_dbConn->select($sqlApprovalDetails2);
+				}
 				if($approvalDetails_res[0]['verifiedStatus'] == 'Y')
 				{
 					//echo "in if2";

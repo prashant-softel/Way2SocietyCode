@@ -1,7 +1,8 @@
 var sMode = '';
 var bSubmitForm = true;
 var currentLocation = window.location.href;
-
+var res_flag =localStorage.getItem("res_flag");
+var rental_flag =localStorage.getItem("rental_flag");
 function get_wing(society_id)
 {
 	if(society_id == 0)
@@ -83,10 +84,10 @@ function get_prevperiod(period_id = 0)
 		{
 			var main_data = response.split('@@@');
 			var data = JSON.parse("["+main_data[1]+"]")[0];
-			console.log(data);
-			console.log(data[1]['period']);
+			//console.log(data);
+			//console.log(data[1]['period']);
 			//$('#prevperiod_id').html(data[1]['period']); // fetched data from function getpreviusid  
-			$('#year_id1').html(data[1]['period'] +" - " +data[1]['year']);
+			//$('#year_id1').html(data[1]['period'] +" - " +data[1]['year']);
 		}
          // calling ajax function to show data in span 
 
@@ -261,6 +262,7 @@ function dateFetched()
 
 function ExportPDF(periodID)
 {
+	console.trace(unitArray);
 	localStorage.setItem("genpdfcnt", 0);
 	//Display all records while PDF export since the PDF are exported using iframe.
 	var pdfCnt = 0;
@@ -284,9 +286,14 @@ function ExportPDF(periodID)
 		{
 			IsSupplemenataryBill = 1;
 		}
-		
-		var downLoadLink = "Maintenance_bill.php?UnitID=" + unitid + "&PeriodID=" + periodID + "&BT="+IsSupplemenataryBill +"&gen=1";
-		
+		if(res_flag==1 || rental_flag==1)
+		{
+			var downLoadLink = "Maintenance_billrec.php?UnitID=" + unitid + "&PeriodID=" + periodID + "&BT="+IsSupplemenataryBill +"&gen=1";
+		}
+		else
+		{
+			var downLoadLink = "Maintenance_bill.php?UnitID=" + unitid + "&PeriodID=" + periodID + "&BT="+IsSupplemenataryBill +"&gen=1";
+		}
 		var sTarget = "pdfexport_" + unitArray[i];
 		var sStatus = "status_" + unitArray[i];
 		//console.log("LInk ",downLoadLink);
@@ -792,6 +799,12 @@ function UpdateGSTNoThresholdFlag()
 function generatedpdfcnt(totalCnt)
 {
 	var x = localStorage.getItem("genpdfcnt");
-	document.getElementById('GenPDFCnt').innerHTML='<span style="font-size: 12px;font-weight: 600;color: blue;"> PDF generated for '+x+' out of &nbsp;' +totalCnt+' units  </spna>';
+	if(rental_flag == 1 || res_flag ==1)
+	{
+	}
+	esle
+	{
+		document.getElementById('GenPDFCnt').innerHTML='<span style="font-size: 12px;font-weight: 600;color: blue;"> PDF generated for '+x+' out of &nbsp;' +totalCnt+' units  </spna>';
+	}
 }
 

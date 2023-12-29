@@ -287,7 +287,7 @@ class member_import
 									$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"W");
 								}
 								
-								echo $get_unit_id="select `unit_id`,`unit_no` from `unit` where `unit_no` = '".$unit_no."'  and `society_id` = '" . $society_id . "' and `wing_id` = '" . $wing_id . "'";
+								$get_unit_id="select `unit_id`,`unit_no` from `unit` where `unit_no` = '".$unit_no."'  and `society_id` = '" . $society_id . "' and `wing_id` = '" . $wing_id . "'";
 								$data4=$this->m_dbConn->select($get_unit_id);
 								$unit=$data4[0]['unit_id'];
 								
@@ -962,7 +962,7 @@ class member_import
 					{
 					   // FlatConfiguration to be Updated";
 				
-						    $sql2 = "Update `unit` set `flat_configuration`='".$flat_configuration."' Where `unit_id`='".$unit."'";
+						   echo $sql2 = "Update `unit` set `flat_configuration`='".$flat_configuration."' Where `unit_id`='".$unit."'";
 							$this->m_dbConn->update($sql2);
 						
 						    $m_TraceDebugInfo.= "Updated flat_configuration where Flat No: <" .$unit_no. "><br>";
@@ -1434,7 +1434,7 @@ class member_import
 					{
 					   // FlatConfiguration to be Updated";
 				
-						 echo   $sql2 = "Update `unit` set `Location`='".$location."' Where `unit_id`='".$unit."'";
+						   $sql2 = "Update `unit` set `Location`='".$location."' Where `unit_id`='".$unit."'";
 							$this->m_dbConn->update($sql2);
 						
 						    $m_TraceDebugInfo.= "Updated Location where Flat No: <" .$unit_no. "><br>";
@@ -1458,7 +1458,7 @@ class member_import
 				
 						    $sql2 = "Update `unit` set `property_type`='".$Propertytype."' Where `unit_id`='".$unit."'";
 							$this->m_dbConn->update($sql2);
-						
+						   echo "location".$Propertytype ;
 						    $m_TraceDebugInfo.= "Updated property_type where Flat No: <" .$unit_no. "><br>";
 					
 					}
@@ -1480,7 +1480,7 @@ class member_import
 				
 						    $sql2 = "Update `unit` set `Plot_No`='".$plotno."' Where `unit_id`='".$unit."'";
 							$this->m_dbConn->update($sql2);
-						
+						   
 						    $m_TraceDebugInfo.= "Updated plot_no where Flat No: <" .$unit_no. "><br>";
 					
 					}

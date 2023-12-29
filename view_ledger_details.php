@@ -11,14 +11,14 @@ include_once("classes/FixedDeposit.class.php");
 <?php
 include_once("classes/view_ledger_details.class.php");
 $m_dbConnRoot = new dbop(true);
+$m_landLordDB = new dbop();
 $obj_ledger_details = new view_ledger_details($m_dbConn);
-$m_objUtility = new utility($m_dbConn, $m_dbConnRoot);
+$m_objUtility = new utility($m_dbConn, $m_dbConnRoot,$m_landLordDB);
 $sHeader = $m_objUtility->getSocietyDetails();
-
 $obj_FixedDeposit = new FixedDeposit($m_dbConn);
 $fdAccountArray = $obj_FixedDeposit->FetchFdCategories();
 $bIsFdCategory = false;
-$showLogAllowedTable = array_keys($logModulesArr); // logModulesArr set in dbconst.class.php
+$showLogAllowedTable = array_keys($logModulesArr);
 $ledgerName = $m_objUtility->getLedgerName($_REQUEST['lid']);
 $loginDetails = $m_objUtility->getSocietyAllLoginDetails(false,false, true);
 // Lock buttons freez year 
@@ -31,7 +31,6 @@ else
 {
 	$btnDisplay = "none";
 }
-
 $societyCreationDate = $m_objUtility->getSocietyCreatedOpeningDate();
 $minDate = getDisplayFormatDate($societyCreationDate);
 $maxDate = getDisplayFormatDate($m_objUtility->getMaxDate());
@@ -41,6 +40,16 @@ $to_date = getDBFormatDate($_SESSION['to_date']);
 if(isset($_POST['from']) && isset($_POST['to']))
 {
 	$from_date = getDBFormatDate($_POST['from']);
+	if($from_date < getDBFormatDate($minDate))
+	{
+		$from_date = getDBFormatDate($minDate);
+		?>
+			<script language="javascript" type="application/javascript">
+			var message = "Date can't be less than <?php echo json_encode($minDate); ?> !!";
+			alert(message);
+			</script>
+		<?php
+	}
 	$to_date = getDBFormatDate($_POST['to']);
 }
 
@@ -59,9 +68,7 @@ else if(isset($_SESSION['from_date']) && isset($_SESSION['to_date']) && isset($_
 	
 }
 
-
 $get_details = $obj_ledger_details->details($_REQUEST["gid"],$_REQUEST['lid'], $from_date, $to_date, true);
-
 if($_REQUEST["gid"] == 1 || $_REQUEST["gid"] == 2)
 {
 	
@@ -706,7 +713,8 @@ $(document).keyup(function(e) {
 });
 
 $(document).ready(function() {
-	
+var gid='<?php echo $_REQUEST['gid']?>'	;
+//alert(gid);
 printMessage = '<?php echo $sHeader?> ';
 printMessage += '<center><font style="font-size:14px;" id="ledger_name" class="PrintClass"><b><?php echo $data[0]['Particular']; if($data[1]['owner_name'] <> ""){echo ' - ' .$data[1]['owner_name'] ;}?></b></font></center>';
  $('#example').dataTable(
@@ -780,7 +788,10 @@ if(localStorage.getItem("client_id") != "" && localStorage.getItem("client_id") 
 								total = parseFloat(parseFloat(val1)+parseFloat(val2)).toFixed(2);
 								return  total;
 							});
-					$(column.footer()).html(format(sum,2));
+							if(gid == 1 || gid == 2)
+							{
+								$(column.footer()).html(format(sum,2));
+							}
 					});
 					
 					}

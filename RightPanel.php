@@ -68,7 +68,7 @@
 						{
 							?>
 							<div class="panel-heading">
-								<A href="servicerequest.php?type=open"><b>Legal Cases</b></A>
+								<A href="servicerequest.php?type=open"><b>Service Requests</b></A>
 							</div>
 							<div class="panel-body">
 								<!--<p>-->
@@ -116,7 +116,7 @@
                                                     <td><span style="float: left;  width: 130px;">
                                                     <!--<span style="color:black;float:right;margin-left: -4px; width:100px;">-->
                                                     <a href="viewrequest.php?rq=<?php echo $requestcount[$i]['request_no'];?>"><?php echo substr($requestcount[$i]["summery"],0,15);			                                                     ?></a></td>
-                                                    <td><!--<span style="color:black;float:right;margin-right: -4px; width:100px;">[&nbsp;<?php //echo $requestcount[$i]['status'];?>&nbsp]					                                                    </span>--></td>
+                                                    <td><span style="color:black;float:right;margin-right: -4px; width:100px;">[&nbsp;<?php echo $requestcount[$i]['status'];?>&nbsp]					                                                    </span></td>
                                                     </tr>
                                                     </table>
                                                     <?php }?>
@@ -173,7 +173,7 @@
 						{
 							?>
 							<div class="panel-heading">
-								<a href="servicerequest.php?type=open"><b>Next Due Date</b></a>
+								<a href="events_view.php"><b>Events</b></a>
 							</div>
 							<div class="panel-body">
 								<p>
@@ -217,7 +217,7 @@
 							//echo "hello";
 							?>
 							<div class="panel-heading">
-								<a href="classified.php"><b>PCD Date</b></a>
+								<a href="classified.php"><b>Classified</b></a>
 							</div>
 							<div class="panel-body">
 								<p>

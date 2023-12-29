@@ -1,9 +1,19 @@
 <?php 
 include_once("../classes/include/dbop.class.php");
-include_once("../classes/servicerequest.class.php");
+include_once("../classes/legalcase.class.php");
 $m_dbConn = new dbop();
-$obj_servicerequest = new servicerequest($m_dbConn);
+$m_dbConnRoot = new dbop(true);
+$m_landLordDB = new dbop(false,false,false,false,true);
+$obj_servicerequest = new legalcase($m_dbConn,$m_dbConnRoot,$m_landLordDB);
+//$m_dbConn = new dbop();
+//$obj_servicerequest = new legalcase($m_dbConn);
 
+if($_REQUEST['method'] == "loadtenantData")
+{
+	
+	$getTenatData = $obj_servicerequest->LoadTenantData($_REQUEST['tenantId']);
+	echo json_encode($getTenatData);
+}
 if($_REQUEST["method"]=="edit")
 {
 	echo $_REQUEST["method"]."@@@";
@@ -12,13 +22,7 @@ if($_REQUEST["method"]=="edit")
 	
 	echo json_encode($select_type);  // Returning result as json object
 	
-	/*foreach($select_type as $k => $v)
-	{
-		foreach($v as $kk => $vv)
-		{
-			echo $vv."^";
-		}
-	}*/
+	
 }
 
 if($_REQUEST["method"]=="delete")

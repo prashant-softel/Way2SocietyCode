@@ -212,7 +212,7 @@ class import
 							
 							$prevPeriod = $this->getPrevPeriod($_SESSION['Period']);
 							
-							$insert_society="insert into society(society_id, society_code,society_name,society_add,bill_cycle,int_rate,int_method,rebate_method,rebate,chq_bounce_charge,bank_penalty_amt,bill_method,M_PeriodID,society_creation_yearid,email) values('" . $_SESSION[$result_society_id] . "', '".$_SESSION[$society_code]."', '$society_name', '$society_add', '".$_SESSION['Cycle']."','".$_SESSION['int_rate']."','".$_SESSION['int_method']."','".$_SESSION['rebate_method']."','".$_SESSION['rebate']."','".$_SESSION['chq_bounce_charge']."','".$_SESSION['chq_bounce_charge']."','".BILL_FORMAT_WITH_RECEIPT."','". $prevPeriod."','".$_SESSION['Year']."','".$society_email."')";
+							$insert_society="insert into society(society_id, society_code,society_name,society_add,bill_cycle,int_rate,int_method,rebate_method,rebate,chq_bounce_charge,bank_penalty_amt,bill_method,M_PeriodID,society_creation_yearid) values('" . $_SESSION[$result_society_id] . "', '".$_SESSION[$society_code]."', '$society_name', '$society_add', '".$_SESSION['Cycle']."','".$_SESSION['int_rate']."','".$_SESSION['int_method']."','".$_SESSION['rebate_method']."','".$_SESSION['rebate']."','".$_SESSION['chq_bounce_charge']."','".$_SESSION['chq_bounce_charge']."','".BILL_FORMAT_WITH_RECEIPT."','". $prevPeriod."','".$_SESSION['Year']."')";
 							$data=$this->m_dbConn->insert($insert_society);
 	
 							

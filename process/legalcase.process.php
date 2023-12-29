@@ -1,14 +1,30 @@
 <?php	
 	include_once("../classes/include/dbop.class.php");
 	include_once("../classes/legalcase.class.php");
-	include_once("../classes/dbconst.class.php");		
+	include_once("../classes/dbconst.class.php");	
+	include_once("../classes/utility.class.php");	
 	$dbConn = new dbop();
-	$obj_servicerequest=new legalcase($dbConn,$dbConnRoot);
-	$actionPage = "";
+	$dbConnRoot = new dbop(true);
+	$landLordDB = new dbop(false,false,false,false,true);
+	$obj_servicerequest=new legalcase($dbConn,$dbConnRoot,$landLordDB);
+	$m_objUtility = new utility($dbConn, $dbConnRoot);
+	//$actionPage = "";
+	
+	if(isset($_POST['selSocID']))
+	{	
+	
+		$DBName = $m_objUtility->getDBName($_POST['selSocID']);		
+		$_SESSION['landLordDB'] = $DBName;
+		$_SESSION['landLordSocID'] = $_POST['selSocID'];
+		if($_SESSION['dbname'] === $_SESSION['landLordDB']){
+			$_SESSION['landLordDB'] = '';
+		}
+		exit;
+	}
 	if(isset($_REQUEST['vr']))
 	{			
 		$validator = $obj_servicerequest->insertComments($_REQUEST['vr'], $_POST['emailID'],$_POST['SREmailIDs']);
-		$actionPage = "../viewlegalcase.php?rq=".$_REQUEST['vr'];
+		$actionPage = "../viewlegalcase.php?rq=".$_REQUEST['vr']."&socid=".$_POST['society_id'];
 	}
 	else
 	{		
@@ -114,48 +130,9 @@
 <input type="hidden" name="mm">
 </form>
 <script>
-	/*var categoryType = "<?php //echo $_POST['category'];?>";
-	var serviceRequestId = "<?php //echo $validator;?>";
-	var role = "<?php //echo $_SESSION['role'];?>";
-	//alert (categoryType);
-	if(categoryType == "")
-	{
-		//alert("in if");
-		document.Goback.submit();
-	}
-	else
-	{
-		if(categoryType == "<?php //echo $_SESSION['RENOVATION_DOC_ID'];?>")
-		{
-			if(role != "<?php //echo ROLE_MEMBER;?>")
-			{
-				window.location.href = "../document_maker.php?View=MEMBER&temp=<?php //echo $_SESSION['RENOVATION_DOC_ID']?>&unitId=<?php //echo $_REQUEST['unit_no'];?>&srDetails=<?php //echo ($serviceRequestDetails);?>"; 
-			}
-			else
-			{
-				window.location.href = "../document_maker.php?View=MEMBER&temp=<?php //echo $_SESSION['RENOVATION_DOC_ID']?>&srDetails=<?php //echo json_encode($serviceRequestDetails);?>";  
-			}
-		}
-		else if(categoryType == "<?php //echo $_SESSION['TENANT_REQUEST_ID'];?>")
-		{
-			window.location.href = "../tenant.php?prf&mem_id=<?php //echo $memberId;?>&srDetails=<?php //echo json_encode($serviceRequestDetails);?>";
-		}
-		else if(categoryType == "<?php //echo $_SESSION['ADDRESS_PROOF_ID'];?>")
-		{
-			if(role != "<?php //echo ROLE_MEMBER;?>")
-			{
-				window.location.href = "../document_maker.php?View=MEMBER&temp=<?php //echo $_SESSION['ADDRESS_PROOF_ID']?>&unitId=<?php //echo $_REQUEST['unit_no'];?>&srDetails=<?php //echo json_encode($serviceRequestDetails)?>";
-			}
-			else
-			{
-				window.location.href = "../document_maker.php?View=MEMBER&temp=<?php //echo $_SESSION['ADDRESS_PROOF_ID']?>&unitId=<?php //echo $_SESSION['unit_id'];?>&srDetails=<?php //echo json_encode($serviceRequestDetails);?>"; 
-			}
-		}
-		else
-		{*/
-			document.Goback.submit();		
-		/*}
-	}*/
+	
+document.Goback.submit();		
+	
 </script>
 </body>
 </html>

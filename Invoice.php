@@ -21,9 +21,7 @@ include_once("classes/changelog.class.php");
 $currentUrl ="";
 $BillType ="2";
 $bTrace = 0;
-// echo "<pre>";
-// print_r($_SESSION);
-// echo "</pre>";
+
 //if($_SESSION['is_year_freeze'] <> 0)
 	//{
 	?>
@@ -37,8 +35,15 @@ if($_SESSION['default_ledger_round_off'] == 0)
 {
 ?>
 <script>
-alert('Please first set Ledger Round Off in default setting');
-window.location.href = "home_s.php";
+<?php
+if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+		alert('Please first set Ledger Round Off in default setting');
+		window.location.href = "home_res.php";
+	 <?php 
+	 }else{ ?>
+	 	alert('Please first set Ledger Round Off in default setting');
+		window.location.href = "home_s.php";
+	<?php } ?>
 </script>
 <?php }
 
@@ -70,10 +75,10 @@ if(isset($_REQUEST['e']) && !isset($_REQUEST['UnitID']))
 	}
 		
 }
-$m_objLog = new changeLog($dbConn, $dbConnRoot);
-$obj_genbill = new genbill($dbConn,$dbConnRoot);
+$m_objLog = new changeLog($dbConn, $dbConnRoot,$m_landLordDB);
+$obj_genbill = new genbill($dbConn,$dbConnRoot,$m_landLordDB);
 $objFetchData = new FetchData($dbConn);
-$m_objUtility = new utility($dbConn,$dbConnRoot);
+$m_objUtility = new utility($dbConn,$dbConnRoot,$m_landLordDB);
 $m_objdbRoot = new  dbop(true);
 
 $societyInfo = $m_objUtility->GetSocietyInformation($_SESSION['society_id']);
@@ -428,6 +433,7 @@ if($sUnitID != "0")
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script type="text/javascript" src="js/BillUpdate_20190409.js"></script>
+<script type="text/javascript" src="js/BillUpdate_20190409.js?23112023"></script>
 <script type="text/javascript" src="ckeditor/ckeditor.js"></script>
 <script>
 
@@ -454,17 +460,33 @@ if($sUnitID != "0")
                         buttonImageOnly: true,
 						changeMonth: true, 
     					changeYear: true,
-						maxDate: maxEndDate,
-						minDate: minStartDate	
+						yearRange : '-0:+4'	
                     }).datepicker("setDate", InvoiceDate)});
 </script>
 <script>
+
+//});
+
+$(document).ready(function() {
+    // On refresh check if there are values selected
+    if (localStorage.selectVal) {
+            // Select the value stored
+       // $('landlord').val( localStorage.selectVal);
+		$("select#landlord option[value="+localStorage.selectVal+"]").attr('selected', true);
+    }
+	 document.getElementById("OutSideServices").checked = true;
+	 document.getElementById('IsOutSider').value = '1';
+	 document.getElementById('Outside').style.display = "table-row";
+	 document.getElementById('Unit').style.display = "none"; 
+	
+});
 	function selectLandlord()
 	{
 		let landlord = document.getElementById('landlord').value;
+		localStorage.setItem('selectVal', landlord );
 		console.log(landlord);
 		$.ajax({
-		url: "process/tenant.process.php",
+		url: "process/rentaltenant.process.php",
 		type:"POST",
 		data: {'selLandlord':landlord},
 		success: function(data)
@@ -569,7 +591,7 @@ var NewRowCounter=0;
           var newRow="<tr><td style='border:1px solid black;border-left:none;text-align:center;font-size:14px;'>"+NewRowCounter+"</td>";
 		  
 		  newRow += "<td colspan=3 style='border:1px solid black;'> <?php if($bApplyServiceTax == 1 && (isset($_REQUEST['add']) || isset($_REQUEST['edt']) || isset($_REQUEST['add_credit']) || isset($_REQUEST['add_debit']))){?>
-		  <select onchange='IsTaxable(NewRowCounter)' name='particular"+NewRowCounter+"' id='particular"+NewRowCounter+"' style='width:30%;'><?php echo $Particular = $obj_genbill->comboboxEx($SELECT_Query);?></select><?php } else {?> <select onchange='tenant_rent(NewRowCounter)' name='particular"+NewRowCounter+"' id='particular"+NewRowCounter+"' style='width:30%;'><?php echo $Particular = $obj_genbill->comboboxEx($SELECT_Query);?></select><?php  }?></td>";
+		  <select onchange='IsTaxable(NewRowCounter)' name='particular"+NewRowCounter+"' id='particular"+NewRowCounter+"' style='width:30%;'><?php echo $Particular = $obj_genbill->comboboxEx($SELECT_Query);?></select><?php } else {?> <select name='particular"+NewRowCounter+"' id='particular"+NewRowCounter+"' style='width:30%;'><?php echo $Particular = $obj_genbill->comboboxEx($SELECT_Query);?></select><?php  }?></td>";
 		  
 			<?php if($bApplyServiceTax == 1 && (isset($_REQUEST['add']) || isset($_REQUEST['edt']) || isset($_REQUEST['add_credit']) || isset($_REQUEST['add_debit'])))
 			{?>
@@ -811,7 +833,7 @@ var billdate="";
 		if(isset($_REQUEST['add']))
 		{?>
 			
-        <INPUT TYPE="button" id="add" onClick="jsBillUpdate(HeaderAndAmount,NewRowCounter)" value="Create Invoice" style="width:200px;height:30px;display: inline-block;font-size: 18px;font-style: normal;color: #fff;background-color: #337ab7;border-color: #2e6da4; border-radius: 4px;
+        <INPUT TYPE="button" class="add-btn" id="add" onclick="jsBillUpdate(HeaderAndAmount,NewRowCounter)" value="Create Invoice" style="width:200px;height:30px;display: inline-block;font-size: 18px;font-style: normal;color: #fff;background-color: #337ab7;border-color: #2e6da4; border-radius: 4px;
     border: 0px;"/><br><br>
 		<?php	}
 		else if(isset($_REQUEST['add_credit']))
@@ -906,11 +928,12 @@ var billdate="";
                     <?php if(isset($_REQUEST['add'])  || isset($_REQUEST['edt']) || isset($_REQUEST['add_credit']) || isset($_REQUEST['add_debit']))
 					{
 						if($_SESSION['res_flag'] == 1){?>
-							<td style="width:13%;">Select LandLord :</td> 
+							<td style="width:13%;">Select Company :</td> 
 							<td style = "width:15%;">  
 								<select id = "landlord" name = "landlord" onChange = "selectLandlord(this.value);" style="width:250px; margin-top:5px;">
-								<?php  echo $combo_state = $obj_genbill->comboboxEx("select category_id, name from landlords ORDER BY name ASC"); ?>   
+								<?php  echo $combo_state = $obj_genbill->comboboxEx1("select category_id, name from landlords ORDER BY name ASC"); ?>   
                         		</select></td>   
+                              <td style="width: 50%;margin-left: 6%;float: left;font-weight: bold;">This invoice would be created in <?php echo $objFetchData->objSocietyDetails->sSocietyName; ?> </td>  
                            
 						<?php } ?>
 					</tr>
@@ -1367,6 +1390,62 @@ var billdate="";
                     <td style="width:20%;border:1px solid black;border-top:none;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">Sub Total <?php echo $bApplyServiceTax ? "(A + B)" : ""; ?></td>
                     <td id="sub_total" style="text-align:right;width:20%;border:1px solid black;border-right:none;border-top:none;font-size: <?php echo $BillFont?>px;"><?php echo number_format($SubTotal,2); ?></td>
                 </tr> 
+				<?php  
+
+				if($bApplyServiceTax == 1 || $SGST > 0)
+                    {?>
+	                <tr>
+                    <?php if(!isset($_REQUEST['NoteType']))
+					{?>
+	                	<td style="width:20%;border:1px solid black;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">SGST <?php //echo $getSocietyInfo['sgst_tax_rate'] ?> on (B<?php echo ($bApplyGSTOnInterest ? " +  C" : "") ?>)</td>
+                    <?php 
+					   }
+					   else
+					   {?>
+					   <td style="width:20%;border:1px solid black;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">SGST @<?php echo $getSocietyInfo['sgst_tax_rate'] ?> on (B<?php echo ($bApplyGSTOnInterest ? " +  C" : "") ?>)</td>
+					   <?php }?> 
+	                    <td id="sub_total" style="text-align:right;width:20%;border:1px solid black;border-right:none;font-size:<?php echo $BillFont?>px;"><?php echo number_format($SGST,2); ?></td>
+	                </tr>
+                    <?php }
+					if($bApplyServiceTax == 1 || $CGST > 0 )
+					{?>
+                   <tr>
+                    <?php if(!isset($_REQUEST['NoteType']))
+					{?>
+	                	<td style="width:20%;border:1px solid black;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">CGST <?php //echo $getSocietyInfo['cgst_tax_rate'] ?> on (B<?php echo ($bApplyGSTOnInterest ? " +  C" : "") ?>)</td>
+                     <?php 
+					 }
+					 else{?>
+                     <td style="width:20%;border:1px solid black;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">CGST @<?php echo $getSocietyInfo['cgst_tax_rate'] ?> on (B<?php echo ($bApplyGSTOnInterest ? " +  C" : "") ?>)</td>
+                     <?php }?>   
+	                    <td id="sub_total" style="text-align:right;width:20%;border:1px solid black;border-right:none;font-size:<?php echo $BillFont?>px;"><?php echo number_format($CGST,2); ?></td>
+	                </tr>
+                    <?php }
+					if($IGST > 0 )
+					{?>
+                   <tr>
+	                	<td style="width:20%;border:1px solid black;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">IGST @ <?php echo $getSocietyInfo['igst_tax_rate'] ?>% on (B<?php echo ($bApplyGSTOnInterest ? " +  C" : "") ?>)</td>
+	                    <td id="sub_total" style="text-align:right;width:20%;border:1px solid black;border-right:none;font-size:<?php echo $BillFont?>px;"><?php echo number_format($IGST,2); ?></td>
+	                </tr>
+                    <?php }
+					if($CESS > 0 )
+					{?>
+                   <tr>
+	                	<td style="width:30%;border:1px solid black;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">CESS @ <?php echo $getSocietyInfo['cess_tax_rate'] ?>% on (B<?php echo ($bApplyGSTOnInterest ? " +  C" : "") ?>)</td>
+	                    <td id="sub_total" style="text-align:right;width:20%;border:0.5px solid black;border-right:none;font-size:<?php echo $BillFont?>px;"><?php echo number_format($CESS,2); ?></td>
+	                </tr>
+                    <?php }
+
+
+					?>
+					<tr>
+	                	<td style="width:30%;border:1px solid black;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">Round-Off value of CGST & SGST</td>
+	                    <td id="roundOffAmt" style="text-align:right;width:20%;border:0.5px solid black;border-right:none;font-size:<?php echo $BillFont?>px;"><?php echo number_format($roundOffAmt,2); ?></td>
+	                </tr>
+					<?php
+				
+		        //}
+		        ?>
                 
                 <tr>
                 	<td style="width:30%;border:0.5px solid black;padding-left:3px;font-size:<?php echo $BillFont?>px;" colspan="2">Total Outstanding Amount</td>
@@ -1588,7 +1667,7 @@ var billdate="";
     <?php  if(isset($_REQUEST['add']))
 		{?>
 			
-        <center><INPUT TYPE="button" id="add" onclick="jsBillUpdate(HeaderAndAmount,NewRowCounter)" value="Create Invoice" style="width:200px;height:30px; margin-top:10px;font-size:18px;font-style: normal;color: #fff;background-color: #337ab7;border-color: #2e6da4; border-radius: 4px; border: 0px" /></center><br>
+        <center><INPUT TYPE="button" class="add-btn" id="add1" onclick="jsBillUpdate(HeaderAndAmount,NewRowCounter)" value="Create Invoice" style="width:200px;height:30px; margin-top:10px;font-size:18px;font-style: normal;color: #fff;background-color: #337ab7;border-color: #2e6da4; border-radius: 4px; border: 0px" /></center><br>
 		<?php	} ?>  
     </Form>
      <div style="margin-left:66px;margin-top:10px;">  

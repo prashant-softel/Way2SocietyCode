@@ -7,7 +7,9 @@
 <?php include_once("includes/head_s.php");
 include_once ("classes/dbconst.class.php"); 
 include_once("classes/bill_receipt_report.class.php");
-$obj_brr = new bill_receipt_report($m_dbConn);
+include_once("classes/initialize.class.php");
+$obj_brr = new bill_receipt_report($m_dbConn,$landLordDB);
+$obj_initialize = new initialize($m_dbConnRoot);
 include_once("classes/wing.class.php");
 //$obj_wing = new wing($m_dbConn);
 
@@ -115,10 +117,33 @@ include_once("classes/wing.class.php");
 		document.getElementById("data").value =sData; 
 		document.getElementById("myForm").submit();
 	}
+
+	$(document).ready(function(){
+	var socID = '<?php echo $_SESSION['landLordSocID']; ?>' ;
+	if(socID) {
+		document.getElementById('mapid').value = socID;
+	}
+//console.log("demo3");
+});
+
+
+function selectDB(){
+		let dbname = document.getElementById('mapid').value;
+		console.log(dbname);
+		$.ajax({
+		url: "process/list_member.process.php",
+		type:"POST",
+		data: {'selSocID':dbname},
+		success: function(data)
+		{
+			location.reload();
+		}
+	});
+	}
+
 	</script>
     <style>
 		input{box-shadow:none;}
-		<!--#report_table{border-collapse:collapse;}-->
 	</style>
 </head>
 
@@ -166,13 +191,31 @@ foreach($_POST as $key => $value)
     <table align='center' style="margin-top: 30px;">
 		<tr height="30"><td colspan="4" align="center"><font color="red" style="size:11px;"><b id="error"><?php //echo $_REQUEST["ShowData"]; ?></b></font></td></tr>	        
         <input type="hidden" name="society_id" id="society_id" value="<?php echo $_SESSION['society_id'];?>">
+		<?php if($_SESSION['res_flag'] == 1){ ?>
+				<tr align="left">
+					<td valign="middle"></td>
+					<td>LandLords</td>
+					<td>&nbsp; : &nbsp;</td>
+					<td>
+					<select id="mapid" name="mapid" style="width:142px;" onChange= "selectDB(this.value);" value="<?php echo $_REQUEST['mapid']; ?>">
+						<?php  echo $mapList = $obj_initialize->combobox("Select societytbl.society_id, concat_ws(' - ',societytbl.society_id, societytbl.society_name) from mapping as maptbl JOIN society as societytbl ON maptbl.society_id = societytbl.society_id JOIN dbname as db ON db.society_id = societytbl.society_id WHERE maptbl.login_id = '" . $_SESSION['login_id'] . "' and societytbl.rental_flag = 1 and societytbl.status = 'Y' and maptbl.status = '2' ORDER BY societytbl.society_name ASC ", $_SESSION['current_mapping']);?>		
+						<input type="hidden" name="mode" value="set" />
+					</select>
+					</td>
+				</tr>
+			<?php } ?>
 		<tr align="left">
         	<td valign="middle"><?php //echo $star;?></td>
 			<td>Wing</td>
             <td>&nbsp; : &nbsp;</td>
 			<td>
                 <select name="wing_id" id="wing_id" style="width:142px;">
-                	<?php echo $combo_wing = $obj_brr->combobox("SELECT `wing_id`,`wing` FROM `wing` WHERE `society_id` = '".$_SESSION['society_id']."'",$_POST['wing_id'],"All"); ?>
+                	<?php 
+					if($_SESSION['res_flag'] == 1){
+						echo $combo_wing = $obj_brr->combobox("SELECT `wing_id`,`wing` FROM `wing` WHERE `society_id` = '".$_SESSION['landLordSocID']."'",$_POST['wing_id'],"All");
+					}else{
+						echo $combo_wing = $obj_brr->combobox("SELECT `wing_id`,`wing` FROM `wing` WHERE `society_id` = '".$_SESSION['society_id']."'",$_POST['wing_id'],"All");
+					}?>
 				</select>
             </td>
 		</tr>
@@ -214,7 +257,15 @@ foreach($_POST as $key => $value)
 				
         <tr>
 			<td colspan="4" align="center">
-	            <input type="submit" name="insert" id="insert" value="Fetch Details" style="width:100px; background-color:#286090; color:#fff" class="btn btn-primary" />
+			<?php if($_SESSION['res_flag'] == 1){  
+			if($_SESSION['landLordDB'] <> ''){?>
+				<input type="submit" name="insert" id="insert" value="Fetch Details" style="width:100px; background-color:#286090; color:#fff" class="btn btn-primary" />
+			<?php }else{ ?>
+				<input type="submit" name="insert" id="insert" disabled value="Fetch Details" style="width:100px; background-color:#286090; color:#fff" class="btn btn-primary" />
+			<?php } 
+			}else{ ?>
+				<input type="submit" name="insert" id="insert" value="Fetch Details" style="width:100px; background-color:#286090; color:#fff" class="btn btn-primary" />
+			<?php } ?>
             </td>
 		</tr>
 </table>
@@ -236,11 +287,19 @@ if($_POST['wing_id'] <> '')
 <?php
 if($_POST['wing_id'] <> '')
 {
-	echo $obj_brr->get_report($_POST['wing_id'],$_POST['year_id'],$period_id,$bill_type); 
+	if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+		echo $obj_brr->get_report_res($_POST['wing_id'],$_POST['year_id'],$period_id,$bill_type); 
+	}else{
+		echo $obj_brr->get_report($_POST['wing_id'],$_POST['year_id'],$period_id,$bill_type); 
+	}
 }
 else if($_REQUEST['Dashboard'] == 1)
 {
-	echo $obj_brr->get_report(0,$_SESSION['default_year'],$_REQUEST['period_id'],0);
+	if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+		echo $obj_brr->get_report_res(0,$_SESSION['default_year'],$_REQUEST['period_id'],0);
+	}else{
+		echo $obj_brr->get_report(0,$_SESSION['default_year'],$_REQUEST['period_id'],0);
+	}
 }
 ?>
 </div>

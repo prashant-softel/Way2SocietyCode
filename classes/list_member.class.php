@@ -17,19 +17,20 @@ class list_member
 	public $obj_utility;
 	public $isLandLordDB;
 
-	function __construct($dbConn, $dbConnRoot, $landLordDB)
+	function __construct($dbConn, $dbConnRoot="", $landLordDB="")
 	{
 		$this->m_dbConn = $dbConn;
 		$this->m_dbConnRoot = $dbConnRoot;
 		$dbopRoot = new dbop(true);
 		$this->landLordDB = $landLordDB;
-		$this->obj_utility = new utility($this->m_dbConn, $dbopRoot);
+		$this->obj_utility = new utility($this->m_dbConn, $this->m_dbConnRoot, $this->landLordDB);
 		$this->display_pg = new display_table($this->m_dbConn);
 		$this->obj_activation = new activation_email($this->m_dbConn, $dbopRoot);
 		//dbop::__construct();
 		if($_SESSION['landLordDB']){
 			$this->isLandLordDB = true;
 		}
+		// var_dump($this->landLordDB);
 	}
 	
 	public function combobox($query)
@@ -103,188 +104,7 @@ class list_member
 			
 			return $res;
 	}
-	public function pgnation()
-	{
-
-		$arUnitsWithAppInstalled = $this->obj_utility->GetListMobileAppUsers();
-		$arAppStatus = array();
-		foreach ($arUnitsWithAppInstalled as $key => $value) 
-		{
-			//print_r($value);
-			$UserUnitID = $value["unit_id"];
-			array_push($arAppStatus, $UserUnitID);
-		}
-		//print_r($arAppStatus);
-		//print_r($arUnitsWithAppInstalled);
-		$society_id = $_SESSION['society_id'];
-		$sql1 = "SELECT * FROM society as s,member_main as mm,unit as u,wing as w where mm.unit=u.unit_id and u.wing_id=w.wing_id and mm.society_id=s.society_id and mm.status='Y' and u.status='Y' and w.status='Y' and mm.ownership_status='1' ";
-
-		//echo $sql1;
-		if(isset($_SESSION['admin']) || isset($_SESSION['sadmin']))
-		{
-			$sql1 .= " and s.society_id = '".$_SESSION['society_id']."'";
-		}
-		
-		if($_REQUEST['society_id']<>"")
-		{
-			$sql1 .= " and s.society_id = '".$_REQUEST['society_id']."'";
-		}
-		if($_REQUEST['wing_id']<>"")
-		{
-			$sql1 .= " and w.wing_id = '".$_REQUEST['wing_id']."'";
-		}
-		
-		if($_REQUEST['unit_no'] <>"")
-		{
-			$sql1 .= " and u.unit_no = '".$_REQUEST['unit_no']."'";
-		}
-		if($_REQUEST['member_name']<>"")
-		{
-			$sql1 .= " and mm.owner_name like '%".addslashes($_REQUEST['member_name'])."%'";
-		}
-		
-		if($_REQUEST['mob_no'] <>"")
-		{
-			$sql1 .= " and mm.mob like '%".addslashes($_REQUEST['mob_no'])."%'";
-		}
-		
-		if($_REQUEST['email_id'] <>"")
-		{
-			$sql1 .= " and mm.email like '%".addslashes($_REQUEST['email_id'])."%'";
-		}
-		
-		
-		$sql1 .= " order by wing,u.sort_order";
-		
-		$result = $this->m_dbConn->select($sql1);
-		
-		
-		
-		for($i=0;$i<sizeof($result);$i++)
-		{
-			//$sql2="Select * from `tenant_module` where unit_id='".$result[$i]['unit_id']."' and active=1";
-			 $sql2="SELECT *,mm.email as 'Tenant_Email',tm.active FROM tenant_member mm,tenant_module tm where curdate() < tm.end_date and mm.tenant_id=tm.tenant_id && tm.unit_id='".$result[$i]['unit_id']."'";
-			$result1 = $this->m_dbConn->select($sql2);
-			//echo "<pre>";
-			//print_r($result1 );
-			$size = sizeof($result1) -1; 
-			//echo "</pre>";
-			//foreach($result as $res)
-			$date = $this->obj_utility->getDateDiff($result1[$i]["end_date"], date("Y-m-d"));
-			{
-				if($date >= 0)
-				{ $result[$i]['Tenant_id']=$result1[$size]['tenant_id'];
-					if($result1[$size]['active'] == 1)
-					{
-					$result[$i]['Tenant_name']=$result1[$size]['tenant_name'];
-					}
-				else if($result1[$size]['tenant_name'] <> '')
-				{
-					if($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN || $_SESSION['role']==ROLE_ACCOUNTANT || $_SESSION['role'] == ROLE_MANAGER || ($_SESSION['role'] == ROLE_ADMIN_MEMBER && $_SESSION['profile'][PROFILE_EDIT_MEMBER] == 1)){	
-				 	
-				 	$result[$i]['Tenant_name']=  $result1[$size]['tenant_name']."<br><a href='tenant.php?mem_id=".$result[$i]['member_id']."&tik_id=".time()."&edit=".$result[$i]['Tenant_id']."'><span style='color:red;font-waight:bold'> Waiting For Approval.</span></a>";
-					}
-					else{
-						$result[$i]['Tenant_name']=  $result1[$size]['tenant_name']."<br><span style='color:red;font-waight:bold'> Waiting For Approval.</span>";
-					}
-                   
-				 //}
-				}
-				}
-			$result[$i]['Tenant_Email']=$result1[$size]['Tenant_Email'];
-			$result[$i]['Tenant_contact']=$result1[$size]['contact_no'];
-			$result[$i]['Tenant_StartDate']=$result1[$size]['start_date'];
-			$result[$i]['Tenant_EndDate']=$result1[$size]['end_date'];
-			}
-			
-			
-			//$sql3="select * from mem_bike_parking where member_id='".$result[$i]['member_id']."' ";
-			$sql3=	"SELECT *, GROUP_CONCAT(bike_reg_no),GROUP_CONCAT(parking_slot),GROUP_CONCAT(bike_model) FROM mem_bike_parking where member_id='".$result[$i]['member_id']."' AND status='Y' GROUP BY member_id";
-			
-			$result2 = $this->m_dbConn->select($sql3);
-			/*echo "<pre>";
-			print_r($result2);
-			echo "</pre>";*/
-			{
-			$result[$i]['Bike_reg']=$result2[0]['GROUP_CONCAT(bike_reg_no)'];
-			$result[$i]['Bike_parking']=$result2[0]['GROUP_CONCAT(parking_slot)'];
-			$result[$i]['Bike_model']=$result2[0]['GROUP_CONCAT(bike_model)'];
-			}
-			
-			$sql4="SELECT *, GROUP_CONCAT(car_reg_no),GROUP_CONCAT(parking_slot),GROUP_CONCAT(car_model) FROM mem_car_parking where member_id='".$result[$i]['member_id']."' AND status='Y' GROUP BY member_id";
-			$result3 = $this->m_dbConn->select($sql4);
-			/*echo "<pre>";
-			print_r($result3);
-			echo "</pre>";*/
-			{
-			$result[$i]['Car_reg']=$result3[0]['GROUP_CONCAT(car_reg_no)'];
-			$result[$i]['Car_parking']=$result3[0]['GROUP_CONCAT(parking_slot)'];
-			$result[$i]['Car_model']=$result3[0]['GROUP_CONCAT(car_model)'];
-			}
-			
-			
-			$sql5="select * from unit where unit_id='".$result[$i]['unit_id']."' ";
-			$result4 = $this->m_dbConn->select($sql5);
-			{
-			if($result4[0]['block_unit'] == 0)
-			{
-
-				$reason='<font color="#FF0000"><b></b></font>';
-				$block= 'NO';
-			}
-			else if($result4[0]['block_unit'] == 1)
-			{	
-				$reason='<font color="#FF0000"><b>'.$result4[0]['block_desc'].'</b></font>';
-				$block= '<font color="#FF0000"><b>YES</b></font>';
-			}
-			$result[$i]['Blocked']=$block;
-			$result[$i]['reason']=$reason;
-			$result[$i]['Intercom_no']=$result4[0]['intercom_no'];
-			$result[$i]['Nominee']=$result4[0]['nominee_name'];
-			$result[$i]['Share_Certificate']=$result4[0]['share_certificate'];	
-			$result[$i]['taxable_no_threshold'] = $result4[0]['taxable_no_threshold'];	
-			$ssppStatus = "";
-			
-			if(in_array($result4[0]['unit_id'],$arAppStatus))
-			{
-				//echo "matched:";
-				//$sAppStatus = '<i class="fa fa-mobile-phone" style="font-size:10px;font-size:1.75vw;color:#6698FF;"></i>';
-				$sAppStatus = '<img  src="images/android.svg" style="height:30px;width:30px"/>';
-     	 	}
-     	 	else
-     	 	{
-     	 		$sAppStatus = "";
-     	 	}
-			
-
-			$result[$i]['AppStatus']=$sAppStatus;
-
-			}
-			
-			$sql6="SELECT *,count(mem_other_family_id) as Member_Count FROM `mem_other_family`where member_id='".$result[$i]['member_id']."' and NOT relation='Self'";
-			$result5 = $this->m_dbConn->select($sql6);
-			{
-			$result[$i]['Additional_Member_Count']=$result5[0]['Member_Count'];	
-			}
-			
-			// Added on get Login Status 20190831 
-			 $RetStatus = $this->obj_activation->CheckIfMappingAlreadyExist($result[$i]['email'],$_SESSION['society_id'], $result[$i]['unit_id']);
-			 if($RetStatus == ACCOUNT_EXIST_ACTIVE)
-				{
-					$mLogin= "Active";
-				}
-				else
-				{
-					$mLogin =  "Inactive";
-				}
-				$result[$i]['LoginStatus']=$mLogin;
-		}
-		//echo "<pre>";
-		//print_r($result);
-		//echo "</pre>";
-		$this->list_member_show($result);
 	
-	}
 	
 	public function SundryDebtorsList(){
 		
@@ -705,23 +525,190 @@ class list_member
 		$data=$this->m_dbConn->select($sql);
 		return $data[0]['society_name'];
 	}
+
+	public function pgnation()
+	{
+		$arUnitsWithAppInstalled = $this->obj_utility->GetListMobileAppUsers();
+		$arAppStatus = array();
+		foreach ($arUnitsWithAppInstalled as $key => $value) 
+		{
+			//print_r($value);
+			$UserUnitID = $value["unit_id"];
+			array_push($arAppStatus, $UserUnitID);
+		}
+		//print_r($arAppStatus);
+		//print_r($arUnitsWithAppInstalled);
+		$society_id = $_SESSION['society_id'];
+		$sql1 = "SELECT * FROM society as s,member_main as mm,unit as u,wing as w where mm.unit=u.unit_id and u.wing_id=w.wing_id and mm.society_id=s.society_id and mm.status='Y' and u.status='Y' and w.status='Y' and mm.ownership_status='1' ";
+
+		//echo $sql1;
+		if(isset($_SESSION['admin']) || isset($_SESSION['sadmin']))
+		{
+			$sql1 .= " and s.society_id = '".$_SESSION['society_id']."'";
+		}
+		
+		if($_REQUEST['society_id']<>"")
+		{
+			$sql1 .= " and s.society_id = '".$_REQUEST['society_id']."'";
+		}
+		if($_REQUEST['wing_id']<>"")
+		{
+			$sql1 .= " and w.wing_id = '".$_REQUEST['wing_id']."'";
+		}
+		
+		if($_REQUEST['unit_no'] <>"")
+		{
+			$sql1 .= " and u.unit_no = '".$_REQUEST['unit_no']."'";
+		}
+		if($_REQUEST['member_name']<>"")
+		{
+			$sql1 .= " and mm.owner_name like '%".addslashes($_REQUEST['member_name'])."%'";
+		}
+		
+		if($_REQUEST['mob_no'] <>"")
+		{
+			$sql1 .= " and mm.mob like '%".addslashes($_REQUEST['mob_no'])."%'";
+		}
+		
+		if($_REQUEST['email_id'] <>"")
+		{
+			$sql1 .= " and mm.email like '%".addslashes($_REQUEST['email_id'])."%'";
+		}
+		$sql1 .= " order by wing,u.sort_order";
+		
+		$result = $this->m_dbConn->select($sql1);		
+		
+		for($i=0;$i<sizeof($result);$i++)
+		{
+			//$sql2="Select * from `tenant_module` where unit_id='".$result[$i]['unit_id']."' and active=1";
+			 $sql2="SELECT *,mm.email as 'Tenant_Email',tm.active FROM tenant_member mm,tenant_module tm where curdate() < tm.end_date and mm.tenant_id=tm.tenant_id && tm.unit_id='".$result[$i]['unit_id']."'";
+			$result1 = $this->m_dbConn->select($sql2);
+			//echo "<pre>";
+			//print_r($result1 );
+			$size = sizeof($result1) -1; 
+			//echo "</pre>";
+			//foreach($result as $res)
+			$date = $this->obj_utility->getDateDiff($result1[$i]["end_date"], date("Y-m-d"));
+			{
+				if($date >= 0)
+				{ $result[$i]['Tenant_id']=$result1[$size]['tenant_id'];
+					if($result1[$size]['active'] == 1)
+					{
+					$result[$i]['Tenant_name']=$result1[$size]['tenant_name'];
+					}
+				else if($result1[$size]['tenant_name'] <> '')
+				{
+					if($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN || $_SESSION['role']==ROLE_ACCOUNTANT || $_SESSION['role'] == ROLE_MANAGER || ($_SESSION['role'] == ROLE_ADMIN_MEMBER && $_SESSION['profile'][PROFILE_EDIT_MEMBER] == 1)){	
+				 	
+				 	$result[$i]['Tenant_name']=  $result1[$size]['tenant_name']."<br><a href='tenant.php?mem_id=".$result[$i]['member_id']."&tik_id=".time()."&edit=".$result[$i]['Tenant_id']."'><span style='color:red;font-waight:bold'> Waiting For Approval.</span></a>";
+					}
+					else{
+						$result[$i]['Tenant_name']=  $result1[$size]['tenant_name']."<br><span style='color:red;font-waight:bold'> Waiting For Approval.</span>";
+					}
+                   
+				 //}
+				}
+				}
+			$result[$i]['Tenant_Email']=$result1[$size]['Tenant_Email'];
+			$result[$i]['Tenant_contact']=$result1[$size]['contact_no'];
+			$result[$i]['Tenant_StartDate']=$result1[$size]['start_date'];
+			$result[$i]['Tenant_EndDate']=$result1[$size]['end_date'];
+			}
+			
+			
+			//$sql3="select * from mem_bike_parking where member_id='".$result[$i]['member_id']."' ";
+			$sql3=	"SELECT *, GROUP_CONCAT(bike_reg_no),GROUP_CONCAT(parking_slot),GROUP_CONCAT(bike_model) FROM mem_bike_parking where member_id='".$result[$i]['member_id']."' AND status='Y' GROUP BY member_id";
+			
+			$result2 = $this->m_dbConn->select($sql3);
+			/*echo "<pre>";
+			print_r($result2);
+			echo "</pre>";*/
+			{
+			$result[$i]['Bike_reg']=$result2[0]['GROUP_CONCAT(bike_reg_no)'];
+			$result[$i]['Bike_parking']=$result2[0]['GROUP_CONCAT(parking_slot)'];
+			$result[$i]['Bike_model']=$result2[0]['GROUP_CONCAT(bike_model)'];
+			}
+			
+			$sql4="SELECT *, GROUP_CONCAT(car_reg_no),GROUP_CONCAT(parking_slot),GROUP_CONCAT(car_model) FROM mem_car_parking where member_id='".$result[$i]['member_id']."' AND status='Y' GROUP BY member_id";
+			$result3 = $this->m_dbConn->select($sql4);
+			/*echo "<pre>";
+			print_r($result3);
+			echo "</pre>";*/
+			{
+			$result[$i]['Car_reg']=$result3[0]['GROUP_CONCAT(car_reg_no)'];
+			$result[$i]['Car_parking']=$result3[0]['GROUP_CONCAT(parking_slot)'];
+			$result[$i]['Car_model']=$result3[0]['GROUP_CONCAT(car_model)'];
+			}
+			
+			
+			$sql5="select * from unit where unit_id='".$result[$i]['unit_id']."' ";
+			$result4 = $this->m_dbConn->select($sql5);
+			{
+			if($result4[0]['block_unit'] == 0)
+			{
+
+				$reason='<font color="#FF0000"><b></b></font>';
+				$block= 'NO';
+			}
+			else if($result4[0]['block_unit'] == 1)
+			{	
+				$reason='<font color="#FF0000"><b>'.$result4[0]['block_desc'].'</b></font>';
+				$block= '<font color="#FF0000"><b>YES</b></font>';
+			}
+			$result[$i]['Blocked']=$block;
+			$result[$i]['reason']=$reason;
+			$result[$i]['Intercom_no']=$result4[0]['intercom_no'];
+			$result[$i]['Nominee']=$result4[0]['nominee_name'];
+			$result[$i]['Share_Certificate']=$result4[0]['share_certificate'];	
+			$result[$i]['taxable_no_threshold'] = $result4[0]['taxable_no_threshold'];	
+			$ssppStatus = "";
+			
+			if(in_array($result4[0]['unit_id'],$arAppStatus))
+			{
+				//echo "matched:";
+				//$sAppStatus = '<i class="fa fa-mobile-phone" style="font-size:10px;font-size:1.75vw;color:#6698FF;"></i>';
+				$sAppStatus = '<img  src="images/android.svg" style="height:30px;width:30px"/>';
+     	 	}
+     	 	else
+     	 	{
+     	 		$sAppStatus = "";
+     	 	}
+			
+
+			$result[$i]['AppStatus']=$sAppStatus;
+
+			}
+			
+			$sql6="SELECT *,count(mem_other_family_id) as Member_Count FROM `mem_other_family`where member_id='".$result[$i]['member_id']."' and NOT relation='Self'";
+			$result5 = $this->m_dbConn->select($sql6);
+			{
+			$result[$i]['Additional_Member_Count']=$result5[0]['Member_Count'];	
+			}
+			
+			// Added on get Login Status 20190831 
+			 $RetStatus = $this->obj_activation->CheckIfMappingAlreadyExist($result[$i]['email'],$_SESSION['society_id'], $result[$i]['unit_id']);
+			 if($RetStatus == ACCOUNT_EXIST_ACTIVE)
+				{
+					$mLogin= "Active";
+				}
+				else
+				{
+					$mLogin =  "Inactive";
+				}
+				$result[$i]['LoginStatus']=$mLogin;
+		}
+		// echo "<pre>";
+		// print_r($result);
+		// echo "</pre>";
+		$this->list_member_show($result);
+	
+	}
 	
 	/* Added New Funtion get member data for list_member2.php page */
 	public function pgnationNew()
 	{
-		
 		$society_id = $_SESSION['society_id'];
 		$sql1 = "SELECT * FROM society as s,member_main as mm,unit as u,wing as w where mm.unit=u.unit_id and u.wing_id=w.wing_id and mm.society_id=s.society_id and mm.status='Y' and u.status='Y' and w.status='Y' and mm.ownership_status='1' ";
-		
-		// $sql1 = "SELECT s.*, mm.*, u.*, w.*, unit.prop_type
-        // FROM society AS s
-        // JOIN member_main AS mm ON mm.unit = u.unit_id
-        // JOIN unit ON u.wing_id = w.wing_id
-        // JOIN wing AS w ON mm.society_id = s.society_id
-        // WHERE mm.status = 'Y' 
-        // AND u.status = 'Y' 
-        // AND w.status = 'Y' 
-        // AND mm.ownership_status = '1'";
 
 			//echo $sql1;
 			if(isset($_SESSION['admin']) || isset($_SESSION['sadmin']))
@@ -767,9 +754,6 @@ class list_member
 			$sql1 .= " order by wing,u.sort_order";
 			
 			$result = $this->m_dbConn->select($sql1);
-			// echo"<pre>";
-			// print_r($result);
-			// echo"</pre>";
 			
 			$this->list_member_showNew($result);
 	}
@@ -779,7 +763,7 @@ class list_member
 		
 		//$society_id = $_SESSION['landLordSocID'];
 		if($this->isLandLordDB){
-		$sql1 = "SELECT * FROM society as s,tenant_module as tm,unit as u,wing as w where tm.unit_id=u.unit_id and u.wing_id=w.wing_id and tm.status='Y' ";
+		$sql1 = "SELECT * FROM society as s,tenant_module as tm RIGHT JOIN unit as u ON tm.unit_id = u.unit_id RIGHT JOIN wing as w ON u.wing_id = w.wing_id";
 
 			//echo $sql1;
 			if(isset($_SESSION['admin']) || isset($_SESSION['sadmin']))
@@ -799,6 +783,10 @@ class list_member
 			if($_REQUEST['unit_no'] <>"")
 			{
 				$sql1 .= " and u.unit_no = '".$_REQUEST['unit_no']."'";
+			}
+			if($_REQUEST['tenant_id']<>"")
+			{
+				$sql1 .= " and tm.tenant_id like '%".addslashes($_REQUEST['tenant_id'])."%'";
 			}
 			if($_REQUEST['tenant_name']<>"")
 			{
@@ -814,14 +802,18 @@ class list_member
 			{
 				$sql1 .= " and tm.email like '%".addslashes($_REQUEST['email'])."%'";
 			}
-			$sql1 .= " order by wing,u.sort_order";
+			if($_REQUEST['end_date'] <>"")
+			{
+				$sql1 .= " and tm.end_date like '%".addslashes($_REQUEST['end_date'])."%'";
+			}
+			$sql1 .= " order by tm.tenant_id desc";
 			
 			$result = $this->landLordDB->select($sql1);
 			
 			$this->list_tenant_showNew($result);
 		}
 		else{
-			$sql1 = "SELECT * FROM society as s,tenant_module as tm,unit as u,wing as w where tm.unit_id=u.unit_id and u.wing_id=w.wing_id and tm.status='Y' ";
+			$sql1 = "SELECT * FROM society as s,tenant_module as tm RIGHT JOIN unit as u ON tm.unit_id = u.unit_id RIGHT JOIN wing as w ON u.wing_id = w.wing_id";
 
 			//echo $sql1;
 			if(isset($_SESSION['admin']) || isset($_SESSION['sadmin']))
@@ -849,14 +841,19 @@ class list_member
 			
 			if($_REQUEST['mobile_no'] <>"")
 			{
-				echo $sql1 .= " and tm.mobile_no like '%".($_REQUEST['mobile_no'])."%'";
+				$sql1 .= " and tm.mobile_no like '%".($_REQUEST['mobile_no'])."%'";
 			}
 			
 			if($_REQUEST['email'] <>"")
 			{
 				$sql1 .= " and tm.email like '%".($_REQUEST['email'])."%'";
 			}
-			$sql1 .= " order by wing,u.sort_order";
+			if($_REQUEST['end_date'] <>"")
+			{
+				$sql1 .= " and tm.end_date like '%".($_REQUEST['end_date'])."%'";
+			}
+			$sql1 .= " order by tm.tenant_id desc";
+			// $sql1 .= " order by wing,u.sort_order";
 			
 			$result = $this->m_dbConn->select($sql1);
 			
@@ -893,8 +890,9 @@ class list_member
             <th width="60">Unit No.</th>
             <th width="60">Area</th>
 			<th width="50">Flat Configuration</th>
-			<?php if($_SESSION['res_flag'] == 1){ ?>
-				<th width="250">Owners Name</th>
+			<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+				<th width="250">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					Owners Name</th>
 				<?php }
 				else{ ?>
 					<th width="250">Members Name</th>
@@ -904,7 +902,9 @@ class list_member
 			<?php if($_SESSION['res_flag'] == 1){ ?>
 				<th width="80">Location</th>
             	<th width="150">Property Type</th>
-				<?php }
+				<?php }else if($_SESSION['rental_flag'] == 1){ ?>
+				<?php
+				}
 				else{ ?>
 					<th width="80">Mobile No.</th>
                     <th width="150">Members Email</th>
@@ -933,9 +933,12 @@ class list_member
         	<td align="center"><?php echo $res[$k]['wing'];?></td>
             <td align="center">
 			<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN || $_SESSION['role']==ROLE_ACCOUNTANT || $_SESSION['role'] == ROLE_MANAGER || ($_SESSION['role'] == ROLE_ADMIN_MEMBER && $_SESSION['profile'][PROFILE_EDIT_MEMBER] == 1))
-            {?>
-            <a href="view_member_profile.php?scm&id=<?php echo $res[$k]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $res[$k]['unit_no']?></a>
-            <?php 
+            {
+				if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+            		<a href="view_landlord_profile.php?scm&id=<?php echo $res[$k]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $res[$k]['unit_no']?></a>
+           	 	<?php } else{ ?>
+				<a href="view_member_profile.php?scm&id=<?php echo $res[$k]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $res[$k]['unit_no']?></a>
+				<?php }
 			}
 			else
 			{
@@ -946,9 +949,12 @@ class list_member
 			<td align="center"><?php echo str_replace("-", "" ,$res[$k]['flat_configuration']);?></td>
         	<td align="center">
 			<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN || $_SESSION['role']==ROLE_ACCOUNTANT || $_SESSION['role'] == ROLE_MANAGER  || ($_SESSION['role'] == ROLE_ADMIN_MEMBER && $_SESSION['profile'][PROFILE_EDIT_MEMBER] == 1))
-            {?>
-            <a href="view_member_profile.php?scm&id=<?php echo $res[$k]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $res[$k]['owner_name']?></a>
-            <?php 
+            {
+				if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+            		<a href="view_landlord_profile.php?scm&id=<?php echo $res[$k]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $res[$k]['owner_name']?></a>
+            	<?php } else{ ?>
+				<a href="view_member_profile.php?scm&id=<?php echo $res[$k]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $res[$k]['owner_name']?></a>
+				<?php }
 			}
 			else
 			{
@@ -960,7 +966,10 @@ class list_member
                if ($_SESSION['res_flag'] == 1) {?>
 			     <td align="center"><?php echo $res[$k]['Location']; ?></td>
 			     <td align="center"><?php echo $res[$k]['property_type']; ?></td>
-              <?php } else { ?>
+              <?php }else if($_SESSION['rental_flag'] == 1){
+                
+          		} 
+			  else { ?>
                 <td align="center"><?php echo $res[$k]['mob']; ?></td>
                 <td align="center">
                 <a href="mailto:<?php echo $res[$k]['email']; ?>" style="color:#0000FF" target="_blank">
@@ -972,7 +981,11 @@ class list_member
 		
 			<?php if(IsReadonlyPage() == false && ($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN || $_SESSION['role']==ROLE_ACCOUNTANT || $_SESSION['role'] == ROLE_MANAGER )){?>
             <td align="center">
-            <a href="view_member_profile.php?edt&scm&id=<?php echo $res[$k]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank">
+				<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+            		<a href="view_landlord_profile.php?edt&scm&id=<?php echo $res[$k]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank">
+				<?php } else{ ?>
+            		<a href="view_member_profile.php?edt&scm&id=<?php echo $res[$k]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank">
+					<?php } ?>
             <img src="images/edit.gif" />
             </a>
             </td>
@@ -1021,15 +1034,15 @@ class list_member
         <table id="example" class="display" cellspacing="0" style="width:100%">
 		<thead>
         <tr>
-        	<th width="50">Sr No.</th>
-        	<th width="70">Wing</th>
-            <th width="60">Unit No.</th>
-            <th width="60">Area</th>
-			<th width="50">Flat Configuration</th>
-        	<th width="250">Tenants Name</th>
-            <th width="20">Dues</th>
-            <th width="80">Mobile No.</th>
-            <th width="150">Email</th>
+        	<th width="50" style="text-align:center">Sr No.</th>
+        	<th width="70" style="text-align:center">Building No.</th>
+            <th width="60" style="text-align:center">Unit No.</th>
+            <th width="60" style="text-align:center">End Date</th>
+			<th width="50" style="text-align:center">Flat Configuration</th>
+        	<th width="250" style="text-align:center">Tenants Name</th>
+            <th width="20" style="text-align:center">Dues</th>
+            <th width="80" style="text-align:center">Mobile No.</th>
+            <th width="150" style="text-align:center">Email</th>
 			<?php if(IsReadonlyPage() == false && ($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN ||$_SESSION['role'] == ROLE_MANAGER || $_SESSION['role']==ROLE_ACCOUNTANT )){?>
             <th width="50">Edit</th>
            
@@ -1040,13 +1053,31 @@ class list_member
         <?php 
 		foreach($res as $k => $v)
 		{
+			if($this->isLandLordDB){
+				$rental = true;
+				$Dues = $this->obj_utility->getDueAmount($res[$k]['ledger_id'],$rental);
+				$duesAmount = "0.00";
+				if($Dues <> "")
+				{
+					$duesAmount = $Dues;
+				}
+			}else{
+				$rental = false;
+				$Dues = $this->obj_utility->getDueAmount($res[$k]['ledger_id'],$rental);
+				$duesAmount = "0.00";
+				if($Dues <> "")
+				{
+					$duesAmount = $Dues;
+				}
+			}
+			
 			if(sizeof($UnitArray) > 0)
 			{
-				$Url = "member_ledger_report.php?&uid=".$res[$k]['unit_id']."&Cluster=".$EncodeUrl;
+				$Url = "tenant_ledger_report.php?&uid=".$res[$k]['ledger_id']."&tid=".$res[$k]['tenant_id']."&rec=".$rental;
 			}
 			else
 			{
-				$Url = "member_ledger_report.php?&uid=".$res[$k]['unit_id'];
+				$Url = "tenant_ledger_report.php?&uid=".$res[$k]['ledger_id'];
 			}?>
         <tr height="25" bgcolor="#BDD8F4" align="center">
         	<td align="center"><?php echo $iCounter++;?></td>
@@ -1054,7 +1085,7 @@ class list_member
             <td align="center">
 			<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN || $_SESSION['role']==ROLE_ACCOUNTANT || $_SESSION['role'] == ROLE_MANAGER || ($_SESSION['role'] == ROLE_ADMIN_MEMBER && $_SESSION['profile'][PROFILE_EDIT_MEMBER] == 1))
             {?>
-            <a href="view_tenant_profile.php?scm&id=<?php echo $res[$k]['tenant_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $res[$k]['unit_no']?></a>
+            <a href="view_tenant_profile.php?scm&id=<?php echo $res[$k]['tenant_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><b><?php echo $res[$k]['unit_no']?></b></a>
             <?php 
 			}
 			else
@@ -1062,30 +1093,49 @@ class list_member
 				echo $res[$k]['unit_no'];
 			}?>
             </td>
-            <td align="center"><?php echo $res[$k]['area'];?></td>
+            <td align="center"><?php echo $res[$k]['end_date'];?></td>
 			<td align="center"><?php echo str_replace("-", "" ,$res[$k]['flat_configuration']);?></td>
         	<td align="center">
 			<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN || $_SESSION['role']==ROLE_ACCOUNTANT || $_SESSION['role'] == ROLE_MANAGER  || ($_SESSION['role'] == ROLE_ADMIN_MEMBER && $_SESSION['profile'][PROFILE_EDIT_MEMBER] == 1))
-            {?>
-            <a href="view_tenant_profile.php?scm&id=<?php echo $res[$k]['tenant_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $res[$k]['tenant_name']?></a>
-            <?php 
+            {
+				$date = date("Y-m-d");	
+				// echo $date;
+				if($res[$k]['end_date'] > getDBFormatDate($date)){
+					echo empty($res[$k]['tenant_name'])? "<b style = color:red;>Vacant</b>" : "<a href='view_tenant_profile.php?scm&id=".$res[$k]['tenant_id']."&tik_id=".time()."&m&view' target='_blank'><b>".$res[$k]['tenant_name']."</b></a>";      
+				}else{
+					echo empty($res[$k]['tenant_name'])? "<b style = color:red;>Vacant</b>" : "<a href='view_tenant_profile.php?scm&id=".$res[$k]['tenant_id']."&tik_id=".time()."&m&view' target='_blank'><b style = color:red;>".$res[$k]['tenant_name']."</b></a>";      
+				}
 			}
 			else
 			{
 				echo $res[$k]['tenant_name'];
 			}?>
             </td>
-            <td align="center"><a href="#" onClick="window.open('<?php echo $Url; ?>','popup','type=fullWindow,fullscreen,scrollbars=yes');" style="color:#0000FF;"><?php echo $this->obj_utility->getDueAmount($res[$k]['unit_id']);;?></a></td>
-            <td align="center"><?php echo $res[$k]['mobile_no'];?></td>
-            <td align="center"><a href="mailto:<?php echo $res[$k]['email'];?>" style="color:#0000FF" target="_blank"><?php echo $res[$k]['email'];?></a></td>
+
+            <td align="center">
+			<?php 
+			// $dues = $this->obj_utility->getDueAmount($res[$k]['unit_id']);
+			// echo $dues;
+			// echo empty($res[$k]['tenant_name'])? "<b style = color:red;>N/A</b>" : "<a href ='#' onClick='window.open(".$Url.",popup,type=fullWindow,fullscreen,scrollbars=yes);'>".$dues."</a>"; ?>
+			<?php if($res[$k]['tenant_name'] <> ''){ ?>
+				<a href="#" onClick="window.open('<?php echo $Url; ?>','popup','type=fullWindow,fullscreen,scrollbars=yes');" style="color:#0000FF;"><?php echo $duesAmount;?></a>
+				<?php }else{
+					echo "<p style = color:red;><b>N/A</b></p>";
+				} ?>	
+			</td>
+
+            <td align="center">
+				<?php echo empty($res[$k]['tenant_name'])? "<b style = color:red;>N/A</b>" : $res[$k]['mobile_no']; ?>
+			</td>
+
+            <td align="center">
+			<?php echo empty($res[$k]['tenant_name'])? "<b style = color:red;>N/A</b>" : "<a href='mailto:".$res[$k]['email']."' style='color:#0000FF' target='_blank'>".$res[$k]['email']."</a>"; ?>	
+			</td>
+
            <?php if(IsReadonlyPage() == false && ($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN || $_SESSION['role']==ROLE_ACCOUNTANT || $_SESSION['role'] == ROLE_MANAGER )){?>
             <td align="center">
-            <a href="view_tenant_profile.php?edt&scm&id=<?php echo $res[$k]['tenant_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank">
-            <img src="images/edit.gif" />
-            </a>
+				<?php echo empty($res[$k]['tenant_name']) ? "<b style = color:red;>N/A</b>" : "<a href='rentaltenant.php?edit=".$res[$k]['tenant_id']."&tik_id=".time()."' target='_blank'> <img src='images/edit.gif'/> </a>"?>
             </td>
-            
-            
             <?php 
 			} 
 			?>
@@ -1100,7 +1150,7 @@ class list_member
 			?>
             <table align="center" border="0">
             <tr>
-            	<td><font color="#FF0000" size="2"><b>No Record Found</b></font></td>
+            	<td><font color="#FF0000" size="2"><b></b></font></td>
             </tr>
             </table>
             <?php	

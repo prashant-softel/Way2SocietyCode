@@ -97,7 +97,7 @@ if(!isset($_REQUEST["CustomLeaf"]))
 	<link rel="stylesheet" type="text/css" href="css/pagination.css" >
 	<script type="text/javascript" src="js/ajax.js"></script>
     <script type="text/javascript" src="js/ajax_new.js"></script>
-	<script type="text/javascript" src="js/jsPaymentDetails_20190706.js"></script>
+	<script type="text/javascript" src="js/jsPaymentDetails_20190706.js?23112023"></script>
     <script type="text/javascript" src="js/jsCommon_20190326.js"></script>
     <script type="text/javascript" src="js/validate.js"></script>
     

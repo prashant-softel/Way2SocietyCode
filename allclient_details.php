@@ -9,9 +9,16 @@ $clientID = base64_decode($_GET['client']);
 $obj_client = new allclient($m_dbConnRoot,$m_dbConn,$clientID);
 
 
-if($_SESSION['login_id']!=4)
+if($_SESSION['login_id']!=4 && $_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1)
 {
 	?>
+		<script>
+			window.location.href = 'home_res.php';
+
+		</script>
+
+	<?php
+}else{ ?>
 		<script>
 			window.location.href = 'home_s.php';
 

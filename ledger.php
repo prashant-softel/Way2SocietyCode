@@ -18,11 +18,9 @@
 <?php
 include_once("classes/account_subcategory.class.php");
 $obj_initialize = new initialize($m_dbConnRoot);
-$obj_account_subcategory = new account_subcategory($m_dbConn, $landLordDB);
+$obj_account_subcategory = new account_subcategory($m_dbConn,$landLordDB);
 $startdate = $obj_account_subcategory->FetchDate($_SESSION['default_year']); 
 include_once("classes/dbconst.class.php");
-// echo "DbName: " .$_SESSION['landLordDB'];
-// echo " ID: " .$_SESSION['landLordSocID'];
 ?>
  
 

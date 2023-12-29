@@ -4,13 +4,15 @@ include_once("utility.class.php");
 include_once("dbconst.class.php");
 include_once("register.class.php");
 include_once("changelog.class.php");//Pending - Verify
-
+include_once("rentaltenant.class.php");
 include_once("include/fetch_data.php");
 
 // error_reporting(1);
 class import_rc_tenantdata 
 {
 	public $m_dbConn;
+	public $landLordDB;
+	public $landLordDBRoot;
 	public $obj_utility;
 	public $errorfile_name;
 	public $errorLog;
@@ -18,17 +20,26 @@ class import_rc_tenantdata
 	public $bvalidate;
 	public $changeLog;
 	public $obj_fetch;
+	public $obj_tenant;
 	
 
 	private $FDCatArray;
 
-	function __construct($dbConnRoot, $dbConn)
+	function __construct($dbConnRoot, $dbConn, $landLordDB, $landLordDBRoot)
 	{
 		$this->m_dbConn = $dbConn;
 		$this->dbConnRoot = $dbConnRoot;
+		$this->landLordDB = $landLordDB;
+		$this->landLordDBRoot = $landLordDBRoot;
 		$this->obj_utility = new utility($this->m_dbConn);
 		$this->changeLog = new changelog($this->m_dbConn);
 		$this->register = new regiser($this->m_dbConn);
+		// echo "connection" . $this->landLordDBRoot;
+		// var_dump($this->m_dbConn);
+		// var_dump($this->landLordDB);
+		
+		$this->obj_tenant = new rentaltenant($this->m_dbConn, $this->dbConnRoot, $this->landLordDB, $this->landLordDBRoot);
+        
 
 
 		$this->obj_fetch = new FetchData($this->m_dbConn);
@@ -40,6 +51,7 @@ class import_rc_tenantdata
 
 	public function UploadData1($fileName,$fileData, $bvalidate)
 	{
+		
 		$Foldername = $this->obj_fetch->objSocietyDetails->sSocietyCode;
 
 		if (!file_exists('../logs/import_log/'.$Foldername)) 
@@ -65,7 +77,7 @@ class import_rc_tenantdata
 
 		$this->errorLog = $this->errorfile_name;
    
-
+    
 
 		$errormsg="[Importing Tenant Data]";
 		$isImportSuccess = true;
@@ -90,6 +102,7 @@ class import_rc_tenantdata
 				if($rowCount == 1)//Header
 				{
 					
+					
 					$UnitNoCol = array_search('APT_NO',$row, true);
 					$TenantFname = array_search('TenantFname',$row, true);
 					$TenantMname = array_search('TenantMname',$row, true);
@@ -107,14 +120,23 @@ class import_rc_tenantdata
 					$Pincode = array_search('Pincode',$row, true);
 					$City = array_search('City',$row, true);
 					$wing = array_search('BLDG_NAME',$row, true);
-					$Security_deposit = array_search('SD',$row, true);
-					$annual_rent = array_search('AMOUNT',$row, true);
+					$Security_deposit = array_search('SecurityDeposit',$row, true);
+					$annual_rent = array_search('Annual_rent',$row, true);
 					$mode_of_payment = array_search('REMARKS',$row, true);
 					$mobile = array_search('MOBILE',$row, true);
 					$mobile_1 = array_search('MOBILE_1',$row, true);
 					$Email = array_search('EMAIL',$row, true);
 					$email_1 = array_search('EMAIL_1',$row, true);
-					$note = array_search('NOTE',$row, true);
+					$contract_value = array_search('Contract_value',$row, true);
+					$Licence_no = array_search('Licence_no',$row, true);
+					$Licence_authority = array_search('Licence_authority',$row, true);
+					$Emerait_id = array_search('Emirates_id ',$row, true);
+					$no_of_occupants = array_search('No_of_Occupants',$row, true);
+					$property_usage = array_search('Property_usage',$row, true);
+                                        $sdOpeningBalance = array_search('SD_openingBalance',$row,true);
+					
+
+					
 						$ErrorPrintHead = false;
 						
 						
@@ -162,59 +184,67 @@ class import_rc_tenantdata
 						$getwing = "select `wing_id` from `wing` where `wing` = '".$row[$wing]."' ";
 						$wingid = $this->m_dbConn->select($getwing);
 
-						//$wingid[0]['wing_id'];
+						
 						$unitidquery = "select `unit_id`, `unit_no` from unit where `unit_no` = '".$row[$UnitNoCol]."' and `wing_id`='".$wingid[0]['wing_id']."' ";
 						$unitid = $this->m_dbConn->select($unitidquery);
-						// echo "ID: ".$unitid[0]['unit_id'];
+						
 						// echo $unitidquery;
 						// exit;
 						// print_r($unitid);
 						//die();
-						// if($unitid[0]['unit_id'] == '')
-						// {
-						// 	$errormsg="Unit No Missing Or Please mention correct Unit No.  :<br/>";
-						// 	$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
-						// 	$isImportSuccess = false;
-						// }else
-						// {
-						// 	$UnitnoCol = $unitid[0]['unit_id'];
-						// }
-
+						$wingid = $wingid[0]['wing_id'];
+						if($unitid[0]['unit_id'] == '')
+						{
+							$errormsg="Unit No Missing Or Please mention correct Unit No.  :<br/>";
+							$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
+							$isImportSuccess = false;
+						}else
+						{
+							$UnitnoCol = $unitid[0]['unit_id'];
+						}
+						
+						$Tenantfname  = trim($row[$TenantFname]);
+						$Tenantmname = trim($row[$TenantMname]);
+						$Tenantlname = rtrim($row[$TenantLname]);
+						$tenantname = $Tenantfname." ".$Tenantmname." ".$Tenantlname;
+						$tenantName = trim($tenantname);
+						$sd_openingBal = $row[$sdOpeningBalance];
+                        $Ledgerid = $this->obj_tenant->InsertTenantLedgers($tenantName,$row[$wing],$row[$UnitNoCol],$sd_openingBal);
 						// echo $UnitnoCol;
 						// die();
 
-						if($row[$TenantFname] == '')
-						{
-							$errormsg="Tenant First Name Missing   :<br/>";
-							$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
-							$isImportSuccess = false;
+						// if($row[$TenantFname] == '')
+						// {
+						// 	$errormsg="Tenant First Name Missing   :<br/>";
+						// 	$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
+						// 	$isImportSuccess = false;
 							
-						}else
-						{
-							$Tenantfname  = $row[$TenantFname];
-						}
+						// }else
+						// {
+						// 	$Tenantfname  = $row[$TenantFname];
+						// }
+						
+						// if($row[$TenantMname] == '')
+						// {
+						// 	$errormsg="Tenant Middle Name Missing    :<br/>";
+						// 	$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
+						// 	$isImportSuccess = false;
+							
+						// }else
+						// {
+						// 	$Tenantmname = $row[$TenantMname];
+						// }
 
-						if($row[$TenantMname] == '')
-						{
-							$errormsg="Tenant Middle Name Missing    :<br/>";
-							$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
-							$isImportSuccess = false;
+						// if($row[$TenantLname] == '')
+						// {
+						// 	$errormsg="Tenant Last Name Missing   :<br/>";
+						// 	$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
+						// 	$isImportSuccess = false;
 							
-						}else
-						{
-							$Tenantmname = $row[$TenantMname];
-						}
-
-						if($row[$TenantLname] == '')
-						{
-							$errormsg="Tenant Last Name Missing   :<br/>";
-							$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
-							$isImportSuccess = false;
-							
-						}else
-						{
-							$Tenantlname = $row[$TenantLname];
-						}
+						// }else
+						// {
+						// 	$Tenantlname = $row[$TenantLname];
+						// }
 
 						// if($row[$DOB] == '')
 						// {
@@ -304,108 +334,126 @@ class import_rc_tenantdata
 
 						// 	// $dateofdeposite = $row[$DateofDeposite];
 						// }
-                        if($row[$Email] == '')
-						{
-							$errormsg="Email ID Missing   :<br/>";
-							$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
-							$isImportSuccess = false;
+						$email = $row[$Email];
+                        // if($row[$Email] == '')
+						// {
+						// 	$errormsg="Email ID Missing   :<br/>";
+						// 	$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
+						// 	$isImportSuccess = false;
 							
-						}else
-						{
-							$email = $row[$Email];
-							//echo "Email: " .$email;
-						}
-						if($row[$email_1] == '')
-						{
-							$errormsg="Email ID 1 Missing   :<br/>";
-							$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
-							$isImportSuccess = false;
+						// }else
+						// {
+						// 	$email = $row[$Email];
+						// 	//echo "Email: " .$email;
+						// }
+						$email1 = $row[$email_1];
+						// if($row[$email_1] == '')
+						// {
+						// 	$errormsg="Email ID 1 Missing   :<br/>";
+						// 	$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
+						// 	$isImportSuccess = false;
 							
-						}else
-						{
-							$email1 = $row[$email_1];
-							// echo "test: ".$email1;
-						}
-						if($row[$mobile] == '')
-						{
-							$errormsg="Mobile no Missing   :<br/>";
-							$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
-							$isImportSuccess = false;
-							
-						}else
-						{
-							$Mobile = $row[$mobile];
-							// echo "m : " .$Mobile;
-						}
-						if($row[$mobile_1] == '')
-						{
-							$errormsg="Mobile no 1 Missing   :<br/>";
-							$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
-							$isImportSuccess = false;
-							
-						}else
-						{
-							$mobile1 = $row[$mobile_1];
-						}
-						if($row[$StartDate] == '')
-						{
-							$errormsg="Start Date Missing   :<br/>";
-							$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
-							$isImportSuccess = false;
-							
-						}else
-						{
-							$startdate = $row[$StartDate];
-						}
-						if($row[$EndDate] == '')
-						{
-							$errormsg="End Date Missing:<br/>";
-							$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
-							$isImportSuccess = false;
-							
-						}else
-						{
-							$enddate = $row[$EndDate];
-							// echo "enddate".$enddate;
-						} 
-                        if($row[$Security_deposit] == '')
-						{
-							$errormsg = "security deposit missing: <br/>";
-							$isImportSuccess = false;
-							
-						}else{
-							$securitydeposit = $row[$Security_deposit];
-						}
+						// }else
+						// {
+						// 	$email1 = $row[$email_1];
+						// 	// echo "test: ".$email1;
+						// }
 
-						if($row[$annual_rent] == '')
-						{
-							$errormsg = "Annual rent missing: <br/>";
-							$isImportSuccess = false;
+						$Mobile = $row[$mobile];
+						$mobile1 = $row[$mobile_1];
+						$securitydeposit = $row[$Security_deposit];
+						// if($row[$mobile] == '')
+						// {
+						// 	$errormsg="Mobile no Missing   :<br/>";
+						// 	$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
+						// 	$isImportSuccess = false;
 							
-						}else{
-							$Annualrent = $row[$annual_rent];
-						}
+						// }else
+						// {
+						// 	$Mobile = $row[$mobile];
+						// 	// echo "m : " .$Mobile;
+						// }
+						// if($row[$mobile_1] == '')
+						// {
+						// 	$errormsg="Mobile no 1 Missing   :<br/>";
+						// 	$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
+						// 	$isImportSuccess = false;
+							
+						// }else
+						// {
+						// 	$mobile1 = $row[$mobile_1];
+						// }
+						$enddate = $row[$EndDate];
+						$startdate = $row[$StartDate];
+						$Annualrent = $row[$annual_rent];
+						$contractvalue = $row[$contract_value];
+					    $licenceno = $row[$Licence_no];
+					    $licenceauthority = $row[$Licence_authority];
+					    $emeraitid = $row[$Emerait_id];
+					    $noofoccupants = $row[$no_of_occupants];
+						$propertyUsage = $row[$property_usage];
 
-						if($row[$mode_of_payment] == '')
-						{
-							$errormsg = "mode payment missing: <br/>";
-							$isImportSuccess = false;
+						// if($row[$StartDate] == '')
+						// {
+						// 	$errormsg="Start Date Missing   :<br/>";
+						// 	$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
+						// 	$isImportSuccess = false;
 							
-						}else{
-							$modeofpayment = $row[$mode_of_payment];
-						}
+						// }else
+						// {
+						// 	$startdate = $row[$StartDate];
+						// }
+						// if($row[$EndDate] == '')
+						// {
+						// 	$errormsg="End Date Missing:<br/>";
+						// 	$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
+						// 	$isImportSuccess = false;
+							
+						// }else
+						// {
+						// 	$enddate = $row[$EndDate];
+						// 	// echo "enddate".$enddate;
+						// } 
+                        // if($row[$Security_deposit] == '')
+						// {
+						// 	$errormsg = "security deposit missing: <br/>";
+						// 	$isImportSuccess = false;
+							
+						// }else{
+						// 	$securitydeposit = $row[$Security_deposit];
+						// }
 
-						if($row[$TenantType] == '')
-						{
-							$errormsg="Tenant Type Missing  :<br/>";
-							$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
-							$isImportSuccess = false;
+						// if($row[$annual_rent] == '')
+						// {
+						// 	$errormsg = "Annual rent missing: <br/>";
+						// 	$isImportSuccess = false;
 							
-						}
-						else
-						{
-							$Tenanttype = $row[$TenantType];
-						}
+						// }else{
+						// 	$Annualrent = $row[$annual_rent];
+						// }
+
+						// if($row[$mode_of_payment] == '')
+						// {
+						// 	$errormsg = "mode payment missing: <br/>";
+						// 	$isImportSuccess = false;
+							
+						// }else{
+						// 	$modeofpayment = $row[$mode_of_payment];
+						// }
+						$modeofpayment = $row[$mode_of_payment];
+                        $Tenanttype = $row[$TenantType];
+
+						// if($row[$TenantType] == '')
+						// {
+						// 	$errormsg="Tenant Type Missing  :<br/>";
+						// 	$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"E");
+						// 	$isImportSuccess = false;
+							
+						// }
+						// else
+						// {
+						// 	$Tenanttype = $row[$TenantType];
+						// }
 						// if($row[$note] == '')
 						// {
 						// 	$errormsg = "Note missing: <br/>";
@@ -448,10 +496,25 @@ class import_rc_tenantdata
 							
 						}
 						//elseif($UnitnoCol <> '' && $Tenantfname <> '' && $Tenantmname <> '' && $Tenantlname <> '' && $dob <> '' && $email <> '' && $Contactnumber <> '' && $agentname <> '' && $agentContactNo <> '' && $Startdate <> '' && $Enddate <> '' && $Tenanttype <> '')
+					
 						else
 						{
-							
-							$sql_insert = "insert into `tenant_module`(`tenant_name`,`tenant_MName`,`Tenant_LName`,`start_date`,`end_date`,`security_deposit`,`annual_rent`, `mode_of_payment`,`mobile_no`,`mobile_1`,`email`,`email_1`) values ('".$Tenantfname."','".$Tenantmname."','".$Tenantlname."','". getDBFormatDate($StartDate)."','". getDBFormatDate($EndDate)."', '".$securitydeposit."', '".$Annualrent."' , '".$modeofpayment."', '".$Mobile."', '".$mobile1."','".$email."', '".$email1."')";
+                            $existingTenantQuery = "SELECT * FROM `tenant_module` WHERE `unit_id` = '".$UnitnoCol."' AND `tenant_name` = '".$Tenantfname."' AND `tenant_MName` = '".$Tenantmname."' AND `Tenant_LName` = '".$Tenantlname."' AND `start_date` = '".getDBFormatDate($startdate)."'";
+                            $existingTenant = $this->m_dbConn->select($existingTenantQuery);
+
+							if ($existingTenant) {
+								// Tenant exists, update the existing record
+								$updateQuery = "UPDATE `tenant_module` SET  `end_date` = '".getDBFormatDate($enddate)."', `security_deposit` = '".$securitydeposit."', `annual_rent` = '".$Annualrent."', `mode_of_payment` = '".$modeofpayment."', `mobile_no` = '".$Mobile."', `mobile_1` = '".$mobile1."', `email` = '".$email."', `email_1` = '".$email1."', `contract_value` = '".$contractvalue."', `license_no` = '".$licenceno ."', `license_authority` = '".$licenceauthority."', `emirate_no` = '".$emeraitid."', `members`='".$noofoccupants."', `property_type`='".$propertyUsage."' WHERE `tenant_id` = '".$existingTenant[0]['tenant_id']."'";
+					
+								$this->m_dbConn->update($updateQuery);
+					
+								echo $errormsg = "Tenant Data updated successfully.";
+								$this->obj_utility->logGenerator($errorfile, $rowCount, $errormsg, "I");
+					
+							} 
+							else
+							{
+						  	 $sql_insert = "insert into `tenant_module`(`ledger_id`,`security_id`,`unit_id`,`wing_id`,`tenant_name`,`start_date`,`end_date`,`security_deposit`,`annual_rent`, `mode_of_payment`,`mobile_no`,`mobile_1`,`email`,`email_1`,`contract_value`,`license_no`,`license_authority`,`emirate_no`,`members`,`property_type`) values ('".$Ledgerid['LedgerID']."','".$Ledgerid['SecurityID']."','".$UnitnoCol."','".$wingid."','".$Tenantfname." ".$Tenantmname." ".$Tenantlname."','". getDBFormatDate($startdate)."','". getDBFormatDate($enddate)."', '".$securitydeposit."', '".$Annualrent."' , '".$modeofpayment."', '".$Mobile."', '".$mobile1."','".$email."', '".$email1."','".$contractvalue."','".$licenceno."','".$licenceauthority."','".$emeraitid."','".$noofoccupants."','".$propertyUsage."')";
 							
 							$sql_insert_done = $this->m_dbConn->insert($sql_insert);
 
@@ -464,7 +527,7 @@ class import_rc_tenantdata
 							// print_r($id);
 							//die();
 							
-								$sql_insert1 = "insert into `tenant_member`(`tenant_id`,`mem_name`,`relation`,`mem_dob`,`email`,`contact_no`) values ('".$sql_insert_done."','".$Tenantfname." " .$Tenantmname." ".$Tenantlname."','".self."','". getDBFormatDate($dob)."','".$Email."','".$Contactnumber."')";
+								$sql_insert1 = "insert into `tenant_member`(`tenant_id`,`mem_name`,`relation`,`mem_dob`,`email`,`contact_no`) values ('".$sql_insert_done."','".$Tenantfname." " .$Tenantmname." ".$Tenantlname."','".self."','". getDBFormatDate($dob)."','".$email."','".$Mobile."')";
 
 								$sql_insert_member = $this->m_dbConn->insert($sql_insert1);
 							//die();
@@ -473,7 +536,13 @@ class import_rc_tenantdata
 							{
 								$errormsg = "Tenant Data inserted successfully.";
 								$this->obj_utility->logGenerator($errorfile,$rowCount,$errormsg,"I");
+                            
+								// echo"<pre>";
+								// print_r($incert);
+								// echo "</pre>";
 							}
+						
+						  }
 						}
 						
 					 

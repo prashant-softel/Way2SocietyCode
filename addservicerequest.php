@@ -2,12 +2,11 @@
 <head>
 <title>W2S - Add New Service Request</title>
 </head>
-<!-- comment -->
+
 <?php 
 	include_once("includes/head_s.php"); 
 	include_once("classes/servicerequest.class.php");
 	include_once("classes/dbconst.class.php");
-
 	$obj_initialize = new initialize($m_dbConnRoot);
 
 	$obj_servicerequest = new servicerequest($m_dbConn, $m_dbConnRoot, $m_landLordDB);
@@ -31,14 +30,18 @@
 	}
 
 	$MemberDetails = $obj_servicerequest->m_objUtility->GetMemberPersonalDetails($_SESSION["unit_id"]);
+
 	
 	$UnitBlock = $_SESSION["unit_blocked"];
+
 	$MemberUnitNo = $obj_servicerequest->m_objUtility->GetUnitNo($_SESSION["unit_id"]);
+
 	$MemberUnitNoForDD = $obj_servicerequest->m_objUtility->GetUnitNoForDD();
 
 	$LoginDetails = $obj_servicerequest->m_objUtility->GetMyLoginDetails();
     //print_r($LoginDetails);
     $loginEmailID = $LoginDetails[0]["member_id"];
+
 ?>
 <script type="text/javascript" src="js/ajax.js"></script>
 <script type="text/javascript" src="js/ajax_new.js"></script>
@@ -286,7 +289,7 @@
 			document.getElementById("uploadTd3").style.display = "none";
 			document.getElementById("uploadTd4").style.display = "none";
 			document.getElementById("uploadTd5").style.display = "none";
-		}//
+		}
 		else
 		{
 			document.getElementById("detailsTr").style.display = "table-row";	
@@ -323,7 +326,8 @@ function selectSociety() {
 
 </script>
 
-<?php if(isset($_POST["ShowData"])){?>
+<?php 
+ if(isset($_POST["ShowData"])){?>
 <body onLoad="go_error();">
 <?php } ?>
 <br><br>
@@ -332,7 +336,8 @@ function selectSociety() {
      Create New Service Request
 </div>
 <br />
-<?php if($_SESSION['role'] && ($_SESSION['role']==ROLE_ADMIN || $_SESSION['role']==ROLE_SUPER_ADMIN))
+<?php 
+if($_SESSION['role'] && ($_SESSION['role']==ROLE_ADMIN || $_SESSION['role']==ROLE_SUPER_ADMIN))
 		{
 			$Url = "servicerequest.php?type=open";
 		}
@@ -452,7 +457,7 @@ function selectSociety() {
         <th><b>Category</b></th>
         <td>&nbsp; : &nbsp;</td>
         <td>
-        	<select id="category" name="category"> 
+        	<select id="category" name="category" onChange="goToRenovationRequest(this.value)"> 
             	<?php echo $combo_category = $obj_servicerequest->combobox("SELECT `id`, `category` FROM `servicerequest_category` WHERE `status` = 'Y'", 0); ?>
             </select>
         </td>

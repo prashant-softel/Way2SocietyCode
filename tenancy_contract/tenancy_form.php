@@ -14,7 +14,17 @@ $obj_tenancy_record = new tenancy_form($dbConn, $dbConnRoot, $landLordDB, $landL
 $tenancy_landlordDetails = $obj_tenancy_record->tenancy_landlordDetails();
 $tenancy_tenantDetails = $obj_tenancy_record->tenancy_tenantDetails();
 $tenancy_contractDetails = $obj_tenancy_record->tenancy_contractDetails();
-// echo $tenancy_tenantDetails[0]['tenant_name'];
+$tenancy_paymentmode = $obj_tenancy_record->tenancy_paymentmode();
+$note = $tenancy_tenantDetails[0]['note'];
+
+$note1= substr(strip_tags($note),0,120);
+$note2= substr(strip_tags($note),120,115);
+$note3= substr(strip_tags($note),235,118);
+$note4= substr(strip_tags($note),353,118);
+$note5= substr(strip_tags($note),471,118);
+// echo $note;
+$mode = $tenancy_paymentmode;
+$property = $tenancy_tenantDetails[0]['property_type'];
 ?>
 
 <!DOCTYPE html>
@@ -34,9 +44,6 @@ $tenancy_contractDetails = $obj_tenancy_record->tenancy_contractDetails();
 </style>
 </head>
 <center>
-<?php  
-$owner_name = "Prashant Softel Technologies INC Goregoan East";
-?>
 <body bgcolor="#A0A0A0" vlink="blue" link="blue">
 <div id="page1-div" style="position:relative;width:892px;height:1263px;">
 <img width="892" height="1263" src="target001.png" alt="background image"/>
@@ -52,7 +59,7 @@ $owner_name = "Prashant Softel Technologies INC Goregoan East";
 <p style="position:absolute;top:904px;left:462px;white-space:nowrap" class="ft13">Security&#160;Deposit&#160;Amount &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_contractDetails[0]['security_deposit']?></p>
 <p style="position:absolute;top:902px;left:356px;white-space:nowrap" class="ft13">يﻮﻨﺴﻟا رﺎﺠﻳﻻا</p>
 <p style="position:absolute;top:902px;left:795px;white-space:nowrap" class="ft13">ﻦﻴﻣﺄﺘﻟا ﻎﻠﺒﻣ</p>
-<p style="position:absolute;top:938px;left:40px;white-space:nowrap" class="ft13">Mode&#160;of&#160;Payment &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_contractDetails[0]['name']?></p>
+<p style="position:absolute;top:938px;left:40px;white-space:nowrap" class="ft13">Mode&#160;of&#160;Payment &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $mode ?></p>
 <p style="position:absolute;top:937px;left:792px;white-space:nowrap" class="ft13">ﻊﻓﺪﻟا ﺔﻘﻳﺮﻃ</p>
 <p style="position:absolute;top:994px;left:532px;white-space:nowrap" class="ft12">.</p>
 <p style="position:absolute;top:1054px;left:676px;white-space:nowrap" class="ft12">.</p>
@@ -116,7 +123,7 @@ $owner_name = "Prashant Softel Technologies INC Goregoan East";
 <p style="position:absolute;top:462px;left:722px;white-space:nowrap" class="ft13">ﺮﺟﺄﺘﺴﻤﻠﻟ ﺔﻴﺗارﺎﻣﻹا ﺔﻳﻮﻬﻟا</p>
 <p style="position:absolute;top:529px;left:39px;white-space:nowrap" class="ft13">Tenant’s&#160;Email &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['email'] ?></p>
 <p style="position:absolute;top:529px;left:722px;white-space:nowrap" class="ft13">ﺮﺟﺄﺘﺴﻤﻠﻟ ﻲﻧوﺮﺘﻜﻟﻹا ﺪﻳﺮﺒﻟا</p>
-<p style="position:absolute;top:491px;left:461px;white-space:nowrap" class="ft13">Licensing&#160;Authority</p>
+<p style="position:absolute;top:491px;left:461px;white-space:nowrap" class="ft13">Licensing&#160;Authority&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['license_authority'] ?></p>
 <p style="position:absolute;top:491px;left:779px;white-space:nowrap" class="ft13">ﺺﻴﺧﺮﺘﻟا ﺔﻄﻠﺳ</p>
 <p style="position:absolute;top:491px;left:39px;white-space:nowrap" class="ft13">License&#160;No. &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['license_no'] ?></p>
 <p style="position:absolute;top:491px;left:371px;white-space:nowrap" class="ft13">ﺔﺼﺧﺮﻟا ﻢﻗر</p>
@@ -126,26 +133,38 @@ $owner_name = "Prashant Softel Technologies INC Goregoan East";
 <p style="position:absolute;top:507px;left:678px;white-space:nowrap" class="ft12">ﺔﻛﺮﺷ ﺖﻧﺎﻛ لﺎﺣ ﻲﻓ</p>
 <p style="position:absolute;top:560px;left:461px;white-space:nowrap" class="ft13">Number&#160;&#160;of&#160;Co-Occupants &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['members'] ?></p>
 <p style="position:absolute;top:559px;left:787px;white-space:nowrap" class="ft13">ﻦﻴﻨﻃﺎﻘﻟا دﺪﻋ</p>
-<p style="position:absolute;top:683px;left:38px;white-space:nowrap" class="ft13">Plot&#160;No. &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['unit_no'] ?></p>
+<p style="position:absolute;top:683px;left:38px;white-space:nowrap" class="ft13">Plot&#160;No. &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['plot_no'] ?></p>
 <p style="position:absolute;top:684px;left:378px;white-space:nowrap" class="ft13">ضرﻷا ﻢﻗر</p>
-<p style="position:absolute;top:683px;left:461px;white-space:nowrap" class="ft13">Makani&#160;No.</p>
+<p style="position:absolute;top:683px;left:461px;white-space:nowrap" class="ft13">Makani&#160;No. &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['makani_no'] ?></p>
 <p style="position:absolute;top:684px;left:800px;white-space:nowrap" class="ft13">ﻲﻧﺎﻜﻣ ﻢﻗر</p>
-<p style="position:absolute;top:717px;left:461px;white-space:nowrap" class="ft13">Property&#160;No.</p>
+<p style="position:absolute;top:717px;left:461px;white-space:nowrap" class="ft13">Property&#160;No. &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['property_no'] ?></p>
 <p style="position:absolute;top:718px;left:804px;white-space:nowrap" class="ft13">رﺎﻘﻌﻟا ﻢﻗر</p>
 <p style="position:absolute;top:717px;left:38px;white-space:nowrap" class="ft13">Building&#160;Name &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['wing'] ?></p>
 <p style="position:absolute;top:718px;left:371px;white-space:nowrap" class="ft13">ﻰﻨﺒﻤﻟا ﻢﺳا</p>
-<p style="position:absolute;top:785px;left:38px;white-space:nowrap" class="ft13">Location</p>
+<p style="position:absolute;top:785px;left:38px;white-space:nowrap" class="ft13">Location &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['location'] ?></p>
 <p style="position:absolute;top:785px;left:395px;white-space:nowrap" class="ft13">ﻊﻗﻮﻤﻟا</p>
 <p style="position:absolute;top:787px;left:768px;white-space:nowrap" class="ft13">(</p>
 <p style="position:absolute;top:787px;left:792px;white-space:nowrap" class="ft13">)</p>
-<p style="position:absolute;top:785px;left:461px;white-space:nowrap" class="ft13">Premises&#160;No.&#160;(DEWA)</p>
+<p style="position:absolute;top:785px;left:461px;white-space:nowrap" class="ft13">Premises&#160;No.&#160;(DEWA) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['premises_no'] ?></p>
 <p style="position:absolute;top:785px;left:771px;white-space:nowrap" class="ft13">اﻮﻳد&#160;&#160;ﻰﻨﺒﻤﻟا ﻢﻗر</p>
-<p style="position:absolute;top:751px;left:38px;white-space:nowrap" class="ft13">Property&#160;Type &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['name'] ?></p>
+<p style="position:absolute;top:751px;left:38px;white-space:nowrap" class="ft13">Property&#160;Type &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['flat_configuration'] ?></p>
 <p style="position:absolute;top:751px;left:375px;white-space:nowrap" class="ft13">ةﺪﺣﻮﻟا عﻮﻧ</p>
-<p style="position:absolute;top:751px;left:461px;white-space:nowrap" class="ft13">Property&#160;Area&#160;(s.m) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['flat_configuration'] ?></p>
+<p style="position:absolute;top:751px;left:461px;white-space:nowrap" class="ft13">Property&#160;Area&#160;(s.m) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['area'] ?></p>
 <p style="position:absolute;top:754px;left:762px;white-space:nowrap" class="ft13">.</p>
 <p style="position:absolute;top:754px;left:737px;white-space:nowrap" class="ft13">(ﻊﺑﺮﻣ&#160;ﺮﺘﻣ)&#160;رﺎﻘﻌﻟا ﺔﺣﺎﺴﻣ</p>
 <p style="position:absolute;top:648px;left:38px;white-space:nowrap" class="ft13">Property&#160;Usage</p>
+<!-- radio select property type -->
+<?php if($property == 2){ ?>
+	<!-- commerical -->
+	<p style="position:absolute;top:651px;left:383px;white-space:nowrap" class="ft13"><img src = "../images/radio.png" style="width:13px;"></p>
+<?php }elseif($property == 1){ ?>
+	<!-- industrial -->
+	<p style="position:absolute;top:651px;left:225px;white-space:nowrap" class="ft13"><img src = "../images/radio.png" style="width:13px;"></p>
+<?php } else{ ?> 
+	<!-- residential -->
+	<p style="position:absolute;top:651px;left:554px;white-space:nowrap" class="ft13"><img src = "../images/radio.png" style="width:13px;"></p>
+<?php }?>
+<!-- end of property selection -->
 <p style="position:absolute;top:649px;left:245px;white-space:nowrap" class="ft13">Industrial</p>
 <p style="position:absolute;top:648px;left:298px;white-space:nowrap" class="ft13">ﻲﻋﺎﻨﺻ</p>
 <p style="position:absolute;top:650px;left:402px;white-space:nowrap" class="ft13">Commercial&#160;يرﺎﺠﺗ</p>
@@ -164,20 +183,27 @@ $owner_name = "Prashant Softel Technologies INC Goregoan East";
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
  <br/>
 <style type="text/css">
-<!--
+
 	p {margin: 0; padding: 0;}	.ft20{font-size:13px;font-family:Times;color:#ffffff;}
 	.ft21{font-size:7px;font-family:Times;color:#1e3446;}
 	.ft22{font-size:11px;font-family:Times;color:#ffffff;}
 	.ft23{font-size:10px;font-family:Times;color:#1e3446;}
 	.ft24{font-size:8px;font-family:Times;color:#1e3446;}
 	.ft25{font-size:7px;line-height:16px;font-family:Times;color:#1e3446;}
--->
+
 </style>
 </head>
 <body bgcolor="#A0A0A0" vlink="blue" link="blue">
 <div id="page2-div" style="position:relative;width:892px;height:1263px;">
 <img width="892" height="1263" src="target002.png" alt="background image"/>
-<p style="position:absolute;top:804px;left:35px;white-space:nowrap" class="ft20">Additional Terms</p>
+<p style="position:absolute;top:804px;left:35px;white-space:nowrap" class="ft20">Additional Terms </p>
+<!-- for adding notes in additional term -->
+<p style="position:absolute;top:840px;left:71px;white-space:nowrap" class="ft30"><?php echo $note1;?>  </p>
+<p style="position:absolute;top:874px;left:71px;white-space:nowrap" class="ft30"><?php echo $note2;?></p>
+<p style="position:absolute;top:908px;left:71px;white-space:nowrap" class="ft30"><?php echo $note3;?> </p>
+<p style="position:absolute;top:942px;left:71px;white-space:nowrap" class="ft30"><?php echo $note4?></p>
+<p style="position:absolute;top:976px;left:71px;white-space:nowrap" class="ft30"><?php echo $note5?> </p>
+<!-- notes end -->
 <p style="position:absolute;top:712px;left:35px;white-space:nowrap" class="ft20">Attachments for Ejari Registration</p>
 <p style="position:absolute;top:558px;left:35px;white-space:nowrap" class="ft20">Know your Rights</p>
 <p style="position:absolute;top:592px;left:51px;white-space:nowrap" class="ft21">You may visit Rental Dispute Center website through&#160;www.dubailand.gov.ae&#160;in case of any&#160;</p>
@@ -195,7 +221,7 @@ $owner_name = "Prashant Softel Technologies INC Goregoan East";
 <p style="position:absolute;top:649px;left:532px;white-space:nowrap" class="ft21">&#160;مﺎﻌﻟ&#160;26&#160;نﻮﻧﺎﻗ مﺎﻜﺣأ ﺾﻌﺑ ﻞﻳﺪﻌﺘﺑ صﺎﺨﻟا&#160;2008&#160;ﺔﻨﺴﻟ&#160;33&#160;ﻢﻗر نﻮﻧﺎﻗ ﻰﻠﻋ عﻼﻃﻹا</p>
 <p style="position:absolute;top:672px;left:580px;white-space:nowrap" class="ft21">.</p>
 <p style="position:absolute;top:672px;left:582px;white-space:nowrap" class="ft21">رﺎﺠﻳﻹا لﺪﺑ ةدﺎﻳز ﺪﻳﺪﺤﺗ نﺄﺸﺑ&#160;2013&#160;ﺔﻨﺴﻟ&#160;43&#160;ﻢﻗر نﻮﻧﺎﻗ ﻰﻠﻋ عﻼﻃﻹا</p>
-<p style="position:absolute;top:746px;left:728px;white-space:nowrap" class="ft21">ﺪﺣﻮﻤﻟا رﺎﺠﻳﻻا ﺪﻘﻋ ﻦﻋ ﺔﻴﻠﺻأ ﺔﺨﺴﻧ&#160;.1</p>
+<p style="position:absolute;top:746px;left:728px;white-space:nowrap" class="ft21">ﺪﺣﻮﻤﻟا رﺎﺠﻳﻻا ﺪﻘﻋ ﻦﻋ ﺔﻴﻠﺻأ ﺔﺨﺴﻧ&#160;.1 </p>
 <p style="position:absolute;top:773px;left:713px;white-space:nowrap" class="ft21">ﺐﻠﻄﻟا مﺪﻘﻤﻟ ﺔﻴﻠﺻﻷا ﺔﻴﺗارﺎﻣﻹا ﺔﻳﻮﻬﻟا&#160;.2</p>
 <p style="position:absolute;top:1006px;left:24px;white-space:nowrap" class="ft25">Note :&#160;You may add addendum to this tenancy contract in case you have additional terms&#160;<br/>while it needs to be signed by all parties.</p>
 <p style="position:absolute;top:1010px;left:509px;white-space:nowrap" class="ft21">ﻦﻣ ﻊﻗﻮﻳ نأ ﻰﻠﻋ ،ﺔﻴﻓﺎﺿإ طوﺮﺷ يأ دﻮﺟو لﺎﺣ ﻲﻓ ﺪﻘﻌﻟا اﺬﻫ ﻰﻟإ ﻖﺤﻠﻣ ﺔﻓﺎﺿإ ﻦﻜﻤﻳ&#160;:ﺔﻈﺣﻼﻣ</p>

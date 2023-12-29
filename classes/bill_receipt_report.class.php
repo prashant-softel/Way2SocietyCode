@@ -8,11 +8,18 @@ class bill_receipt_report extends dbop
 {
 	public $actionPage = "../bill_receipt_report.php";
 	public $m_dbConn;
+	public $landLordDB;
+	public $isLandLordDB;
 	
-	function __construct($dbConn)
+	function __construct($dbConn,$landLordDB='')
 	{
 		$this->m_dbConn = $dbConn;
+		$this->landLordDB = $landLordDB;
 		$this->display_pg = new display_table($this->m_dbConn);
+		if($_SESSION['landLordDB']){
+			$this->isLandLordDB = true;
+		}
+		// var_dump($this->landLordDB );
 	}
 	public function startProcess()
 	{
@@ -87,8 +94,11 @@ class bill_receipt_report extends dbop
 		{
 			$str .= "<option value='" . $defaultValue . "'>" . $defaultText . "</option>";
 		}
-	
-		$data = $this->m_dbConn->select($query);
+		if($this->isLandLordDB){
+			$data = $this->landLordDB->select($query);
+		}else{
+			$data = $this->m_dbConn->select($query);
+		}
 		if(!is_null($data))
 		{
 			foreach($data as $key => $value)
@@ -804,7 +814,7 @@ class bill_receipt_report extends dbop
 		{
 			$sql01 = "SELECT `unit_id` FROM `unit` WHERE `status` = 'Y' AND `wing_id` = '".$wing_id."' ORDER BY `sort_order`";
 			$sql11 = $this->m_dbConn->select($sql01);
-		}
+		}    
 		
 		$sql07 = "SELECT `society_name` FROM `society` WHERE `society_id` = '".$_SESSION['society_id']."'";
 		$sql77 = $this->m_dbConn->select($sql07);
@@ -1021,6 +1031,315 @@ class bill_receipt_report extends dbop
 				}
 			}
 		}
+		
+		$table .= "<tr height='50px' valign='middle'>
+						<td colspan='3'>Total</td>
+						<td>".number_format($total_BillAmount,2)."</td>
+						<td>".number_format($total_BillArrears,2)."</td>
+						<td>".number_format($total_AmountDue,2)."</td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td>".number_format($total_Amount,2)."</td>
+						<td>".number_format($total_TDS_Amount,2)."</td>
+						<td>".number_format($total_ReturnedCheques_Amount,2)."</td>
+						<td></td>
+				  </tr>";
+
+		$table .= "</table>";
+		
+		return $table;		
+	}
+
+	
+	function get_report_res($wing_id,$year_id,$period_id,$bill_type)
+	{
+		if($wing_id == 0)
+		{
+			$sql01 = "SELECT `unit_id` FROM `unit` WHERE `status` = 'Y' ORDER BY `sort_order`";
+			if($_SESSION['res_flag'] == 1){
+				$sql11 = $this->landLordDB->select($sql01);
+			}else{
+				$sql11 = $this->m_dbConn->select($sql01);
+			}
+		}
+		else
+		{
+			$sql01 = "SELECT `unit_id` FROM `unit` WHERE `status` = 'Y' AND `wing_id` = '".$wing_id."' ORDER BY `sort_order`";
+			if($_SESSION['res_flag'] == 1){
+				$sql11 = $this->landLordDB->select($sql01);
+			}else{
+				$sql11 = $this->m_dbConn->select($sql01);
+			}
+		}
+		if($_SESSION['res_flag'] == 1){
+			$sql07 = "SELECT `society_name` FROM `society` WHERE `society_id` = '".$_SESSION['landLordSocID']."'";
+			$sql77 = $this->landLordDB->select($sql07);
+		}else{
+			$sql07 = "SELECT `society_name` FROM `society` WHERE `society_id` = '".$_SESSION['society_id']."'";
+			$sql77 = $this->m_dbConn->select($sql07);
+		}
+		
+		$sql08 = "SELECT `BeginingDate`, `EndingDate` FROM `period` WHERE `ID` = '".$period_id."'";
+		if($_SESSION['res_flag'] == 1){
+			$sql88 = $this->landLordDB->select($sql08);
+		}else{
+			$sql88 = $this->m_dbConn->select($sql08);
+		}
+		if($wing_id == 0)
+		{
+			$wing = "All";			
+		}
+		else if($_SESSION['res_flag'] == 1){
+			$sql09 = "SELECT `wing` FROM `wing` WHERE `wing_id` = '".$wing_id."' AND `society_id` = '".$_SESSION['landLordSocID']."'";
+			$sql99 = $this->landLordDB->select($sql09);
+			$wing = $sql99[0]['wing'];
+		}else{
+			$sql09 = "SELECT `wing` FROM `wing` WHERE `wing_id` = '".$wing_id."' AND `society_id` = '".$_SESSION['society_id']."'";
+			$sql99 = $this->m_dbConn->select($sql09);
+			$wing = $sql99[0]['wing'];
+		}
+		
+		$sql03 = "SELECT `BillDate`, `DueDate` FROM `billregister` WHERE `PeriodID` = '".$period_id."' AND `BillType` = '".$bill_type."'";
+		if($_SESSION['res_flag'] == 1){
+			$sql33 = $this->landLordDB->select($sql03);
+		}else{
+			$sql33 = $this->m_dbConn->select($sql03);
+		}
+		//echo "<br>";
+		$current_bill_date = $sql33[0]['BillDate'];
+		//echo "<br>";
+		
+		$sql12 = "SELECT `ID` FROM `period` WHERE `PrevPeriodID` = '".$period_id."'";
+		if($_SESSION['res_flag'] == 1){
+			$sql12_res = $this->landLordDB->select($sql12);
+		}else{
+			$sql12_res = $this->m_dbConn->select($sql12);
+		}
+		$sql13 = "SELECT `BillDate`, `DueDate` FROM `billregister` WHERE `PeriodID` = '".$sql12_res[0]['ID']."' AND `BillType` = '".$bill_type."'";
+		if($_SESSION['res_flag'] == 1){
+			$sql13_res = $this->landLordDB->select($sql13);
+		}else{
+			$sql13_res = $this->m_dbConn->select($sql13);
+		}
+		//echo "<br>";
+		if($sql13_res <> "")
+		{
+			$next_period_bill_date = $sql13_res[0]['BillDate'];
+		}
+		else
+		{
+			$next_period_bill_date = date("Y-m-d");
+		}
+		$billtype = "";
+		if($bill_type == 0)
+		{
+			$billtype = "Regular Bill";
+		}
+		if($bill_type == 1)
+		{
+			$billtype = "Suplementary Bill";
+		}
+		$period_string = "Member - " .$billtype." Receipt Report for period ".getDisplayFormatDate($current_bill_date)." to ".getDisplayFormatDate($next_period_bill_date)." for ".$wing." wing(s)." ;
+		
+		$table = "<table width='100%' style='text-align:center;' id='report_table'>
+					<tr height='50px'>
+						<span id='fileName' style='display:none'>".$sql77[0]['society_name']." (".$period_string.")</span>
+						<th colspan='14'>".$sql77[0]['society_name']."</th>
+					</tr>
+					<tr height='30px'>
+						<th colspan='14'>".$period_string."</th>
+					</tr>
+					<tr height='50px'>
+						<th width='5%'>Sr. No.</th>
+						<th width='7%'>Member's Code/<br>Flat No.</th>
+						<th width='10%'>Member's Name</th>
+						<th width='7%'>Bill Amount</th>
+						<th width='7%'>Arrears</th>
+						<th width='7%'>Amount Due</th>
+						<th width='8%'>Voucher Date</th>
+						<th width='8%'>Cheque Date</th>
+						<th width='7%'>Cheque No./<br>Trans No.</th>
+						<th width='7%'>Bank Name</th>
+						<th width='7%'>Receipt Amount</th>
+						<th width='7%'>TDS Amount</th>
+						<th width='7%'>Returned Cheques</th>
+						<th width='7%'>Dues C/F</th>
+					</tr>";	
+		
+		$total_BillAmount = 0;
+		$total_BillArrears = 0;
+		$total_AmountDue = 0;
+		$total_Amount = 0;
+		$total_ReturnedCheques_Amount = 0;
+		$total_TDS_Amount = 0;
+		
+		for($i = 0; $i < sizeof($sql11); $i++)
+		{
+			$total_arrears = 0;
+			$dues = 0;
+
+			$sql09 = "SELECT `ledger_id` from tenant_module where unit_id = '".$sql11[$i]['unit_id']."'";
+			if($_SESSION['res_flag'] == 1){
+				$sql99 = $this->landLordDB->select($sql09);
+			}else{
+				$sql99 = $this->m_dbConn->select($sql09);
+			}
+			
+			for($j = 0; $j < sizeof($sql99); $j++)
+			{
+				$sql05 = "SELECT * FROM `billdetails` WHERE `UnitID` = '".$sql99[$j]['ledger_id']."' AND `PeriodID` = '".$period_id."' AND `BillType` = '".$bill_type."'";
+				if($_SESSION['res_flag'] == 1){
+					$sql55 = $this->landLordDB->select($sql05);
+				}else{
+					$sql55 = $this->m_dbConn->select($sql05);
+				}
+				// echo "<pre>";
+				// print_r($sql11[$i]['unit_id']);
+				// echo "</pre>";
+				$sql04 = "SELECT  cd.ChequeDate as Date, cd.*, v.VoucherNo,v.VoucherTypeID FROM `chequeentrydetails` as cd,voucher as v WHERE cd.id = v.RefNo and cd.`PaidBy` = '".$sql99[$j]['ledger_id']."' AND cd.`BillType` = '".$bill_type."' AND cd.`VoucherDate` BETWEEN '".$current_bill_date."' AND '".$next_period_bill_date."' and v.RefTableID = '".TABLE_CHEQUE_DETAILS."' AND v.VoucherTypeID ='".VOUCHER_RECEIPT."' group by v.VoucherNo";
+				if($_SESSION['res_flag'] == 1){
+					$sql44 = $this->landLordDB->select($sql04);
+				}else{
+					$sql44 = $this->m_dbConn->select($sql04);
+				}
+				
+				$sqlcreditresult = array();
+				$sqlcredit = "SELECT  cdn.`Date` as Date, cdn.ID, cdn.`Date` as VoucherDate, cdn.`TotalPayable` as Amount, cdn.Note_Type  FROM `credit_debit_note` as cdn, `voucher` as v Where cdn.ID = v.RefNo and cdn.UnitID = '".$sql99[$j]['ledger_id']."' AND cdn.`BillType` = '".$bill_type."' AND cdn.`Date` BETWEEN '".$current_bill_date."' AND '".$next_period_bill_date."' and v.RefTableID = '".TABLE_CREDIT_DEBIT_NOTE."' AND v.VoucherTypeID ='".VOUCHER_CREDIT_NOTE."' group by v.VoucherNo";
+				if($_SESSION['res_flag'] == 1){
+					$sqlcreditresult = $this->landLordDB->select($sqlcredit);
+				}else{
+					$sqlcreditresult = $this->m_dbConn->select($sqlcredit);
+				}
+			}
+			
+			for($k = 0 ; $k < count($sqlcreditresult); $k++)
+			{
+				$sqlcreditresult[$k]['ChequeNumber'] =  'Credit Note';
+				$sqlcreditresult[$k]['PayerBank'] = '-';
+				$sqlcreditresult[$k]['PayerChequeBranch'] =  '-';
+				$sqlcreditresult[$k]['IsReturn'] = 0; 
+			}
+			
+			if(!empty($sqlcreditresult))
+			{
+				if(!empty($sql44))
+				{
+					//Merging CreditDebit and Receipt array
+					$sql44 = array_merge($sql44, $sqlcreditresult);
+				}
+				else
+				{
+					$sql44 = $sqlcreditresult;
+				}
+			}
+		
+			$total_arrears = $sql55[0]['PrincipalArrears'] + $sql55[0]['InterestArrears'];
+			// echo "<pre>";
+			// print_r($sql11[$i]['unit_id']);
+			// echo "</pre>";
+		 	$sql06 = "SELECT u.`unit_no`, mm.`tenant_name`,mm.tenant_id, mm.ledger_id FROM `unit` as u JOIN `tenant_module` as mm ON u.`unit_id`=mm.`unit_id` where mm.`unit_id` = '".$sql11[$i]['unit_id']."' and mm.end_date >= NOW()";
+			if($_SESSION['res_flag'] == 1){
+				$sql66 = $this->landLordDB->select($sql06);	
+			}else{
+				$sql66 = $this->m_dbConn->select($sql06);	
+			}	
+		
+			$table .= "<tr height='50px' valign='middle'>
+						<td>".($i + 1)."</td>
+						<td>".$sql66[0]['unit_no']."</td>
+						<td><a href='view_tenant_profile.php?scm&id=".$sql66[0]['tenant_id']."&tik_id=". time() ."&m&view' target='_blank'>".$sql66[0]['tenant_name'] ."</a></td>
+						<td><a href='Maintenance_bill.php?UnitID=".$sql66[0]['ledger_id'] ."&PeriodID=".$period_id. "&BT=".$bill_type. "' target='_blank'>".number_format($sql55[0]['CurrentBillAmount'],2)."</a></td>
+						<td>".number_format($total_arrears,2)."</td>
+						<td><a href='tenant_ledger_report.php?uid=".$sql66[0]['ledger_id']."&tid=".$sql66[0]['tenant_id']."&rec=' target='_blank'>".number_format($sql55[0]['TotalBillPayable'],2)."</a></td>
+						<td>".getDisplayFormatDate($sql44[0]['VoucherDate'])."</td>
+						<td>".getDisplayFormatDate($sql44[0]['ChequeDate'])."</td>
+						<td>".$sql44[0]['ChequeNumber']."</td>
+						<td>".$sql44[0]['PayerBank']."</td>";
+			
+			$total_BillAmount = $total_BillAmount + $sql55[0]['CurrentBillAmount'];
+			$total_BillArrears = $total_BillArrears + $total_arrears;
+			$total_AmountDue = $total_AmountDue + $sql55[0]['TotalBillPayable'];
+			
+			if($sql44[0]['IsReturn'] == 1)
+			{
+				$table .= "<td>-</td><td>-</td>	
+				<td><a href='print_voucher.php?vno=".base64_encode($sql44[0]['VoucherNo']) ."&type=".base64_encode($sql44[0]['VoucherTypeID']). "' target='_blank'>".number_format($sql44[0]['Amount'],2)."</a></td>";	
+				$table .= "<td></td>";
+				$total_ReturnedCheques_Amount = $total_ReturnedCheques_Amount + $sql44[0]['Amount'];
+			}
+			else if($sql44[0]['IsReturn'] == 0)
+			{
+				if($sql44[0]['Note_Type'] == CREDIT_NOTE)
+				{
+					$table .= "<td><a href='Invoice.php?debitcredit_id=".$sql44[0]['ID']."&UnitID=".$sql66[0]['ledger_id']."&NoteType=".CREDIT_NOTE."' target='_blank'>".number_format($sql44[0]['Amount'],2)."</a></td>";							
+				}
+				else
+				{
+					$table .= "<td><a href='print_voucher.php?vno=".base64_encode($sql44[0]['VoucherNo']) ."&type=".base64_encode($sql44[0]['VoucherTypeID']). "' target='_blank'>".number_format($sql44[0]['Amount'],2)."</a></td>";
+				}
+				$table .= "<td>".number_format($sql44[0]['TDS_Amount'],2)."</td>	
+						   <td></td>";
+				
+				$sql55[0]['TotalBillPayable'] = $sql55[0]['TotalBillPayable'] - $sql44[0]['Amount'] - $sql44[0]['TDS_Amount'];
+				
+				$table .= "<td><a href='tenant_ledger_report.php?uid=".$sql66[0]['ledger_id']."&tid=".$sql66[0]['tenant_id']."&rec=' target='_blank'>".number_format($sql55[0]['TotalBillPayable'],2)."</a></td>";
+				
+				$total_Amount = $total_Amount + $sql44[0]['Amount'];
+				$total_TDS_Amount += $sql44[0]['TDS_Amount'];
+			}
+			
+			$table .= "</tr>";
+			
+			if(sizeof($sql44) > 1)
+			{
+				for($j = 1; $j < sizeof($sql44); $j++)
+				{
+					$table .= "<tr height='50px' valign='middle'>
+							   	<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td></td>
+								<td>".getDisplayFormatDate($sql44[$j]['VoucherDate'])."</td>
+								<td>".getDisplayFormatDate($sql44[$j]['ChequeDate'])."</td>
+								<td>".$sql44[$j]['ChequeNumber']."</td>
+								<td>".$sql44[$j]['PayerBank']."</td>";
+					
+					if($sql44[$j]['IsReturn'] == 1)
+					{
+						$table .= "<td>-</td><td>-</td>
+						<td><a href='print_voucher.php?vno=".base64_encode($sql44[$j]['VoucherNo']) ."&type=".base64_encode($sql44[$j]['VoucherTypeID']). "' target='_blank'>".number_format($sql44[$j]['Amount'],2)."</a></td>";
+						$table .= "<td></td>";
+						$total_ReturnedCheques_Amount = $total_ReturnedCheques_Amount + $sql44[$j]['Amount'];
+					}
+					else if($sql44[$j]['IsReturn'] == 0)
+					{
+						if($sql44[$j]['Note_Type'] == CREDIT_NOTE)
+						{
+							$table .= "<td><a href='Invoice.php?debitcredit_id=".$sql44[$j]['ID']."&UnitID=".$sql11[$i]['unit_id']."&NoteType=".CREDIT_NOTE."' target='_blank'>".number_format($sql44[$j]['Amount'],2)."</a></td>";							
+						}
+						else
+						{
+							$table .= "<td><a href='print_voucher.php?vno=".base64_encode($sql44[$j]['VoucherNo']) ."&type=".base64_encode($sql44[$j]['VoucherTypeID']). "' target='_blank'>".number_format($sql44[$j]['Amount'],2)."</a></td>";	
+						}
+						
+				  		$table .= "<td>".number_format($sql44[$j]['TDS_Amount'],2)."</td>
+						<td></td>";
+								   
+						$sql55[0]['TotalBillPayable'] = $sql55[0]['TotalBillPayable'] - $sql44[$j]['Amount'] - $sql44[$j]['TDS_Amount'];
+						$table .= "<td style='border-style:solid; border-width: 0px 1px 1px 1px;'>".number_format($sql55[0]['TotalBillPayable'],2)."</td>";
+						
+						$total_Amount = $total_Amount + $sql44[$j]['Amount'];
+						$total_TDS_Amount += $sql44[$j]['TDS_Amount'];
+					}
+					
+					$table .= "</tr>";
+				}
+			}
+	}
 		
 		$table .= "<tr height='50px' valign='middle'>
 						<td colspan='3'>Total</td>

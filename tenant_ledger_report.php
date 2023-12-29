@@ -8,13 +8,23 @@ include_once("classes/dbconst.class.php");
 include "classes/include/fetch_data.php";
 include_once "classes/utility.class.php";
 include_once "classes/tenant_report.class.php";
-$obj_view_tenant_report = new tenant_report($m_dbConn);
-$objFetchData = new FetchData($m_dbConn);
-$m_objUtility = new utility($m_dbConn);
-$objFetchData->GetSocietyDetails($_SESSION['society_id']);
+$obj_view_tenant_report = new tenant_report($m_dbConn,$m_dbConnRoot,$m_landlord);
+//var_dump($m_landlord);
+$objFetchData = new FetchData($m_dbConn,$m_dbConnRoot,$m_landlord);
+$m_objUtility = new utility($m_dbConn,$m_dbConnRoot,$m_landlord);
+if($_REQUEST['rec'] == true)
+{
+	$objFetchData->GetSocietyDetails($_SESSION['landLordSocID'], $_REQUEST['rec']);
+}
+else
+{
+	$objFetchData->GetSocietyDetails($_SESSION['society_id'], false);
+	
+}
+
+
 $objFetchData->GetSocietyDetails($objFetchData->GetSocietyID($_SESSION["unit_id"]));
 $BillingCycle=$objFetchData->objSocietyDetails->sSocietyBillingCycle;
-//$CompareAmount = $m_objUtility->compareBillAmount($_REQUEST['uid']);
 
 if(isset($_REQUEST['Cluster']))
 {
@@ -32,17 +42,22 @@ if(!isset($_COOKIE["BillType"] ))
 
 <?php
 $AryUnitToDisplay = array();
-if($_REQUEST['uid'] <> 0)
+$AryLedgerToDisplay = array();
+if($_REQUEST['tid'] <> 0 || $_REQUEST['uid'] )
 {
-	array_push($AryUnitToDisplay, $_REQUEST['uid']);
+	array_push($AryUnitToDisplay, $_REQUEST['tid']);
+	array_push($AryLedgerToDisplay, $_REQUEST['uid']);
 }
 else
 {
+	
 	if(!isset($_REQUEST['Cluster']))
 	{
 		$UnitArray = $obj_view_tenant_report->getAllUnits();
+		$LedgerArray =  $obj_view_tenant_report->getAllLedegrID();
 	}
 	$AryUnitToDisplay = $UnitArray;
+	$AryLedgerToDisplay = $LedgerArray;
 }
 
 if (isset($_REQUEST['from']) && isset($_REQUEST['to']) && !empty($_REQUEST['from']) && !empty($_REQUEST['to'])) {
@@ -51,12 +66,18 @@ if (isset($_REQUEST['from']) && isset($_REQUEST['to']) && !empty($_REQUEST['from
 	$endDate   = $_REQUEST['to'];
 } else {
 
-	$startDate = $_SESSION['default_year_start_date'];
+	 $startDate = $_SESSION['default_year_start_date'];
 	$endDate   = $_SESSION['default_year_end_date'];
 }
-
-$societyCreationDate = $m_objUtility->getSocietyCreatedOpeningDate();
-
+if($_REQUEST['rec'] == true)
+{
+	$societyCreationDate = $m_objUtility->getSocietyCreatedOpeningDate($_REQUEST['rec']);
+}
+else
+{
+	$societyCreationDate = $m_objUtility->getSocietyCreatedOpeningDate();
+}
+//echo $societyCreationDate ;
 $startDate = getDisplayFormatDate($startDate);
 $endDate = getDisplayFormatDate($endDate);
 $currentDate = date('d-m-Y');
@@ -161,6 +182,8 @@ $maxDate = getDisplayFormatDate($m_objUtility->getMaxDate());
 	
 		var minDate = '<?=$minDate?>';
 		var maxDate = '<?=$maxDate?>';
+		console.log("mindate ",minDate);
+		console.log("maxdate ",maxDate);
 		$(function() {
 			$.datepicker.setDefaults($.datepicker.regional['']);
 			$(".basics").datepicker({
@@ -168,10 +191,9 @@ $maxDate = getDisplayFormatDate($m_objUtility->getMaxDate());
 				showOn: "both",
 				buttonImage: "images/calendar.gif",
 				buttonImageOnly: true,
-				minDate: minDate,
-				maxDate: maxDate,
 				changeMonth: true,
 				changeYear: true,
+				yearRange : '-2:+2'
 			})
 		});
 	
@@ -333,7 +355,7 @@ $maxDate = getDisplayFormatDate($m_objUtility->getMaxDate());
 	};
 	function RefreshLedgerReport()
 	{
-			checkStartDate();
+			//checkStartDate();
 		document.cookie = 'BillType='+ document.getElementById("BillType").value ;
 			var startDate = document.getElementById('from').value;
 			var endDate = document.getElementById('to').value;
@@ -361,7 +383,7 @@ $maxDate = getDisplayFormatDate($m_objUtility->getMaxDate());
 			let selectedDate = new Date($('#from').val());
 			let minimumDate  = new Date(minDate);
 			if(selectedDate.getTime() < minimumDate.getTime()){
-				alert(`Date can't be less that ${minDate}`);
+				alert(`Date can't be less than ${minDate}`);
 				$("#from").val(minDate);
 			}
 		}
@@ -437,6 +459,7 @@ $SelectedBillType = $_COOKIE["BillType"];
 			{
 				
 				$CompareAmount = $m_objUtility->FetchBillAmountGroupByPeriod($AryUnitToDisplay[$iCnt]);
+				
 				$show_due_details = array();
 				if($iCnt == 2)
 				{
@@ -444,12 +467,17 @@ $SelectedBillType = $_COOKIE["BillType"];
 				}
 				
 			if (isset($startDate) && isset($endDate) && $startDate <> "" && $endDate <> "") {
-				$show_owner_details = $obj_view_tenant_report->show_owner_name($AryUnitToDisplay[$iCnt], getDBFormatDate($endDate));
-				$get_details = $obj_view_tenant_report->show_due_details($AryUnitToDisplay[$iCnt], getDBFormatDate($startDate), getDBFormatDate($endDate));
+				$show_owner_details = $obj_view_tenant_report->show_tenant_name($AryUnitToDisplay[$iCnt], getDBFormatDate($endDate),$_REQUEST['rec']);
+				
+				$get_details = $obj_view_tenant_report->show_due_details($AryLedgerToDisplay[$iCnt], getDBFormatDate($startDate), getDBFormatDate($endDate),$_REQUEST['rec']);
+				//$get_details = $obj_view_tenant_report->show_due_details($AryUnitToDisplay[$iCnt], getDBFormatDate($startDate), getDBFormatDate($endDate));
 			} else {
-				$show_owner_details = $obj_view_tenant_report->show_owner_name($AryUnitToDisplay[$iCnt]);
-				$get_details = $obj_view_tenant_report->show_due_details($AryUnitToDisplay[$iCnt]);
+				$show_owner_details = $obj_view_tenant_report->show_tenant_name($AryUnitToDisplay[$iCnt],$_REQUEST['rec']);
+				$get_details = $obj_view_tenant_report->show_due_details($AryLedgerToDisplay[$iCnt],$_REQUEST['rec']);
+				//$get_details = $obj_view_tenant_report->show_due_details($AryUnitToDisplay[$iCnt]);
 			}
+			//echo "call";
+			//print_r($show_owner_details);
 			// $show_due_details = $obj_view_tenant_report->show_due_details($AryUnitToDisplay[$iCnt]);
 
 			//$ReverseCredits = $obj_view_tenant_report->GetReverseCredit($AryUnitToDisplay[$iCnt],$_SESSION['from_date'],$_SESSION['to_date']);
@@ -460,7 +488,7 @@ $SelectedBillType = $_COOKIE["BillType"];
 				$date = $m_objUtility->getCurrentYearBeginingDate($_SESSION['default_year']);
 			}
 
-			$resOpening = $m_objUtility->getOpeningBalance($AryUnitToDisplay[$iCnt], $date);
+			$resOpening = $m_objUtility->getOpeningBalance_res($AryLedgerToDisplay[$iCnt], $date);
 
 			$TotalOpeningBalance = $resOpening['Debit'] - $resOpening['Credit'];
 
@@ -480,14 +508,14 @@ $SelectedBillType = $_COOKIE["BillType"];
 				
 				//Fetching Invoice Opening Balance
 
-				$resMaintenanceWithoutOpBal = $m_objUtility->getOpeningBalance_ForBillType($AryUnitToDisplay[$iCnt], $date, Maintenance);
+				$resMaintenanceWithoutOpBal = $m_objUtility->getOpeningBalance_ForBillType($AryLedgerToDisplay[$iCnt], $date, Maintenance);
 //				echo "<BR>New Maintenance WithoutOpBal Bill<BR>";
 				// echo "<pre>";
 				// print_r($resMaintenanceWithoutOpBal);
 				// echo "</pre>";
-				$resSupplemetaryWithoutOpBal = $m_objUtility->getOpeningBalance_ForBillType($AryUnitToDisplay[$iCnt], $date, Supplementry);
+				$resSupplemetaryWithoutOpBal = $m_objUtility->getOpeningBalance_ForBillType($AryLedgerToDisplay[$iCnt], $date, Supplementry);
 				
-				$resInvoiceWithoutOpBal = $m_objUtility->getOpeningBalance_ForBillType($AryUnitToDisplay[$iCnt], $date, Invoice);
+				$resInvoiceWithoutOpBal = $m_objUtility->getOpeningBalance_ForBillType($AryLedgerToDisplay[$iCnt], $date, Invoice);
 				
 				// New Invoice WithoutOpbal 
 				
@@ -533,7 +561,7 @@ $SelectedBillType = $_COOKIE["BillType"];
 		</script>
         <div id="bill_header" style="text-align:center;">
             <div id="society_name" style="font-weight:bold; font-size:18px;"><?php echo $objFetchData->objSocietyDetails->sSocietyName; ?></div>
-            <!--<div id="society_type" style="font-weight:bold; font-size:20px;">PREMISES CO-OPERATIVE SOCIETY LTD.</div>-->
+            
             <div id="society_reg" style="font-size:14px;"><?php if($objFetchData->objSocietyDetails->sSocietyRegNo <> "")
 				{
 					echo "Registration No. ".$objFetchData->objSocietyDetails->sSocietyRegNo; 
@@ -568,21 +596,21 @@ $SelectedBillType = $_COOKIE["BillType"];
 		<table style="width:100%;font-size:14px; border: 1px solid #cccccc;"  id="tableMemberDetils">
 					<tr align="center"><td colspan="5"><font  size="+1"><b><a href="view_member_profile.php?scm&id=<?php echo $show_owner_details[0]['tenant_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $show_owner_details[0]['tenant_name'];?></a></b></font></td></tr>
 					<tr>
-						<td width="50"><b>Wing:</b><?php echo $show_owner_details[0]['wing'];?></td>
+						<td width="200" style="text-align:left"><b>Building No:</b><?php echo $show_owner_details[0]['wing'];?></td>
 						<!--<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>-->
 						
 						<?php if($_REQUEST['uid'] == 0){ ?>
-							<td width="100"><b>Unit No:</b><a href="#" style="color:#0000FF;" onClick="window.open('member_ledger_report.php?&uid=<?php echo $AryUnitToDisplay[$iCnt];?>','popup','type=fullWindow,fullscreen,scrollbars=yes'); return false;"><?php echo $show_owner_details[0]['unit_no'];?></a></td>
+							<td width="200"><b>Unit No:</b><a href="#" style="color:#0000FF;" onClick="window.open('member_ledger_report.php?&uid=<?php echo $AryUnitToDisplay[$iCnt];?>','popup','type=fullWindow,fullscreen,scrollbars=yes'); return false;"><?php echo $show_owner_details[0]['unit_no'];?></a></td>
 							
 						<?php }
 						else{ ?>
-							<td width="100"><b>Unit No:</b><?php echo $show_owner_details[0]['unit_no'];?></td>
+							<td width="200"><b>Unit No:</b><?php echo $show_owner_details[0]['unit_no'];?></td>
 						<?php }?>
 						
 						
-						<td><b>Residence No:</b><?php echo $show_owner_details[0]['resd_no'];?></td>
+						<!--<td><b>Residence No:</b><?php echo $show_owner_details[0]['resd_no'];?></td>-->
 						<!--<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>-->
-						<td><b>Mobile No:</b><?php echo $show_owner_details[0]['mob'];?></td>
+						<td><b>Mobile No:</b><?php echo $show_owner_details[0]['mobile_no'];?></td>
 						
 						<!--<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>-->
 						
@@ -639,18 +667,20 @@ $SelectedBillType = $_COOKIE["BillType"];
 						//print_r($show_due_details);
 					}
 					$iCtr++;
-					
+					//echo "Renatal" .$_REQUEST['rental'];
 					if($show_due_details[$k]['Credit'] <> 0)
 					{							
-						$show_particulars = $obj_view_tenant_report->details2($_REQUEST["uid"],$show_due_details[$k]['VoucherID'],$show_due_details[$k]['VoucherTypeID'], $show_due_details[$k]['Debit'], $show_due_details[$k]['Credit'], "By");
+						//$show_particulars = $obj_view_tenant_report->details2($_REQUEST["uid"],$show_due_details[$k]['VoucherID'],$show_due_details[$k]['VoucherTypeID'], $show_due_details[$k]['Debit'], $show_due_details[$k]['Credit'], "By",$_REQUEST['rental']);
+						$show_particulars = $obj_view_tenant_report->details2($_REQUEST["uid"],$show_due_details[$k]['VoucherID'],$show_due_details[$k]['VoucherTypeID'], $show_due_details[$k]['Debit'], $show_due_details[$k]['Credit'], "By","",$_REQUEST['rec']);
 					}
 					else
 					{
-						$show_particulars = $obj_view_tenant_report->details2($_REQUEST["uid"],$show_due_details[$k]['VoucherID'],$show_due_details[$k]['VoucherTypeID'], $show_due_details[$k]['Debit'], $show_due_details[$k]['Credit'], "To");
+						//$show_particulars = $obj_view_tenant_report->details2($_REQUEST["uid"],$show_due_details[$k]['VoucherID'],$show_due_details[$k]['VoucherTypeID'], $show_due_details[$k]['Debit'], $show_due_details[$k]['Credit'], "To",$_REQUEST['rental']);
+						$show_particulars = $obj_view_tenant_report->details2($_REQUEST["uid"],$show_due_details[$k]['VoucherID'],$show_due_details[$k]['VoucherTypeID'], $show_due_details[$k]['Debit'], $show_due_details[$k]['Credit'], "To","",$_REQUEST['rec']);
 					}
 					//fetching sale invoice table details
 
-					///var_dump($show_particulars);
+					//var_dump($show_particulars);
 					
 					$Sale_Invoice_ID = $show_particulars[0]['RefNo'];
 					$GetAllInvoiceNumber = $obj_view_tenant_report->getInvoiceNumbers($Sale_Invoice_ID);
@@ -962,27 +992,69 @@ $SelectedBillType = $_COOKIE["BillType"];
 						$getInvoiceNumber=$_GET['inv_number'];	
 									
 						if($show_particulars[0]['voucher_name'] == 'Sales Voucher')
-						{					
-							echo "<a  href='Maintenance_bill.php?UnitID=".$AryUnitToDisplay[$iCnt]."&PeriodID=". $show_particulars[0]['PeriodID']."&BT=".$show_particulars[0]["BillType"]."' target='_blank'>".number_format($DebitAmt,2)."</a>";
+						{	
+							if($_REQUEST['rec'] == true)
+							{
+									echo number_format($DebitAmt,2);
+							}
+							else
+							{
+									echo "<a  href='Maintenance_billrec.php?UnitID=".$_REQUEST['uid']."&PeriodID=". $show_particulars[0]['PeriodID']."&BT=".$show_particulars[0]["BillType"]."' target='_blank'>".number_format($DebitAmt,2)."</a>";
+							}				
+						
 						}
 						else if($show_particulars[0]['voucher_name'] == 'Journal Voucher' && $GetAllInvoiceNumber[0]['InvSubTotal'] <> 0 && $DebitAmt <> 0)
 						{
-							 //This URL for Sale Invoice 
-								echo "<a href='Invoice.php?UnitID=". $AryUnitToDisplay[$iCnt]."&id=".$Sale_Invoice_ID."&inv_number=".$GetAllInvoiceNumber[0]['Inv_Number']."' target='_blank'>".number_format($DebitAmt,2). "</a>";
+							if($_REQUEST['rec'] == true)
+							{
+									echo number_format($DebitAmt,2);
+							}
+							else
+							{
+									echo "<a href='Invoice.php?UnitID=". $AryLedgerToDisplay[$iCnt]."&id=".$Sale_Invoice_ID."&inv_number=".$GetAllInvoiceNumber[0]['Inv_Number']."' target='_blank'>".number_format($DebitAmt,2). "</a>";
 							
+							}	
+								
 						}
 						else if($show_particulars[0]['voucher_name'] == 'Journal Voucher' && $GetAllInvoiceNumber[0]['InvSubTotal'] == 0 && $DebitAmt <> 0)
 						{
 								//This is for Vouchers
-								echo "<a href='VoucherEdit.php?Vno=". $show_particulars[0]['VoucherNo']."' target='_blank'>".number_format($DebitAmt,2). "</a>";
+							if($_REQUEST['rec'] == true)
+							{
+									echo number_format($DebitAmt,2);
+							}
+							else
+							{
+										echo "<a href='VoucherEdit.php?Vno=". $show_particulars[0]['VoucherNo']."' target='_blank'>".number_format($DebitAmt,2). "</a>";
+							
+							}	
+							
 						}
 						else if($show_particulars[0]['VoucherType'] == VOUCHER_DEBIT_NOTE)
 						{
-							echo "<a href='Invoice.php?debitcredit_id=". $show_particulars[0]['RefNo']."&UnitID=".$_REQUEST['uid']."&NoteType=".$m_objUtility->GetNoteType($show_particulars[0]['RefNo'])."' target='_blank'>".number_format($DebitAmt,2). "</a>";
+							if($_REQUEST['rec'] == true)
+							{
+									echo number_format($DebitAmt,2);
+							}
+							else
+							{
+										echo "<a href='Invoice.php?debitcredit_id=". $show_particulars[0]['RefNo']."&UnitID=".$_REQUEST['uid']."&NoteType=".$m_objUtility->GetNoteType($show_particulars[0]['RefNo'])."' target='_blank'>".number_format($DebitAmt,2). "</a>";
+							
+							}	
+							
 						}
 						else if($show_particulars[0]['voucher_name'] == 'Payment Voucher')
 						{
-							echo "<a href='PaymentDetails.php?bankid=".$show_particulars[0]['BankID']."&LeafID=".$show_particulars[0]['ChqLeafID']."&CustomLeaf=".$show_particulars[0]['CustomLeaf']."&edt=".$show_particulars[0]['RefNo']."' target='_blank'>".number_format($DebitAmt,2). "</a>";	
+							if($_REQUEST['rec'] == true)
+							{
+									echo number_format($DebitAmt,2);
+							}
+							else
+							{
+										echo "<a href='PaymentDetails.php?bankid=".$show_particulars[0]['BankID']."&LeafID=".$show_particulars[0]['ChqLeafID']."&CustomLeaf=".$show_particulars[0]['CustomLeaf']."&edt=".$show_particulars[0]['RefNo']."' target='_blank'>".number_format($DebitAmt,2). "</a>";
+							
+							}
+								
 						}
 						else
 						{
@@ -996,31 +1068,67 @@ $SelectedBillType = $_COOKIE["BillType"];
 							
 							if($show_particulars[0]['DepositGrp'] > 0 || $show_particulars[0]['DepositGrp'] == -3) //for receive cash and deposit cheque edit
 							{
-								$url = "ChequeDetails.php?depositid=".$show_particulars[0]['DepositGrp']."&bankid=".$show_particulars[0]['id']."&edt=".$show_particulars[0]['RefNo'];
+								if($_REQUEST['rec'] == true)
+								{
+									$url ="";
+								}
+								else
+								{
+									$url = "ChequeDetails.php?depositid=".$show_particulars[0]['DepositGrp']."&bankid=".$show_particulars[0]['id']."&edt=".$show_particulars[0]['RefNo'];
+								}
 								//print_r($show_particulars[0]);						
 							}
 							else if($show_particulars[0]['DepositGrp'] == -2)// For Neft Transaction edit
 							{
-								$url = "NeftDetails.php?bankid=".$show_particulars[0]['id']."&edt=".$show_particulars[0]['RefNo'];
+								if($_REQUEST['rec'] == true)
+								{
+									$url ="";
+								}
+								else
+								{
+									$url = "NeftDetails.php?bankid=".$show_particulars[0]['id']."&edt=".$show_particulars[0]['RefNo'];
+								}
 							}
 							?>
                             
 							<!-- <button type="button" id= "popup" style="border-radius:50px; width:15px; color:#009; vertical-align:middle;float: left;margin-left: 65px;" onClick="window.open('ReceiptDetails.php?extra&cycle=<?php echo $BillingCycle;?>&PeriodID=<?php echo  $show_particulars[0]['PeriodID'];?>&unit=<?php echo $AryUnitToDisplay[$iCnt] ?>', '_blank')"><i class="fa   fa-info-circle " style="margin-left: -6px;"></i> </button> -->
-							
-							<button type="button" id= "popup" style="border-radius:50px; width:15px; color:#009; vertical-align:middle;float: left;margin-left: 65px;" onClick="window.open('ReceiptDetails.php?extra&ChequeDetailsId=<?=$show_particulars[0]['RefNo']?>&unit=<?=$AryUnitToDisplay[$iCnt]?>', '_blank')"><i class="fa   fa-info-circle " style="margin-left: -6px;"></i> </button>
+						<?php 
+						if($_REQUEST['rec'] == true)
+						{
+							echo number_format($CreditAmt,2);
+						}
+						else
+						{?>
+									
+								<button type="button" id= "popup" style="border-radius:50px; width:15px; color:#009; vertical-align:middle;float: left;margin-left: 65px;" onClick="window.open('ReceiptDetails.php?extra&ChequeDetailsId=<?=$show_particulars[0]['RefNo']?>&unit=<?=$AryUnitToDisplay[$iCnt]?>', '_blank')"><i class="fa   fa-info-circle " style="margin-left: -6px;"></i> </button>
                             <a href="#" onClick="window.open('<?php echo $url; ?>','popup','type=fullWindow,fullscreen,scrollbars=yes'); "> <?php echo number_format($CreditAmt,2) ?> </a> 					                                                                           
 						
 						<?php
+						}
 						}
 						else
 						{
 							if($show_particulars[0]['voucher_name'] == 'Journal Voucher' && $CreditAmt <> 0)
 							{
-								echo "<a href='VoucherEdit.php?Vno=". $show_particulars[0]['VoucherNo']."' target='_blank'>".number_format($CreditAmt,2). "</a>";
+								if($_REQUEST['rec'] == true)
+								{
+									echo number_format($CreditAmt,2);
+								}
+								else
+								{
+									echo "<a href='VoucherEdit.php?Vno=". $show_particulars[0]['VoucherNo']."' target='_blank'>".number_format($CreditAmt,2). "</a>";
+								}
 							}
 							else if($show_particulars[0]['VoucherType'] == VOUCHER_CREDIT_NOTE && $CreditAmt <> 0)
 							{
+								if($_REQUEST['rec'] == true)
+								{
+									echo number_format($CreditAmt,2);
+								}
+								else
+								{
 								echo "<a href='Invoice.php?debitcredit_id=". $show_particulars[0]['RefNo']."&UnitID=".$_REQUEST['uid']."&NoteType=".$m_objUtility->GetNoteType($show_particulars[0]['RefNo'])."' target='_blank'>".number_format($CreditAmt,2). "</a>";
+								}
 							}
 							else
 							{

@@ -2,7 +2,7 @@
 <head>
 <title>W2S - Service Request</title>
 </head>
-<!-- comment -->
+
 <?php include_once "ses_set_s.php"; ?>
 <?php include_once("includes/head_s.php");
 // include_once("RightPanel.php");    
@@ -116,9 +116,6 @@ if($_SESSION['is_year_freeze'] == 0)
                 </thead>
                 <tbody>
                 	<?php 
-                    // echo "<pre>";
-                    // print_r($requests);
-                    // echo "</pre>";
 						$prevRequestNo = "";
 						for($i = 0; $i < sizeof($requests); $i++)
 						{

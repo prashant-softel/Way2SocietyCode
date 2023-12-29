@@ -1,6 +1,7 @@
 <?php
 	session_start();
 	include_once ("../classes/import_invoice.class.php");
+	include_once ("../classes/import_rc_invoice.class.php");
 	include_once ("../classes/include/dbop.class.php");
 	require_once ("../classes/CsvOperations.class.php");
 	
@@ -23,10 +24,25 @@
 			$checkBoxIndexes = explode(',', $data);
 			//DB Connection	
 			$obj_member_import=new invoice_import($dbConnRoot, $dbConn);
+			$obj_rc_import=new invoice_rc_import($dbConnRoot, $dbConn);
+
 			//Uploading Data
-			$validator = $obj_member_import->UploadData($fileName, $fileData);
-			$actionPage = $obj_member_import->actionPage;
-			$ErrorLog = $obj_member_import->errorLog;
+			
+			if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1)
+			{
+				$validator = $obj_rc_import->UploadData($fileName, $fileData);
+				print_r($validator);
+				echo "debug";
+				
+				$actionPage = $obj_rc_import->actionPage;
+				$ErrorLog = $obj_rc_import->errorLog;			
+			}
+			else
+			{
+				$validator = $obj_member_import->UploadData($fileName, $fileData);
+				$actionPage = $obj_member_import->actionPage;
+				$ErrorLog = $obj_member_import->errorLog;			
+			}
 				
 		}
 		else

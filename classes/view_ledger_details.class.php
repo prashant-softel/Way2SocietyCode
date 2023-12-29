@@ -256,8 +256,237 @@ class view_ledger_details
 				}*/
 		}	
 	}
-		
+	//echo "<pre>";
+		//print_r($data);
+		//echo "</pre>";
 	   return $data;
+	}	
+	
+	public function details1($gid,$lid, $from, $to,$bIsMultiple = false,$bIsMergeReport = false)
+	{
+		//echo "inside function";
+		$categoryid=$this->obj_utility->getParentOfLedger($lid);
+	 if($gid == 1)
+	  {
+		  if($from <> "" && $to <> "")
+		  {
+		  	$sql = "select ledgertbl.id, vouchertbl.Date, vouchertbl.RefNo, vouchertbl.RefTableID ,ledgertbl.ledger_name as Particular, liabilitytbl.Debit, liabilitytbl.Credit,VoucherID, ExternalCounter, liabilitytbl.VoucherTypeID,Is_Opening_Balance, acc.category_name as particular_category_name, liabilitytbl.ChallanID from `liabilityregister` as liabilitytbl JOIN `ledger` as ledgertbl on liabilitytbl.LedgerID=ledgertbl.id JOIN `account_category` as acc ON acc.category_id = ledgertbl.categoryid JOIN voucher as vouchertbl ON liabilitytbl.VoucherID = vouchertbl.id where liabilitytbl.LedgerID='".$lid."' AND liabilitytbl.Date BETWEEN '" .$from."' AND '".$to."' and Is_Opening_Balance = 0 ORDER BY Date ASC";	  
+		  }
+		  else
+		  {
+			 $sql = "select ledgertbl.id, vouchertbl.Date,vouchertbl.RefNo , vouchertbl.RefTableID,ledgertbl.ledger_name as Particular,liabilitytbl.Debit, liabilitytbl.Credit,VoucherID, ExternalCounter, liabilitytbl.VoucherTypeID,Is_Opening_Balance, acc.category_name as particular_category_name, liabilitytbl.ChallanID from `liabilityregister` as liabilitytbl JOIN `ledger` as ledgertbl on liabilitytbl.LedgerID=ledgertbl.id JOIN `account_category` as acc ON acc.category_id = ledgertbl.categoryid JOIN voucher as vouchertbl ON liabilitytbl.VoucherID = vouchertbl.id where liabilitytbl.LedgerID='".$lid."' and Is_Opening_Balance = 0";	   
+		  	
+			if($_SESSION['default_year_start_date'] <> 0  && $_SESSION['default_year_end_date'] <> 0)
+		    {
+				$sql .= "  and liabilitytbl.Date BETWEEN '".getDBFormatDate($_SESSION['default_year_start_date'])."' AND '".getDBFormatDate($_SESSION['default_year_end_date'])."'";					
+		    }
+			
+			$sql .= " ORDER BY Date ASC";
+		  }
+		  $data=$this->m_dbConn->select($sql);		  
+	  }
+	 else if($gid == 2)
+	  {
+		
+		if($categoryid['category'] == BANK_ACCOUNT || $categoryid['category'] == CASH_ACCOUNT)
+		{ 
+			if($from <> "" && $to <> "")
+		  	{
+				$sql = "select ledgertbl.id, vouchertbl.Date, vouchertbl.RefNo , vouchertbl.RefTableID,ledgertbl.ledger_name as Particular,PaidAmount as Debit,ReceivedAmount as  Credit,VoucherID, ExternalCounter, banktbl.VoucherTypeID,Is_Opening_Balance, acc.category_name as particular_category_name from `bankregister` as banktbl JOIN `ledger` as ledgertbl on banktbl.LedgerID=ledgertbl.id JOIN `account_category` as acc ON acc.category_id = ledgertbl.categoryid  JOIN voucher as vouchertbl ON banktbl.VoucherID = vouchertbl.id where banktbl.LedgerID='".$lid."' AND banktbl.Date BETWEEN '" .$from."' AND '".$to."' and Is_Opening_Balance = 0 ORDER BY Date ASC";		  
+			}
+			else
+			{
+				$sql = "select ledgertbl.id, vouchertbl.Date, vouchertbl.RefNo , vouchertbl.RefTableID, ledgertbl.ledger_name as Particular,PaidAmount as Debit,ReceivedAmount as  Credit,VoucherID, ExternalCounter,banktbl.VoucherTypeID,Is_Opening_Balance, acc.category_name as particular_category_name from `bankregister` as banktbl JOIN `ledger` as ledgertbl on banktbl.LedgerID=ledgertbl.id JOIN `account_category` as acc ON acc.category_id = ledgertbl.categoryid  JOIN voucher as vouchertbl ON banktbl.VoucherID = vouchertbl.id where banktbl.LedgerID='".$lid."' and Is_Opening_Balance = 0";		  
+				if($_SESSION['default_year_start_date'] <> 0  && $_SESSION['default_year_end_date'] <> 0)
+				{
+					$sql .= "  and banktbl.Date BETWEEN '".getDBFormatDate($_SESSION['default_year_start_date'])."' AND '".getDBFormatDate($_SESSION['default_year_end_date'])."'";					
+				}
+				$sql .= " ORDER BY Date ASC";
+			}
+		}
+		else
+		{
+			if($from <> "" && $to <> "")
+		  	{				   
+				$sql = "select ledgertbl.id, vouchertbl.Date, vouchertbl.RefNo , vouchertbl.RefTableID, ledgertbl.ledger_name as Particular, assettbl.Debit, assettbl.Credit,VoucherID, ExternalCounter, assettbl.VoucherTypeID,Is_Opening_Balance, acc.category_name as particular_category_name from `assetregister` as assettbl JOIN `ledger` as ledgertbl on assettbl.LedgerID=ledgertbl.id JOIN `account_category` as acc ON acc.category_id = ledgertbl.categoryid  JOIN voucher as vouchertbl ON assettbl.VoucherID = vouchertbl.id where assettbl.LedgerID='".$lid."' AND assettbl.Date BETWEEN '" .$from."' AND '".$to."' and Is_Opening_Balance = 0 ORDER BY Date ASC";				
+			}
+			else
+			{
+				$sql = "select ledgertbl.id,vouchertbl.Date, vouchertbl.RefNo , vouchertbl.RefTableID, ledgertbl.ledger_name as Particular, assettbl.Debit, assettbl.Credit,VoucherID, ExternalCounter, assettbl.VoucherTypeID,Is_Opening_Balance, acc.category_name as particular_category_name from `assetregister` as assettbl JOIN `ledger` as ledgertbl on assettbl.LedgerID=ledgertbl.id JOIN `account_category` as acc ON acc.category_id = ledgertbl.categoryid  JOIN voucher as vouchertbl ON assettbl.VoucherID = vouchertbl.id where assettbl.LedgerID='".$lid."' and Is_Opening_Balance = 0 ";					
+				if($_SESSION['default_year_start_date'] <> 0  && $_SESSION['default_year_end_date'] <> 0)
+				{
+					$sql .= "  and assettbl.Date BETWEEN '".getDBFormatDate($_SESSION['default_year_start_date'])."' AND '".getDBFormatDate($_SESSION['default_year_end_date'])."'";					
+				}
+				$sql .= " ORDER BY Date ASC";
+			}
+		}		
+	  $data = $this->m_dbConn->select($sql);	
+		
+		if($categoryid['category'] == DUE_FROM_MEMBERS)
+		{
+				$data[0]['owner_name'] =$this->m_MemberArray[$data[0]['id']]['owner_name'];
+		}
+		  	 
+	  }
+	 else if($gid == 3)
+	  {
+		  if($bIsMultiple == true && $bIsMergeReport == true)
+		  {
+			   $sql="SELECT   ledgertbl.id,ledgertbl.ledger_name as Particular,VoucherID, ExternalCounter , incometbl.VoucherTypeID, SUM(incometbl.Credit) as Credit,SUM(incometbl.Debit) as Debit,monthname(incometbl.Date) as Date,incometbl.LedgerID, vouchertbl.RefNo , vouchertbl.RefTableID,acc.category_name as particular_category_name from `incomeregister` as incometbl JOIN `ledger` as ledgertbl on incometbl.LedgerID=ledgertbl.id JOIN `account_category` as acc ON acc.category_id = ledgertbl.categoryid JOIN voucher as vouchertbl ON incometbl.VoucherID = vouchertbl.id where incometbl.LedgerID='".$lid."' ";
+			   if($from <> "" && $to <> "")
+			   {
+					$sql .="  and incometbl.Date BETWEEN '" .$from."' AND '".$to."' ";  
+			   }
+			   else if($_SESSION['default_year_start_date'] <> 0  && $_SESSION['default_year_end_date'] <> 0)
+			   {
+					$sql .= "  and incometbl.Date BETWEEN '".getDBFormatDate($_SESSION['default_year_start_date'])."' AND '".getDBFormatDate($_SESSION['default_year_end_date'])."'";					
+			   }
+			   
+			   $sql .="  GROUP BY incometbl.Date ASC";
+		  }
+		  else
+		  {
+			  	if($from <> "" && $to <> "")
+				{
+					$sql = "select ledgertbl.id, vouchertbl.Date,vouchertbl.RefNo , vouchertbl.RefTableID, ledgertbl.ledger_name as Particular, incometbl.Debit, incometbl.Credit,VoucherID, ExternalCounter , incometbl.VoucherTypeID, acc.category_name as particular_category_name from `incomeregister` as incometbl JOIN `ledger` as ledgertbl on incometbl.LedgerID=ledgertbl.id JOIN `account_category` as acc ON acc.category_id = ledgertbl.categoryid JOIN voucher as vouchertbl ON incometbl.VoucherID = vouchertbl.id where incometbl.LedgerID='".$lid."' AND incometbl.Date BETWEEN '" .$from."' AND '".$to."' ORDER BY Date ASC";	  
+				}
+				else
+				{
+					$sql = "select ledgertbl.id, vouchertbl.Date,vouchertbl.RefNo , vouchertbl.RefTableID, ledgertbl.ledger_name as Particular, incometbl.Debit, incometbl.Credit,VoucherID, ExternalCounter , incometbl.VoucherTypeID, acc.category_name as particular_category_name from `incomeregister` as incometbl JOIN `ledger` as ledgertbl on incometbl.LedgerID=ledgertbl.id JOIN `account_category` as acc ON acc.category_id = ledgertbl.categoryid JOIN voucher as vouchertbl ON incometbl.VoucherID = vouchertbl.id where incometbl.LedgerID='".$lid."' ";	  
+					if($_SESSION['default_year_start_date'] <> 0  && $_SESSION['default_year_end_date'] <> 0)
+					{
+						$sql .= "  and incometbl.Date BETWEEN '".getDBFormatDate($_SESSION['default_year_start_date'])."' AND '".getDBFormatDate($_SESSION['default_year_end_date'])."'";					
+					}
+					$sql .= " ORDER BY Date ASC";
+				}
+		  }
+		  $data = $this->m_dbConn->select($sql);
+	  }
+	  else if($gid == 4)
+	  {
+		  if($from <> "" && $to <> "")
+			{
+	   			$sql = "select ledgertbl.id, vouchertbl.Date, vouchertbl.RefNo, vouchertbl.RefTableID ,ledgertbl.ledger_name as Particular, expensetbl.Debit, expensetbl.Credit,VoucherID, ExternalCounter, expensetbl.VoucherTypeID, acc.category_name as particular_category_name from `expenseregister` as expensetbl JOIN `ledger` as ledgertbl on expensetbl.LedgerID=ledgertbl.id JOIN `account_category` as acc ON acc.category_id = ledgertbl.categoryid JOIN voucher as vouchertbl ON expensetbl.VoucherID = vouchertbl.id where expensetbl.LedgerID='".$lid."'  AND expensetbl.Date BETWEEN '" .$from."' AND '".$to."' ORDER BY Date ASC";	 
+			}
+			else
+			{
+				$sql = "select ledgertbl.id, vouchertbl.Date, vouchertbl.RefNo, vouchertbl.RefTableID ,ledgertbl.ledger_name as Particular, expensetbl.Debit, expensetbl.Credit, VoucherID, ExternalCounter,expensetbl.VoucherTypeID, acc.category_name as particular_category_name from `expenseregister` as expensetbl JOIN `ledger` as ledgertbl on expensetbl.LedgerID=ledgertbl.id JOIN `account_category` as acc ON acc.category_id = ledgertbl.categoryid JOIN voucher as vouchertbl ON expensetbl.VoucherID = vouchertbl.id where expensetbl.LedgerID='".$lid."' ";	  	
+				if($_SESSION['default_year_start_date'] <> 0  && $_SESSION['default_year_end_date'] <> 0)
+				{
+					$sql .= "  and expensetbl.Date BETWEEN '".getDBFormatDate($_SESSION['default_year_start_date'])."' AND '".getDBFormatDate($_SESSION['default_year_end_date'])."'";					
+				}
+				$sql .= " ORDER BY Date ASC";
+				
+			}
+			//echo "<br><br>".$sql;
+	  	$data = $this->m_dbConn->select($sql);
+	 }
+	 
+	
+	
+	if($bIsMultiple == true)
+	{
+		 for($k = 0 ; $k< sizeof($data) ; $k++)
+		 {
+			 	
+			 	$DebitAmt = $data[$k]['Debit'];
+				$CreditAmt = $data[$k]['Credit'];
+				
+				$ByORTo = '';
+				if($data[$k]['VoucherTypeID'] ==VOUCHER_PAYMENT || $data[$k]['VoucherTypeID']==VOUCHER_RECEIPT){
+
+					if($DebitAmt <> 0 || ($DebitAmt == 0 && $CreditAmt == 0))
+					{
+						//$data[$k]['ParticularLedgerName'] = $this->get_voucher_details($data[$k]['VoucherTypeID'],$data[$k]['VoucherID'],$lid,$gid, "To");
+						$ByORTo = 'By';
+					}
+					else
+					{
+						//$data[$k]['ParticularLedgerName'] = $this->get_voucher_details($data[$k]['VoucherTypeID'],$data[$k]['VoucherID'],$lid,$gid, "By");
+						$ByORTo = 'To';
+					}
+				}
+				else
+				{ 
+					if($DebitAmt <> 0)
+					{
+						//$data[$k]['ParticularLedgerName'] = $this->get_voucher_details($data[$k]['VoucherTypeID'],$data[$k]['VoucherID'],$lid,$gid, "To");
+						$ByORTo = 'To';
+					}
+					else
+					{
+						//$data[$k]['ParticularLedgerName'] = $this->get_voucher_details($data[$k]['VoucherTypeID'],$data[$k]['VoucherID'],$lid,$gid, "By");
+						$ByORTo = 'By';
+					}
+				}
+				
+				$resdata = $this->get_voucher_details($data[$k]['VoucherTypeID'],$data[$k]['VoucherID'],$lid,$gid, $ByORTo);
+				
+				if(!empty($resdata[0]['ledger_id']))
+				{
+					$LedgerDetails = $this->obj_utility->getParentOfLedger($resdata[0]['ledger_id']);	
+				}
+				
+					
+					$data[$k]['ParticularLedgerID'] = $resdata[0]['ledger_id'];
+					$data[$k]['category_name'] = $LedgerDetails['category_name'];
+					$data[$k]['group_name'] = $LedgerDetails['group_name'];
+					$data[$k]['ParticularLedgerName'] = $resdata[0]['ledger_name'];
+					$data[$k]['ChequeNumber'] = $resdata[0]['ChequeNumber'];
+					$data[$k]['Note'] = $resdata[0]['Note'];
+					$data[$k]['VoucherNo'] = $resdata[0]['VoucherNo'];
+					$data[$k]['VoucherType'] = $resdata[0]['VoucherType'];
+					$data[$k]['RefTableID'] = $resdata[0]['RefTableID'];
+					$data[$k]['LoginID'] = $resdata[0]['LoginID'];
+					$data[$k]['Timestamp'] = $resdata[0]['Timestamp'];
+					//$data[$k]['Date'] ='Various';
+	
+					if($data[$k]['ChequeNumber'] == -1)
+					{
+						$data[$k]['ChequeNumber'] = 'Cash';	
+					}
+					else if($data[$k]['ChequeNumber'] == "")
+					{
+						$data[$k]['ChequeNumber'] = '-';	
+					}
+					$ledger_id[$k] = $resdata[0]['ledger_id'];
+			
+		}	
+	}
+	
+	$ledger_ids = array_unique($ledger_id);
+	foreach($ledger_ids as $kid => $id)
+	{
+		$cont= 0;
+		foreach($data as $key => $val)
+		{
+			if($val['ParticularLedgerID'] === $id)
+			{
+				$cont++;
+				$updata[$id]['Debit'] += $val['Debit'];
+				$updata[$id]['Credit'] += $val['Credit'];
+				if($cont > 1)
+				{
+					$updata[$id]['Date'] ='Various';
+				}
+				else
+				{
+					$updata[$id]['Date'] =$val['Date'];
+				}
+				foreach($val as $k => $v)
+				{
+					if($k != 'Debit' && $k != 'Credit' && $k != 'Date')
+					{
+						$updata[$id][$k] = $v;
+					}
+				}
+			}
+		}
+		//echo "Count".$cont; 
+		$cont=0;
+	}
+	$data = array_values($updata);
+	return $data;
 	}	
 	
 public function details2($lid,$vid,$vtype)
@@ -395,7 +624,66 @@ public function details2($lid,$vid,$vtype)
 		
 		if($data3 <> "")
 		{
-			
+			if($data2[0]['VoucherTypeID'] == VOUCHER_PAYMENT)
+			{
+				$data4 = array_reverse($data3);
+				//print_r($data4);
+				foreach($data4 as $k => $v)
+				{
+					if($data4[$k]['To'] <> "" )
+					{
+						echo "<tr height='10'>";
+						echo "<td align='center'>".$ledgername_array[$data4[$k]['To']]."</td>";
+						echo "<td align='center'></td>";
+						if($data4[$k]['Credit'] <> 0)
+						{
+						echo "<td align='center'>".number_format($data4[$k]['Credit'],2)."</td>";
+						}
+						else
+						{
+							echo "<td align='center'> </td>";
+							
+						}
+						if($data4[$k]['Debit'] <> 0)
+						{
+						 echo "<td align='center'>".number_format($data4[$k]['Debit'],2)."</td>";
+						}
+						else
+						{
+							echo "<td align='center'></td>";
+							
+						}
+						echo "</tr>";
+					}
+					else
+					{
+						echo "<tr >";
+						echo "<td align='center'></td>";
+						echo "<td align='center'>".$ledgername_array[$data4[$k]['By']]."</td>";
+						if($data4[$k]['Credit'] <> 0)
+						{
+						echo "<td align='center'>".number_format($data4[$k]['Credit'],2)."</td>";
+						}
+						else
+						{
+							echo "<td align='center'></td>";
+							
+						}
+						if($data4[$k]['Debit'] <> 0)
+						{
+						echo "<td align='center'>".number_format($data4[$k]['Debit'],2)."</td>";
+						}
+						else
+						{
+							echo "<td align='center'>0.00</td>";
+							
+						}	
+						echo "</tr>";
+					}
+				}
+			}
+			else
+			{
 				foreach($data3 as $k => $v)
 				{
 					if($data3[$k]['By'] <> "")
@@ -451,7 +739,7 @@ public function details2($lid,$vid,$vtype)
 					echo "</tr>";
 					}
 				}
-				
+			}
 		
 		}
 		else

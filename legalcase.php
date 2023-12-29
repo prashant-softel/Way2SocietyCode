@@ -10,7 +10,7 @@ include_once("classes/dbconst.class.php");
 include_once("classes/legalcase.class.php");
 include_once( "classes/include/fetch_data.php");
 include_once("classes/utility.class.php");
-$obj_request = new legalcase($m_dbConn);
+$obj_request = new legalcase($m_dbConn, $m_dbConnRoot, $m_landLordDB);
 //$requests = $obj_request->GetUnitNoIfNZero($_REQUEST['id']);
 $objfetch=new FetchData($m_dbConn);
 
@@ -54,14 +54,24 @@ $obj_request->getRenovationId();
 <script type="text/javascript" src="js/jsServiceRequest.js"></script>
 <script type="text/javascript" src="ckeditor/ckeditor.js"></script>
 -->
-<div class="panel panel-info" style="margin-top:4%;margin-left:1%; width:76%">
+<?php 
+$width=76;
+if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+$width=95;
+}
+else
+{
+	$width=76;
+}
+?>
+<div class="panel panel-info" style="margin-top:4%;margin-left:1%; width:<?php echo $width?>%">
  
     <div class="panel-heading" style="font-size:20px;text-align:center;">
      Legal Cases
     </div>
     <br />
 <?php
-if($_SESSION['is_year_freeze'] == 0)
+if($_SESSION['is_year_freeze'] == 0 && $_SESSION['rental_flag'] ==0 )
 {?>
    <center><button type="button" class="btn btn-primary" onClick="window.location.href='addlegalcase.php'">Create New Legal Case</button></center>
 <?php }?>   
@@ -97,15 +107,15 @@ if($_SESSION['is_year_freeze'] == 0)
             <table id="example" class="display" cellspacing="0" width="100%">
                 <thead>
                     <tr>
-                        <th>Case Id.</th>
-                        <th>Landlord Name.</th>
-                        <th>Tenant Name</th>
-                        <th>Created Date</th>
-                        <th>Next Due Date</th>
-                        <th>Category</th>
-                        <th>Outstanding Amount</th>  
-                        <th>Expense Amount</th>                        
-                        <th>Status</th> 
+                        <th style="text-align:center">Case Id.</th>
+                        <th style="text-align:center">Landlord Name.</th>
+                        <th style="text-align:center">Tenant Name</th>
+                        <th style="text-align:center">Created Date</th>
+                        <th style="text-align:center">Next Due Date</th>
+                        <th style="text-align:center">Category</th>
+                        <th style="text-align:center">Outstanding Amount</th>  
+                        <th style="text-align:center">Expense Amount</th>                        
+                        <th style="text-align:center">Status</th> 
                         <!--<th >Edit</th>
                         <th>Delete</th>-->                                                                      
                     </tr>
@@ -120,49 +130,42 @@ if($_SESSION['is_year_freeze'] == 0)
 						{
 							$cnt=0;
 							$count=0;
-                            $landlord_name =  $m_dbConnRoot->select("SELECT `society_name` FROM `society` WHERE `society_id` = '".$requests[$i]['landlord_soc']."'")[0]['society_name'];
+                            $landlord_name =  $m_dbConnRoot->select("SELECT `society_name` FROM `society` WHERE `society_id` = '".$requests[$i]['society_id']."'")[0]['society_name'];
 							 $unitNo=$objfetch->GetUnitNumber($requests[$i]['unit_id']);
 							 $memID=$obj->GetMemberIDNew($requests[$i]['unit_id']);
 							 $buildingNo = $obj_request->getBuildingNo($requests[$i]['unit_id']);
 							$CategoryDetails = $obj_request->GetCategoryDetails( $requests[$i]['category']);
-							if($prevRequestNo != $requests[$i]['request_no'])
-							{
-								//$status = $obj_request->getUpdatedStatus($requests[$i]['request_no']);
+							//if($prevRequestNo != $requests[$i]['request_no'])
+							//{
+								
 								$prevRequestNo = $requests[$i]['request_no'];
 					?>
                     <tr>
                      <td style="text-align:center"><a href="viewlegalcase.php?rq=<?php echo $requests[$i]['request_id'];?>" target="_blank"><?php echo $i+1;?></a></td>
-                        <td style="text-align:center"><?php echo $landlord_name;?></td>
+                        <td style="text-align:center"><?php echo $landlord_name ;?></td>
                         
                           <?php
 						  $details = $obj_request->getViewDetails($requests[$i]['request_id'],true);
 	
-						$latestStatus = $obj_request->getLatestStatus($requests[$i]['request_id']);
+						$latestStatus = $obj_request->getLatestStatus($requests[$i]['request_id'],$requests[$i]['society_id']);
 						$totalAmt=0;
 						
-						$ExpenseAmountSum = $obj_request->getTotalExpense($requests[$i]['request_id']);
+						$ExpenseAmountSum = $obj_request->getTotalExpense($requests[$i]['request_id'],$requests[$i]['society_id']);
 						$totalAmt = $ExpenseAmountSum;
 						
 	
 	?>	
                         <td style="text-align:center"><?php echo $requests[$i]['tenant_name'];?> </td>
-                        <td><?php echo getDisplayFormatDate($requests[$i]['dateofrequest']);?></td>
-                        <td><?php echo  getDisplayFormatDate($latestStatus[0]['up_hearing_date']);?></td>
-                        <td><?php echo $CategoryDetails[0]['category'];?></td>
+                        <td style="text-align:center"><?php echo getDisplayFormatDate($requests[$i]['dateofrequest']);?></td>
+                        <td style="text-align:center"><?php echo  getDisplayFormatDate($latestStatus[0]['up_hearing_date']);?></td>
+                        <td style="text-align:center"><?php echo $CategoryDetails[0]['category'];?></td>
                         <!--<td><a href="viewrequest.php?rq=<?php echo $requests[$i]['request_id'];?>" target="_blank"><?php echo $requests[$i]['summery'];?></td>-->
-                        <td><a href="viewlegalcase.php?rq=<?php echo $requests[$i]['request_id'];?>" target="_blank"><?php echo $requests[$i]['outstanding_rent'];?></a></td> 
-                        <td><?php echo $totalAmt;?></td> 
-                        <td><?php echo $latestStatus[0]['status'];?></td> 
-                        
-                        
-                        
-                       <!-- <td><?php// echo $status;?></td> -->
-                         
-                      <!--  <td align="center">  <a href="addnotice.php?id=<?php //echo $display_notices[$key]['id'];?>"><img src="images/view.jpg"  width="20"/></a> </td>-->
-                          </tr>
+                        <td style="text-align:center"><a href="viewlegalcase.php?rq=<?php echo $requests[$i]['request_id'];?>&socid=<?php echo $requests[$i]['society_id'];?>" target="_blank"><?php echo $requests[$i]['outstanding_rent'];?></a></td> 
+                        <td style="text-align:center"><?php echo $totalAmt;?></td> 
+                        <td style="text-align:center"><?php echo $latestStatus[0]['status'];?></td> 
+                     </tr>
                     <?php
-							}
-						}
+					}
 					?>
                 </tbody>
                

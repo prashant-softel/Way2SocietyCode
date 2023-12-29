@@ -13,10 +13,14 @@ else
 {
 	include_once("includes/head_s.php");
 }
+$dbConn = new dbop();
+$dbConnRoot = new dbop(true);
+$landLordDB = new dbop(false,false,false,false,true);
+$landLordDBRoot = new dbop(false,false,false,false,false,true);
 
 include_once("classes/ChequeDetails.class.php");
-$obj_ChequeDetails = new ChequeDetails($m_dbConn);
-
+$obj_ChequeDetails = new ChequeDetails($m_dbConn,$landLordDB,$landLordDBRoot);
+// $data = $obj_ChequeDetails->getCategory();
 include_once("classes/genbill.class.php");
 $objGenBill = new genbill($m_dbConn);
 
@@ -124,17 +128,26 @@ else
 		var PaidToVal = document.getElementById(PaidTo.id).value;
 		if((iMembersOnly == 1))
 		{
-			
-		document.getElementById(PaidTo.id).innerHTML = "<?php echo $obj_ChequeDetails->comboboxEx("select led.id as id,concat_ws(' - ',led.ledger_name,mem.owner_name) as ledger_name from ledger as led JOIN unit as unittable on led.id=unittable.unit_id JOIN member_main as mem  on mem.unit=unittable.unit_id where receipt='1' and led.society_id=".$_SESSION['society_id']." and led.categoryid=".DUE_FROM_MEMBERS." and  mem.ownership_date <= '" .$_SESSION['default_year_end_date']. "' and mem.ownership_status=1 ORDER BY led.ledger_name ASC"); ?>";
-		 //alert('done');
+			<?php if($_SESSION['res_flag'] == 1){ ?>
+				document.getElementById(PaidTo.id).innerHTML = "<?php echo $obj_ChequeDetails->getCategory(); ?>";
+			<?php }else if($_SESSION['rental_flag'] == 1){ ?>
+				document.getElementById(PaidTo.id).innerHTML = "<?php echo $obj_ChequeDetails->comboboxEx("select id , ledger_name from ledger where receipt='1' and society_id=".$_SESSION['society_id']." and categoryid=".DUE_FROM_TENANTS." ORDER BY ledger_name ASC"); ?>";
+			<?php }else {?>
+				console.log("debug");
+				document.getElementById(PaidTo.id).innerHTML = "<?php echo $obj_ChequeDetails->comboboxEx("select led.id as id,concat_ws(' - ',led.ledger_name,mem.owner_name) as ledger_name from ledger as led JOIN unit as unittable on led.id=unittable.unit_id JOIN member_main as mem  on mem.unit=unittable.unit_id where receipt='1' and led.society_id=".$_SESSION['society_id']." and led.categoryid=".DUE_FROM_MEMBERS." and  mem.ownership_date <= '" .$_SESSION['default_year_end_date']. "' and mem.ownership_status=1 ORDER BY led.ledger_name ASC"); ?>";
+			<?php } ?>
+		//  alert('done');
 		  toggleSupplementaryCheckbox(mCounter);
 		}
 		else
 		{
+			<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+			document.getElementById(PaidTo.id).innerHTML = "<?php echo $obj_ChequeDetails->comboboxEx("select id,ledger_name from ledger where receipt='1' and categoryid NOT IN(".DUE_FROM_MEMBERS.", ".DUE_FROM_TENANTS.") and society_id=".$_SESSION['society_id']."  ORDER BY ledger_name ASC"); ?>";
+			<?php }else{  ?>
 			document.getElementById(PaidTo.id).innerHTML = "<?php echo $obj_ChequeDetails->comboboxEx("select id,ledger_name from ledger where receipt='1' and categoryid !=".DUE_FROM_MEMBERS." and society_id=".$_SESSION['society_id']."  ORDER BY ledger_name ASC"); ?>";
-			 toggleSupplementaryCheckbox(mCounter);
+			<?php } ?>
+			toggleSupplementaryCheckbox(mCounter);
 		}
-		
 	}
 	
 	function AddNewRow()
@@ -303,7 +316,12 @@ else if(isset($_REQUEST['msg1']))
 }
 else{}
 ?>
-<div style="margin-left:5vw"><table><tr><td><input type="checkbox" id="MembersOnly" checked ><b> Show Members Only</b></input></td><td></td></tr></table></div>
+<div style="margin-left:5vw"><table><tr><td><input type="checkbox" id="MembersOnly" checked >
+<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+	<b>Show Tenants Only</b></input></td></tr></table></div>
+<?php }else{ ?> 
+	<b>Show Members Only</b></input></td></tr></table></div>
+<?php } ?>
 
 <center>
 <table><tr><td><?php echo $star;?></td><td>Voucher Date

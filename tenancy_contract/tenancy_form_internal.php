@@ -13,7 +13,11 @@ $obj_tenancy_record = new tenancy_form($dbConn, $dbConnRoot, $landLordDB, $landL
 $tenancy_landlordDetails = $obj_tenancy_record->tenancy_landlordDetails();
 $tenancy_tenantDetails = $obj_tenancy_record->tenancy_tenantDetails();
 $tenancy_contractDetails = $obj_tenancy_record->tenancy_contractDetails();
-//echo $tenancy_tenantDetails[0]['tenant_name'];
+$tenancy_paymentmode = $obj_tenancy_record->tenancy_paymentmode();
+$note = $tenancy_tenantDetails[0]['note'];
+$mode = $tenancy_paymentmode;
+$property = $tenancy_tenantDetails[0]['property_type'];
+
 ?>
 
 <!DOCTYPE html>
@@ -51,7 +55,7 @@ $owner_name = "Prashant Softel Technologies INC Goregoan East";
 <p style="position:absolute;top:904px;left:462px;white-space:nowrap" class="ft13">Security&#160;Deposit&#160;Amount &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_contractDetails[0]['security_deposit']?></p>
 <p style="position:absolute;top:902px;left:356px;white-space:nowrap" class="ft13">يﻮﻨﺴﻟا رﺎﺠﻳﻻا</p>
 <p style="position:absolute;top:902px;left:795px;white-space:nowrap" class="ft13">ﻦﻴﻣﺄﺘﻟا ﻎﻠﺒﻣ</p>
-<p style="position:absolute;top:938px;left:40px;white-space:nowrap" class="ft13">Mode&#160;of&#160;Payment &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_contractDetails[0]['name']?></p>
+<p style="position:absolute;top:938px;left:40px;white-space:nowrap" class="ft13">Mode&#160;of&#160;Payment &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $mode?></p>
 <p style="position:absolute;top:937px;left:792px;white-space:nowrap" class="ft13">ﻊﻓﺪﻟا ﺔﻘﻳﺮﻃ</p>
 <p style="position:absolute;top:1136px;left:37px;white-space:nowrap" class="ft10">Signatures</p>
 <p style="position:absolute;top:1137px;left:793px;white-space:nowrap" class="ft11"><b>تﺎﻌﻴﻗﻮﺘﻟا</b></p>
@@ -103,26 +107,38 @@ $owner_name = "Prashant Softel Technologies INC Goregoan East";
 <p style="position:absolute;top:507px;left:678px;white-space:nowrap" class="ft12">ﺔﻛﺮﺷ ﺖﻧﺎﻛ لﺎﺣ ﻲﻓ</p>
 <p style="position:absolute;top:560px;left:461px;white-space:nowrap" class="ft13">Number&#160;&#160;of&#160;Co-Occupants &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['members'] ?></p>
 <p style="position:absolute;top:559px;left:787px;white-space:nowrap" class="ft13">ﻦﻴﻨﻃﺎﻘﻟا دﺪﻋ</p>
-<p style="position:absolute;top:683px;left:38px;white-space:nowrap" class="ft13">Plot&#160;No. &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['unit_no'] ?></p>
+<p style="position:absolute;top:683px;left:38px;white-space:nowrap" class="ft13">Plot&#160;No. &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['plot_no'] ?></p>
 <p style="position:absolute;top:684px;left:378px;white-space:nowrap" class="ft13">ضرﻷا ﻢﻗر</p>
-<p style="position:absolute;top:683px;left:461px;white-space:nowrap" class="ft13">Makani&#160;No.</p>
+<p style="position:absolute;top:683px;left:461px;white-space:nowrap" class="ft13">Makani&#160;No.  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['makani_no'] ?></p>
 <p style="position:absolute;top:684px;left:800px;white-space:nowrap" class="ft13">ﻲﻧﺎﻜﻣ ﻢﻗر</p>
-<p style="position:absolute;top:717px;left:461px;white-space:nowrap" class="ft13">Property&#160;No.</p>
+<p style="position:absolute;top:717px;left:461px;white-space:nowrap" class="ft13">Property&#160;No.  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['property_no'] ?></p>
 <p style="position:absolute;top:718px;left:804px;white-space:nowrap" class="ft13">رﺎﻘﻌﻟا ﻢﻗر</p>
 <p style="position:absolute;top:717px;left:38px;white-space:nowrap" class="ft13">Building&#160;Name &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['wing'] ?></p>
 <p style="position:absolute;top:718px;left:371px;white-space:nowrap" class="ft13">ﻰﻨﺒﻤﻟا ﻢﺳا</p>
-<p style="position:absolute;top:785px;left:38px;white-space:nowrap" class="ft13">Location</p>
+<p style="position:absolute;top:785px;left:38px;white-space:nowrap" class="ft13">Location  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['location'] ?></p>
 <p style="position:absolute;top:785px;left:395px;white-space:nowrap" class="ft13">ﻊﻗﻮﻤﻟا</p>
 <p style="position:absolute;top:787px;left:768px;white-space:nowrap" class="ft13">(</p>
 <p style="position:absolute;top:787px;left:792px;white-space:nowrap" class="ft13">)</p>
-<p style="position:absolute;top:785px;left:461px;white-space:nowrap" class="ft13">Premises&#160;No.&#160;(DEWA)</p>
+<p style="position:absolute;top:785px;left:461px;white-space:nowrap" class="ft13">Premises&#160;No.&#160;(DEWA)  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['premises_no'] ?></p>
 <p style="position:absolute;top:785px;left:771px;white-space:nowrap" class="ft13">اﻮﻳد&#160;&#160;ﻰﻨﺒﻤﻟا ﻢﻗر</p>
-<p style="position:absolute;top:751px;left:38px;white-space:nowrap" class="ft13">Property&#160;Type &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['name'] ?></p>
+<p style="position:absolute;top:751px;left:38px;white-space:nowrap" class="ft13">Property&#160;Type &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['flat_configuration'] ?></p>
 <p style="position:absolute;top:751px;left:375px;white-space:nowrap" class="ft13">ةﺪﺣﻮﻟا عﻮﻧ</p>
-<p style="position:absolute;top:751px;left:461px;white-space:nowrap" class="ft13">Property&#160;Area&#160;(s.m) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['flat_configuration'] ?></p>
+<p style="position:absolute;top:751px;left:461px;white-space:nowrap" class="ft13">Property&#160;Area&#160;(s.m) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<?php echo $tenancy_tenantDetails[0]['area'] ?></p>
 <p style="position:absolute;top:754px;left:762px;white-space:nowrap" class="ft13">.</p>
 <p style="position:absolute;top:754px;left:737px;white-space:nowrap" class="ft13">(ﻊﺑﺮﻣ&#160;ﺮﺘﻣ)&#160;رﺎﻘﻌﻟا ﺔﺣﺎﺴﻣ</p>
 <p style="position:absolute;top:648px;left:38px;white-space:nowrap" class="ft13">Property&#160;Usage</p>
+<!-- radio select property type -->
+<?php if($property == 2){ ?>
+	<!-- commerical -->
+	<p style="position:absolute;top:651px;left:383px;white-space:nowrap" class="ft13"><img src = "../images/radio.png" style="width:13px;"></p>
+<?php }elseif($property == 1){ ?>
+	<!-- industrial -->
+	<p style="position:absolute;top:651px;left:225px;white-space:nowrap" class="ft13"><img src = "../images/radio.png" style="width:13px;"></p>
+<?php } else{ ?> 
+	<!-- residential -->
+	<p style="position:absolute;top:651px;left:554px;white-space:nowrap" class="ft13"><img src = "../images/radio.png" style="width:13px;"></p>
+<?php }?>
+<!-- end of property selection -->
 <p style="position:absolute;top:649px;left:245px;white-space:nowrap" class="ft13">Industrial</p>
 <p style="position:absolute;top:648px;left:298px;white-space:nowrap" class="ft13">ﻲﻋﺎﻨﺻ</p>
 <p style="position:absolute;top:650px;left:402px;white-space:nowrap" class="ft13">Commercial&#160;يرﺎﺠﺗ</p>

@@ -656,6 +656,7 @@ union Select CONCAT('T-',t.`tmember_id`) as MemberId,CONCAT(u.`unit_no`,'-',t.`m
                                             <!--<option value="ALH">All Lien Holders</option>-->
                	<option value="AT">All Tenants</option>
                 <option value="MHT">Member Having Tenants</option>
+                 <option value="1BHK">1-BHK Flats</option>
                 <?php echo $combo_unit = $obj_notice->comboboxGroup("Select concat('W',wing_id) as wing_id, concat(wing,' - Wing') as wing from wing where wing != '-' and status = 'Y'",'0');?>
             	<?php echo $combo_unit = $obj_notice->comboboxGroup("Select Id, Name from membergroup where Status = 'Y'",'0');?>
             </select>
@@ -721,7 +722,7 @@ union Select CONCAT('T-',t.`tmember_id`) as MemberId,CONCAT(u.`unit_no`,'-',t.`m
         <td valign="top"><?php echo $star;?></td>
         <th><b>Subject</b></th>
         <td>&nbsp;<b>:<b>&nbsp;</td>
-        <td><textarea name="subject" id="subject" style="width:200px; resize:none;" onKeyDown="limitText(this.form.subject,this.form.countdown,152)"  onKeyUp="limitText(this.form.subject,this.form.countdown,152)" onBlur="SetSMS();"  onkeypress="return ((event.charCode > 64 && event.charCode < 91) || (event.charCode > 96 && event.charCode < 123) || event.charCode == 8 || event.charCode == 32|| event.charCode == 45 || (event.charCode >= 48 && event.charCode <= 57));" ></textarea> <font size="1" color="#CC0000">
+        <td><textarea name="subject" id="subject" style="width:200px; resize:none;" onKeyDown="limitText(this.form.subject,this.form.countdown,152)"  onKeyUp="limitText(this.form.subject,this.form.countdown,152)" onBlur="SetSMS();"  onkeypress="return ((event.charCode > 57 && event.charCode < 91) || (event.charCode > 96 && event.charCode < 123) || event.charCode == 8 || event.charCode == 32 || event.charCode == 33 || event.charCode == 35|| event.charCode == 38|| event.charCode == 40 || event.charCode == 41||event.charCode == 44|| event.charCode == 45 || event.charCode == 91|| event.charCode == 93|| event.charCode == 95|| (event.charCode >= 48 && event.charCode <= 57));" ></textarea> <font size="1" color="#CC0000">
         	
 				<span id="textCounter" style="display:none;">You have <input type="text"  name="countdown" id = "countdown" size="3" value="100" style="width:35px;text-align:center;border:none;box-shadow:none" readonly /> characters left.</span>
                 </font><br>

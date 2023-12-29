@@ -5,19 +5,27 @@ include_once("dbconst.class.php");
 class ContributionLedgerDetailed
 {
 	public $m_dbConn;
+	public $landLordDB;
 	public $obj_genbill;
 	public $obj_FetchData;
 	public $checkZero = array();
 	
-	function __construct($dbConn)
+	function __construct($dbConn,$landLordDB)
 	{
 		$this->m_dbConn = $dbConn;
-		$this->obj_genbill = new genbill($this->m_dbConn);
+		$this->landLordDB = $landLordDB;
+		$this->obj_genbill = new genbill($this->m_dbConn, null,$this->landLordDB);
+		// var_dump($this->landLordDB);
 	}
 
 	public function getCollection($societyID,$unitID)
 	{	
 		return  $this->obj_genbill->getCollectionOfDataForContributionLedger_optimize($societyID,'',$unitID,0,true, 0);
+	}
+
+	public function getCollection_res($societyID,$unitID)
+	{	
+		return  $this->obj_genbill->getCollectionOfDataForContributionLedger_optimize_res($societyID,'',$unitID,0,true, 0);
 	}
 	
 	public function startProcess($societyID,$unitID)

@@ -3,7 +3,7 @@
 	{
 		if(!isset($_SESSION)){ session_start(); }
 	}
-	// comment
+	
 	//Roles
 	define('ROLE_SUPER_ADMIN', 'Super Admin');
 	define('ROLE_ADMIN', 'Admin');
@@ -197,6 +197,7 @@
 	
 	//UserProfiles
 	define('PROFILE_HOME', 'home_s.php');
+	define('PROFILE_HOME_RES', 'home_res.php');
 	define('PROFILE_GENERATE_BILL', 'genbill.php');
 	define('PROFILE_CREATE_INVOICE', 'sale_invoice_list.php');
 	define('PROFILE_EDIT_BILL', 'Maintenance_bill.php');
@@ -361,7 +362,7 @@
 	define("LIEN_DELETE","deleted");
 	
 	//Notification WarFile Constant	
-	define("WAR_FILE","W2S");
+	define("WAR_FILE","W2S1");
 	
 	//These settings are for AWS TLS. But not working
 	define("SMTP_Username","AKIAWORPNMPGX76CCAPQ");

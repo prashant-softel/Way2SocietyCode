@@ -274,10 +274,12 @@ class FixedDeposit extends dbop
 			{
 				echo "Coming here?<br>";
 				$LedgerID = $_POST['id'];
+				$FD_ID = $_POST['ref'];
 				$EntryExistsInFDMaster = false; 
 				if($LedgerID <> '0' && $_POST['FD_Name'] <> "")
 				{
-					$sql = "select count(*) as cnt from `fd_master` where LedgerID = '".$_POST['id']."' and  `fdr_no` = '".$_POST['FDR_No']."' ";
+					//echo $sql = "select count(*) as cnt from `fd_master` where LedgerID = '".$_POST['id']."' and  `fdr_no` = '".$_POST['FDR_No']."'";
+					$sql = "select count(*) as cnt from `fd_master` where id = '".$_POST['ref']."'";
 					$data = $this->m_dbConn->select($sql);	
 					
 					if($data[0]['cnt'] > 0)
@@ -348,8 +350,10 @@ class FixedDeposit extends dbop
 				//{				
 					$sqlII = "select  count(*)  as cnt   from  `paymentdetails` where `PaidTo` = '".$LedgerID."'";
 					$resII = $this->m_dbConn->select($sqlII);
-				
-					if($resII[0]['cnt'] == 0)
+					$sqlIII = "SELECT count(*) as cnt1 FROM `assetregister` WHERE `LedgerID` = '".$LedgerID."' and Is_Opening_Balance = 0";
+					$resIII = $this->m_dbConn->select($sqlIII);
+					//echo "Register count" .$resIII[0]['cnt1'];
+					if($resII[0]['cnt'] == 0 &&  $resIII[0]['cnt1']== 0)
 					{
 						$updateAsset = "UPDATE `assetregister` SET `Debit` = '".$_POST['Principal_Amount']."'   WHERE `LedgerID` = '".$LedgerID."' ";
 						

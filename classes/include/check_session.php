@@ -1,5 +1,4 @@
 <?php 
-// comment
 	include_once("dbop.class.php");
 	include_once("../dbconst.class.php");
 	$m_dbConnRoot = new dbop(true);

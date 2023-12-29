@@ -1,7 +1,9 @@
 <?php //include_once "ses_set_ma.php"; ?>
 <?php
 
-include_once("includes/head_s.php");
+	include_once("includes/head_s.php");
+
+
 include_once("classes/mem_car_parking.class.php");
 $m_dbConn = new dbop();
 $landLordDB = new dbop(false, false, false, false, true);
@@ -125,9 +127,12 @@ $obj_mem_car_parking = new mem_car_parking($m_dbConn, $landLordDB);
 					else
 					{
 						echo $_SESSION['owner_name'];
-					?>
-                    	<input type="hidden" name="member_id" value="<?php echo $_REQUEST['ten_id'];?>">
-                    <?php	
+						if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+						?>
+    						<input type="hidden" name="member_id" value="<?php echo $_REQUEST['ten_id'];?>">
+						<?php } else { ?>
+                    				<input type="hidden" name="member_id" value="<?php echo $_REQUEST['mem_id'];?>">
+                    				<?php }
 					}
 				}
 				?>

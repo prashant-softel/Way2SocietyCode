@@ -46,7 +46,15 @@ if(!isset($_SESSION['admin'])){$cls5 = 'active';}else{$cls5 = '';}
 <?php }?>
 
 <ul id="chromemenu" class="top-navigation">
-	<li><a href="../home_s.php?hm" class="<?php echo $cls0;?>">Homepage</a></li>
+	<li>
+    <?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+        <a href="home_res.php"><i class="fa fa-dashboard fa-fw"></i> HOMEPAGE</a>
+        <?php   
+    } else { ?>
+        <a href="home_s.php"><i class="fa fa-dashboard fa-fw"></i> HOMEPAGE</a>
+    <?php
+    } ?>    
+    </li>
     <li><a href="javascript:void(0);" class="<?php echo $cls01;?>" rel="dropmenu0">Permission</a></li>
     <li><a href="javascript:void(0);" class="<?php echo $cls1;?>" rel="dropmenu1">All Master</a></li>
     <li><a href="javascript:void(0);" class="<?php echo $cls11;?>" rel="dropmenu11">Society</a></li>

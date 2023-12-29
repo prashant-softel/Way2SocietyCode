@@ -1,5 +1,6 @@
 <?php	include_once("../classes/include/dbop.class.php"); 
 	include_once("../classes/createvoucher.class.php");
+
 	  $validator = " ";
 	  $dbConn = new dbop();
 	  $landLordDB = new dbop(false,false,false,false,true);	

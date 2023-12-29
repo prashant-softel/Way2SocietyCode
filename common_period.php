@@ -13,6 +13,8 @@ include_once("includes/head_s.php");
 include_once("classes/home_s.class.php"); 
 include_once("classes/utility.class.php");
 include_once "classes/dbconst.class.php";
+include_once("classes/initialize.class.php");
+
 ?>
 <?php
  // Turn off all error reporting
@@ -21,6 +23,7 @@ include_once "classes/dbconst.class.php";
 
 $obj_AdminPanel = new CAdminPanel($m_dbConn);
 $obj_Utility = new utility($m_dbConn);
+$obj_initialize = new initialize($m_dbConnRoot);
 /*if($_REQUEST["bankid"] == "")
 {
 	echo "<script>alert('Error ! Please pass LedgerID to generate Report');</script>";
@@ -74,6 +77,31 @@ $CurrentYearEndingDate = getDisplayFormatDate($_SESSION['default_year_end_date']
         })});
     </script>
 
+
+<script>
+$(document).ready(function(){
+	var socID = '<?php echo $_SESSION['landLordSocID']; ?>' ;
+	if(socID) {
+		document.getElementById('mapid').value = socID;
+	}
+//console.log("demo3");
+});
+
+function selectDB(){
+		let dbname = document.getElementById('mapid').value;
+		console.log(dbname);
+		$.ajax({
+		url: "process/list_member.process.php",
+		type:"POST",
+		data: {'selSocID':dbname},
+		success: function(data)
+		{
+			location.reload();
+		}
+	});
+	}
+
+</script>
 </head>
 
 <body>
@@ -121,7 +149,10 @@ $CurrentYearEndingDate = getDisplayFormatDate($_SESSION['default_year_end_date']
 			{
 				echo "Investment Register Report";
 			}
-			
+			elseif(isset($_GET["tenantdues"]))
+			{
+				echo "Dues From Tenant Regular Report";
+			}
 	?>
    
     
@@ -165,7 +196,7 @@ if(isset($_GET['temp']))
 	   $CategoryID = $arParentDetails['category'];
 	   if(isset($_GET["cashflow"]))
 	   {
-	   if($CategoryID == CASH_ACCOUNT)
+	   if($CategoryID == CASH_ACCOUNT || $CategoryID ==BANK_ACCOUNT)
 	   {
 	?>    	
     <option value="<?php echo $arvalue["LedgerID"]; ?>"> <?php echo $BankName; ?> </option>
@@ -192,8 +223,23 @@ if(isset($_GET['temp']))
     $('#show').fadeOut(4000);
     </script>	
    <?php } 
+   if(isset($_GET["tenantdues"]))
+   {
+	   if($_SESSION['res_flag'] == 1){?>
+   <tr > 
+   <td>Select Landlords : </td>
+	  <td>
+		<select id="mapid" name="mapid" style="width:142px;" onChange= "selectDB(this.value);" value="<?php echo $_REQUEST['mapid']; ?>">
+			<?php  echo $mapList = $obj_initialize->combobox("Select societytbl.society_id, concat_ws(' - ',societytbl.society_id, societytbl.society_name) from mapping as maptbl JOIN society as societytbl ON maptbl.society_id = societytbl.society_id JOIN dbname as db ON db.society_id = societytbl.society_id WHERE maptbl.login_id = '" . $_SESSION['login_id'] . "' and societytbl.rental_flag = 1 and societytbl.status = 'Y' and maptbl.status = '2' ORDER BY societytbl.society_name ASC ", $_SESSION['current_mapping']);?>		
+			<input type="hidden" name="mode" value="set" />
+		</select>
+        </td>
+        </tr>  
+	<?php 
+	   }
+	}
    if(!isset($_GET["bankreco"]) || !isset($_GET["duesadvance"]))
-			{
+	{
 				//echo "abc";?>
              
 <tr id="from_date1">        				
@@ -272,7 +318,7 @@ if(isset($_GET['temp']))
 }?>
 <tr><td>&nbsp;&nbsp;</td></tr>
 <?php
-if(isset($_GET['duesadvance']) || isset($_GET['memberdues']) )
+if(isset($_GET['duesadvance']) || isset($_GET['memberdues']) ||isset($_GET['tenantdues']))
      {
 		 //echo "test";
 		 ?>
@@ -330,6 +376,19 @@ if(isset($_GET['duesadvance']) || isset($_GET['memberdues']) )
 			{
 			?>
             <input type="submit" name="insert" id="insert" value="Generate Report" onClick="report_main.action='memberdues_regularreport.php?&sid=<?php echo $_SESSION['society_id']; ?> '"  class="btn btn-primary"    style="color:#FFF;  box-shadow:none;border-radius: 5px; width:150px; height:30px;background-color: #337ab7;border-color: #2e6da4; ">
+            <?php
+			}
+			elseif(isset($_GET["tenantdues"]))
+			{ 
+				if($_SESSION['res_flag'] == 1){
+					$society_id = $_SESSION['landLordSocID'];
+				}
+				else
+				{
+					$society_id = $_SESSION['society_id'];
+				}
+			?>
+            <input type="submit" name="insert" id="insert" value="Generate Report" onClick="report_main.action='tenantdues_regularreport.php?&sid=<?php echo $society_id ; ?> '"  class="btn btn-primary"    style="color:#FFF;  box-shadow:none;border-radius: 5px; width:150px; height:30px;background-color: #337ab7;border-color: #2e6da4; ">
             <?php
 			}
 			elseif(isset($_GET["sinkingfund"]))

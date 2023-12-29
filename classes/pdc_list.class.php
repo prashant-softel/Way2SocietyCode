@@ -11,22 +11,25 @@ include_once("activate_user_email.class.php");
 $dbConn = new dbop();
 $dbConnRoot = new dbop(true);
 $landLordDB = new dbop(false,false,false,false,true);
+$landLordDBRoot = new dbop(false,false,false,false,false,true);
 class pdc_list
 {
 	public $actionPage = "../pdc_list.php";
 	public $m_dbConn;
 	public $m_dbConnRoot;
 	public $landLordDB;
+	public $landLordDBRoot;
 	public $obj_ChequeDetails;
 	public $obj_utility;
 	public $isLandLordDB;
 
-	function __construct($dbConn, $dbConnRoot, $landLordDB)
+	function __construct($dbConn, $dbConnRoot, $landLordDB, $landLordDBRoot)
 	{
 		$this->m_dbConn = $dbConn;
 		$this->m_dbConnRoot = $dbConnRoot;
 		$dbopRoot = new dbop(true);
 		$this->landLordDB = $landLordDB;
+		$this->landLordDBRoot = $landLordDBRoot;
 		$this->obj_ChequeDetails=new ChequeDetails($this->m_dbConn, $this->landLordDB);
 
 		$this->m_register = new regiser($dbConn);
@@ -53,12 +56,14 @@ class pdc_list
     	return $flatten;
 	}
 
-    public function chequeDetails()
+    public function chequeDetails($from,$to,$transtype)
 	{
+		$fromDate = getDBFormatDate($from);
+		$toDate = getDBFormatDate($to);
 		//echo "test";
 		//$society_id = $_SESSION['landLordSocID'];
 		if($this->isLandLordDB){
-		$sql1 = "SELECT * FROM society as s,tenant_module as tm,unit as u,wing as w,postdated_cheque as p where tm.tenant_id = p.tenant_id and tm.unit_id=u.unit_id and u.wing_id=w.wing_id and tm.status='Y' ";
+		$sql1 = "SELECT * FROM society as s,tenant_module as tm,unit as u,wing as w,postdated_cheque as p where tm.tenant_id = p.tenant_id and tm.unit_id=u.unit_id and u.wing_id=w.wing_id and tm.status='Y'";
 
 			//echo $sql1;
 			if(isset($_SESSION['admin']) || isset($_SESSION['sadmin']))
@@ -99,7 +104,10 @@ class pdc_list
 			{
 				$sql1 .= " and tm.tenant_name like '%".addslashes($_REQUEST['tenant_name'])."%'";
 			}
-			
+			if($_REQUEST['pdc_id'] <>"")
+			{
+				$sql1 .= " and p.pdc_id like '%".($_REQUEST['pdc_id'])."%'";
+			}
 			if($_REQUEST['bank_name'] <>"")
 			{
 				$sql1 .= " and p.bank_name like '%".($_REQUEST['bank_name'])."%'";
@@ -123,15 +131,27 @@ class pdc_list
 			}
             if($_REQUEST['remark'] <>"")
 			{
-				echo $sql1 .= " and p.remark like '%".($_REQUEST['remark'])."%'";
+				$sql1 .= " and p.remark like '%".($_REQUEST['remark'])."%'";
 			}
 			if($_REQUEST['type'] <>"")
 			{
-				echo $sql1 .= " and p.type like '%".($_REQUEST['type'])."%'";
+				$sql1 .= " and p.type like '%".($_REQUEST['type'])."%'";
 			}
 			if($_REQUEST['status'] <>"")
 			{
-				echo $sql1 .= " and p.status like '%".($_REQUEST['status'])."%'";
+				$sql1 .= " and p.status like '%".($_REQUEST['status'])."%'";
+			}
+			if($_REQUEST['mode_of_payment'] <>"")
+			{
+				$sql1 .= " and p.mode_of_payment like '%".($_REQUEST['mode_of_payment'])."%'";
+			}
+			if($_REQUEST['from_date'] <>"")
+			{
+				if($transtype == 0){
+					$sql1 .= "and p.cheque_date between '".$fromDate."' and '".$toDate."'";
+				}else{
+					$sql1 .= " and p.cheque_date between '".$fromDate."' and '".$toDate."' and p.status = '".$transtype."'";
+				}
 			}
 			$sql1 .= " order by wing,u.sort_order";
 			
@@ -190,7 +210,6 @@ class pdc_list
 			{
 				$sql1 .= " and p.bank_branch like '%".($_REQUEST['bank_branch'])."%'";
 			}
-			
 			if($_REQUEST['cheque_no'] <>"")
 			{
 				$sql1 .= " and p.cheque_no like '%".($_REQUEST['cheque_no'])."%'";
@@ -205,15 +224,27 @@ class pdc_list
 			}
             if($_REQUEST['remark'] <>"")
 			{
-				echo $sql1 .= " and p.remark like '%".($_REQUEST['remark'])."%'";
+				$sql1 .= " and p.remark like '%".($_REQUEST['remark'])."%'";
 			}
 			if($_REQUEST['type'] <>"")
 			{
-				echo $sql1 .= " and p.type like '%".($_REQUEST['type'])."%'";
+				$sql1 .= " and p.type like '%".($_REQUEST['type'])."%'";
 			}
 			if($_REQUEST['status'] <>"")
 			{
-				echo $sql1 .= " and p.status like '%".($_REQUEST['status'])."%'";
+				$sql1 .= " and p.status like '%".($_REQUEST['status'])."%'";
+			}
+			if($_REQUEST['mode_of_payment'] <>"")
+			{
+				$sql1 .= " and p.mode_of_payment like '%".($_REQUEST['mode_of_payment'])."%'";
+			}
+			if($_REQUEST['from_date'] <>"")
+			{
+				if($transtype == 0){
+					$sql1 .= "and p.cheque_date between '".$fromDate."' and '".$toDate."'";
+				}else{
+					$sql1 .= " and p.cheque_date between '".$fromDate."' and '".$toDate."' and p.status = '".$transtype."'";
+				}
 			}
 			$sql1 .= " order by wing,u.sort_order";
 			
@@ -225,95 +256,99 @@ class pdc_list
 
     public function show_chequeDetails($res)
 	{
-		if($res<>"")
-		{
-			if(!isset($_REQUEST['page']))
+			if($res<>"")
 			{
-				$_REQUEST['page'] = 1;
-			}
-			$iCounter = 1 + (($_REQUEST['page'] - 1) * 50);
-			$UnitArray = $this->getAllUnits();
+				if(!isset($_REQUEST['page']))
+				{
+					$_REQUEST['page'] = 1;
+				}
+				$iCounter = 1 + (($_REQUEST['page'] - 1) * 50);
+				$UnitArray = $this->getAllUnits();
+				
+				$EncodeUnitArray;
+				$EncodeUrl;
+				if(sizeof($UnitArray) > 0)
+				{
+					$EncodeUnitArray = json_encode($UnitArray);
+					$EncodeUrl = urlencode($EncodeUnitArray);
+				}
+				?>
+				<input type="hidden" id="data_arr" name="data_arr" value="" >
+				<table id="example" class="display" cellspacing="0" style="width:100%">
+				<thead>
+				<tr>
+				<th></th>
+				<th width="50">Sr No.</th>
+				<th width="70">Wing</th>
+				<th width="60">Unit No.</th>
+				<th width="100">Tenant Name</th>
+				<th width="100">Bank Name</th>
+				<th width="100">Cheque No</th>
+				<th width="100">Cheque Date</th>
+				<th width="70">Amount</th>
+				<th width="80">Remark</th>
+				<th width="40">Cheque Type</th>
+				<th width="40">Mode Of Payment</th>
+				<th width="30">Status</th>
+				<!-- <th width="80">Status</th> -->
+				<!-- <?php if(IsReadonlyPage() == false && ($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN ||$_SESSION['role'] == ROLE_MANAGER || $_SESSION['role']==ROLE_ACCOUNTANT )){?>
+				<th width="50">Edit</th> -->
 			
-			$EncodeUnitArray;
-			$EncodeUrl;
-			if(sizeof($UnitArray) > 0)
+				<?php } ?>
+			</tr>
+			</thead>
+			<tbody>
+			<?php 
+				foreach($res as $k => $v)
+				{ 
+					//  echo "ID" .$res[$k]['unit_no'];
+					//  echo "ID" .$res[$k]['tenant_id']; 
+					$status = $res[$k]['status'];
+					if($status == 1){
+						$status = "Accepted";
+					}elseif($status == 2){
+						$status = "Deposited";
+					}elseif($status == 3){
+						$status = "Replaced";
+					}elseif($status == 4){
+						$status = "Cancelled";
+					}
+					?>
+				<tr height="25" bgcolor="#BDD8F4" align="center" id="tr_<?php echo $res[$k]['ledger_id']; ?>">
+					<td><input type="checkbox" class="chk_select" id="chk_<?php echo $k?>" onClick='depositCheque("<?php echo $res[$k]['pdc_id']?>","<?php echo $res[$k]['tenant_id']?>","<?php echo $res[$k]['ledger_id']?>","<?php echo $res[$k]['security_id']?>","<?php echo $res[$k]['wing']?>","<?php echo $res[$k]['unit_id']?>","<?php echo $res[$k]['tenant_name']?>","<?php echo $res[$k]['bank_name']?>","<?php echo $res[$k]['bank_branch']?>","<?php echo $res[$k]['cheque_no']?>","<?php echo getDisplayFormatDate($res[$k]['cheque_date'])?>","<?php echo $res[$k]['amount']?>","<?php echo $res[$k]['remark']?>","<?php echo $res[$k]['type']?>","<?php echo $res[$k]['mode_of_payment']?>","<?php echo $k?>",this);'<?php if($status == "Deposited" || $status == "Cancelled"){echo 'disabled';}else{}?>/></td>
+					<td align="center"><?php echo $iCounter++;?></td>
+					<td align="center" id = "wing_id"><?php echo $res[$k]['wing'];?></td>
+					<td align="center" id = "unit_no"><?php echo $res[$k]['unit_no'];?></td>
+					<td align="center" id = "tenant_name"><?php echo $res[$k]['tenant_name'];?></td>
+					<td align="center" id = "bank_name"><?php echo $res[$k]['bank_name'];?></td>
+					<td align="center" id = "cheque_no"><?php echo $res[$k]['cheque_no'];?></td>
+					<td align="center" id = "cheque_date"><?php echo getDisplayFormatDate($res[$k]['cheque_date']);?></td>
+					<td align="center" id = "amount"><?php echo $res[$k]['amount'];?></td>
+					<td align="center" id = "remark"><?php echo $res[$k]['remark'];?> </td> 
+					<td align="center" id = "type"><?php echo $res[$k]['type']; ?> </td>
+					<td align="center" id = "payment_mode"><?php echo $res[$k]['mode_of_payment']; ?> </td>
+					<td align="center" id = "status"><?php echo $status; ?> </td>
+				</tr>
+				<?php }?>
+				</tbody>
+				</table>
+				<?php	
+				}
+			else
 			{
-				$EncodeUnitArray = json_encode($UnitArray);
-				$EncodeUrl = urlencode($EncodeUnitArray);
+				?>
+				<table align="center" border="0">
+				<tr>
+					<td><font color="#FF0000" size="2"><b>No records for PDC</b></font></td>
+				</tr>
+				</table>
+				<?php	
 			}
-			?>
-			<input type="hidden" id="data_arr" name="data_arr" value="" >
-        <table id="example" class="display" cellspacing="0" style="width:100%">
-		<thead>
-        <tr>
-			<th></th>
-        	<th width="50">Sr No.</th>
-        	<th width="70">Wing</th>
-            <th width="60">Unit No.</th>
-            <th width="100">Tenant Name</th>
-            <th width="100">Bank Name</th>
-			<th width="100">Cheque No</th>
-        	<th width="100">Cheque Date</th>
-            <th width="70">Amount</th>
-            <th width="80">Remark</th>
-			<th width="40">Cheque Type</th>
-			<th width="30">Status</th>
-            <!-- <th width="80">Status</th> -->
-			<!-- <?php if(IsReadonlyPage() == false && ($_SESSION['role'] == ROLE_SUPER_ADMIN || $_SESSION['role'] == ROLE_ADMIN ||$_SESSION['role'] == ROLE_MANAGER || $_SESSION['role']==ROLE_ACCOUNTANT )){?>
-            <th width="50">Edit</th> -->
-           
-            <?php } ?>
-        </tr>
-		</thead>
-		<tbody>
-        <?php 
-		foreach($res as $k => $v)
-		{ 
-			//  echo "ID" .$res[$k]['unit_no'];
-			//  echo "ID" .$res[$k]['tenant_id']; 
-			$status = $res[$k]['status'];
-			if($status == 0){
-                $status = "Accepted";
-            }elseif($status == 1){
-                $status = "Deposited";
-            }else{
-                $status = "Cancelled or Replaced";
-            }
-			?>
-        <tr height="25" bgcolor="#BDD8F4" align="center" id="tr_<?php echo $res[$k]['ledger_id']; ?>">
-            <td><input type="checkbox" class="chk_select" id="chk_<?php echo $k?>" onClick='depositCheque("<?php echo $res[$k]['tenant_id']?>","<?php echo $res[$k]['ledger_id']?>","<?php echo $res[$k]['security_id']?>","<?php echo $res[$k]['wing']?>","<?php echo $res[$k]['unit_id']?>","<?php echo $res[$k]['tenant_name']?>","<?php echo $res[$k]['bank_name']?>","<?php echo $res[$k]['bank_branch']?>","<?php echo $res[$k]['cheque_no']?>","<?php echo getDisplayFormatDate($res[$k]['cheque_date'])?>","<?php echo $res[$k]['amount']?>","<?php echo $res[$k]['remark']?>","<?php echo $res[$k]['type']?>",this);'/></td>
-        	<td align="center"><?php echo $iCounter++;?></td>
-        	<td align="center" id = "wing_id"><?php echo $res[$k]['wing'];?></td>
-            <td align="center" id = "unit_no"><?php echo $res[$k]['unit_no'];?></td>
-            <td align="center" id = "tenant_name"><?php echo $res[$k]['tenant_name'];?></td>
-			<td align="center" id = "bank_name"><?php echo $res[$k]['bank_name'];?></td>
-        	<td align="center" id = "cheque_no"><?php echo $res[$k]['cheque_no'];?></td>
-            <td align="center" id = "cheque_date"><?php echo getDisplayFormatDate($res[$k]['cheque_date']);?></td>
-            <td align="center" id = "amount"><?php echo $res[$k]['amount'];?></td>
-            <td align="center" id = "remark"><?php echo $res[$k]['remark'];?> </td> 
-			<td align="center" id = "type"><?php echo $res[$k]['type']; ?> </td>
-			<td align="center" id = "status"><?php echo $status; ?> </td>
-        </tr>
-        <?php }?>
-		</tbody>
-        </table>
-        <?php	
-		}
-		else
-		{
-			?>
-            <table align="center" border="0">
-            <tr>
-            	<td><font color="#FF0000" size="2"><b>No records for PDC</b></font></td>
-            </tr>
-            </table>
-            <?php	
-		}
 	}
 
 	public function insertData($data){
 		// echo "test2";
-		if($this->isLandLordDB){
+		if($_SESSION['res_flag'] == 1){
 			// echo "test";
 			$ChequeLeafBook=array();
 			$dataid=0;
@@ -321,8 +356,14 @@ class pdc_list
 	
 			$banksSQL = "SELECT ledger.id AS BankID, ledger.ledger_name as BankName FROM ledger JOIN bank_master ON ledger.id = bank_master.BankID";
 			$banks = $this->landLordDB->select($banksSQL);
-			$bankID= $_SESSION['default_bank_id'];
-			echo "ID: " .$bankID;
+
+			$sql = "SELECT bank_id, cash_id from landlords where society_id = '".$_SESSION['landLordSocID']."'";
+			$res = $this->landLordDBRoot->select($sql);
+			$bankID = $res[0]['bank_id'];
+			$cashID = $res[0]['cash_id'];
+			// $bankID= $_SESSION['default_bank_id'];
+			// echo "ID: " .$bankID;
+			// echo "ID: " .$cashID;
 			$bankNames = array();
 	
 			$Counter = $this->obj_utility->GetCounter(VOUCHER_RECEIPT, $bankID,false);
@@ -338,6 +379,7 @@ class pdc_list
 			// echo "<pre>";
 			// print_r($data);
 			// echo "</pre>";
+			$paymentType = 0;
 			$desc = 'DATA IMPORTED'.date('Y-m-d H:i:sa');
 			$queryII = "select `society_creation_yearid` FROM `society` where `society_id` = '".$_SESSION['landLordSocID']."'";
 			$resII = $this->landLordDB->select($queryII);
@@ -360,16 +402,41 @@ class pdc_list
 				$bank_branch = $data[$k]['bank_branch'];
 				$remark = $data[$k]['remark'];
 				$type = $data[$k]['cheque_type'];
-				
+				$mode = $data[$k]['mode'];
+				$pdc_id = $data[$k]['pdc_id'];
+				// echo $pdc_id;
 				if($type == 'Security Deposit'){
-					$sql = "update postdated_cheque set status = 1 where tenant_id = '".$tenant_id."' and type = '".$type."' and cheque_no = '".$cheque_no."'";
-					$res = $this->landLordDB->update($sql); 
-					$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$security_id,$bankID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0);	
+					$paymentType = 1;
+					if($security_id <> 0){
+						$sql = "update postdated_cheque set status = 2 where tenant_id = '".$tenant_id."' and type = '".$type."' and pdc_id = '".$pdc_id."'";
+						$res = $this->landLordDB->update($sql); 
+						if($mode == "Cheque" || $mode == "Online_Transaction"){
+							$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$security_id,$bankID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0,$paymentType);	
+						}else{
+							$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$security_id,$cashID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0,$paymentType);	
+						}
+						return true;
+					}else{
+						return false;
+					}
+					
+					
 				}
 				else{
-					$sql = "update postdated_cheque set status = 1 where tenant_id = '".$tenant_id."' and type = '".$type."' and cheque_no = '".$cheque_no."'";
-					$res = $this->landLordDB->update($sql); 
-					$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$ledger_id,$bankID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0);	
+					if($ledger_id <> 0){
+						$sql = "update postdated_cheque set status = 2 where tenant_id = '".$tenant_id."' and type = '".$type."' and pdc_id = '".$pdc_id."'";
+						$res = $this->landLordDB->update($sql); 
+						if($mode == "Cheque" || $mode == "Online_Transaction"){
+							$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$ledger_id,$bankID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0,$paymentType);	
+						}else{
+							$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$ledger_id,$cashID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0,$paymentType);	
+						}
+						return true;
+					}else{
+						return false;
+					}
+					
+					
 				}
 				// $ErrorLog = $obj_pdc_list->errorLog;
 				// echo $wing;
@@ -383,7 +450,11 @@ class pdc_list
 
 			$banksSQL = "SELECT ledger.id AS BankID, ledger.ledger_name as BankName FROM ledger JOIN bank_master ON ledger.id = bank_master.BankID";
 			$banks = $this->m_dbConn->select($banksSQL);
-			$bankID= $_SESSION['default_bank_id'];
+			$sql = "SELECT bank_id, cash_id from landlords where society_id = '".$_SESSION['society_id']."'";
+			$res = $this->landLordDBRoot->select($sql);
+			$bankID = $res[0]['bank_id'];
+			$cashID = $res[0]['cash_id'];
+			// $bankID= $_SESSION['default_bank_id'];
 			$bankNames = array();
 
 			$Counter = $this->obj_utility->GetCounter(VOUCHER_RECEIPT, $bankID,false);
@@ -421,16 +492,39 @@ class pdc_list
 				$bank_branch = $data[$k]['bank_branch'];
 				$remark = $data[$k]['remark'];
 				$type = $data[$k]['cheque_type'];
+				$mode = $data[$k]['mode'];
+				$pdc_id = $data[$k]['pdc_id'];
 				
 				if($type == 'Security Deposit'){
-					$sql = "update postdated_cheque set status = 1 where tenant_id = '".$tenant_id."' and type = '".$type."' and cheque_no = '".$cheque_no."'";
-					$res = $this->m_dbConn->update($sql); 
-					$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$security_id,$bankID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0);	
+					$paymentType = 1;
+					if($security_id <> 0){
+						$sql = "update postdated_cheque set status = 2 where tenant_id = '".$tenant_id."' and type = '".$type."' and pdc_id = '".$pdc_id."'";
+						$res = $this->m_dbConn->update($sql);
+						if($mode == "Cheque" || $mode == "Online_Transaction"){
+							$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$security_id,$bankID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0,$paymentType);
+						}else{
+							$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$security_id,$cashID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0,$paymentType);	
+						}
+						return true;
+					}else{
+						return false;
+					}
+						
 				}
 				else{
-					$sql = "update postdated_cheque set status = 1 where tenant_id = '".$tenant_id."' and type = '".$type."' and cheque_no = '".$cheque_no."'";
-					$res = $this->m_dbConn->update($sql); 
-					$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$ledger_id,$bankID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0);	
+					if($ledger_id <> 0){
+						$sql = "update postdated_cheque set status = 2 where tenant_id = '".$tenant_id."' and type = '".$type."' and pdc_id = '".$pdc_id."'";
+						$res = $this->m_dbConn->update($sql); 
+						if($mode == "Cheque" || $mode == "Online_Transaction"){
+							$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$ledger_id,$bankID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0,$paymentType);
+						}else{
+							$this->obj_ChequeDetails->AddNewValues3($voucherDate,$cheque_date,$cheque_no,$vNo,$systemVoucherNo,1,$amount,$ledger_id,$cashID,$bank_name,$bank_branch,$DepositeID,$remark,2,0,0,0,0,0,false,'',0,0,0,$paymentType);	
+						}
+						return true;
+					}else{
+						return false;
+					}
+					
 				}
 				// $ErrorLog = $obj_pdc_list->errorLog;
 				// echo $wing;
@@ -440,77 +534,3 @@ class pdc_list
 
 }
 ?>
-<script>
-	// $(document).on('click', '.chk_select', function() {
-
-	// ($('.chk_select:checked').length == 0) ? $('.multiDeleteDiv').hide(): $('.multiDeleteDiv').show();
-	// });
-
-	// $(document).on('click', '.chk_select_all', function() {
-
-	// if ($('.chk_select_all').is(':checked')) {
-	// 	//console.log("test");
-	// 	$('.chk_select').prop('checked', true);
-	// 	let count = $('.chk_select:checked').length;
-	// 	//console.log(count);
-	// 	$('.multiDeleteDiv').show();
-	// } else {
-	// 	$('.chk_select').prop('checked', false);
-	// 	$('.multiDeleteDiv').hide();
-	// }
-	// });
-
-	var Data_arr = [];
-	function depositCheque(tid,lid,sid,wid,uid,tname,bname,branch,cheq_no,cheq_date,amount,remark,ctype){
-		// console.log("wid" +wid+"uid" +uid+"tname " +tname);
-		if($('.chk_select:checked')){
-			Data_arr.push({"tenant_id":tid, "ledger_id":lid, "security_id":sid, "wing_id":wid, "unit_id":uid, "tenant_name":tname, "bank_name":bname,"bank_branch":branch, "cheque_no":cheq_no, "cheque_date":cheq_date, "amount":amount, "remark":remark, "cheque_type":ctype});
-			console.log(Data_arr);
-		}
-		else{
-			var value = ({"tenant_id":tid, "ledger_id":lid, "security_id":sid, "wing_id":wid, "unit_id":uid, "tenant_name":tname, "bank_name":bname, "cheque_no":cheq_no, "cheque_date":cheq_date, "amount":amount, "remark":remark, "cheque_type":ctype});
-			index = Data_arr.findIndex(x => x.Cnt === cnt);
-			console.log("id " +index);
-		}
-		GetButtonAction();
-	}
-	function GetButtonAction()
-	{  
-		var freezYear = '<?php echo $_SESSION['is_year_freeze']?>' ;
-		if(freezYear == 0)
-		{
-			if(Data_arr.length > 0)
-			{
-				document.getElementById("chequeDeposit").disabled=false;
-				document.getElementById("chequeDeposit").style.backgroundColor='#337ab7';
-			}
-			else
-			{
-				document.getElementById("chequeDeposit").style.backgroundColor='#337ab77a';
-				document.getElementById("chequeDeposit").disabled=true;
-			}
-		}
-		else
-		{
-			document.getElementById("chequeDeposit").style.backgroundColor='#337ab77a';
-			document.getElementById("chequeDeposit").disabled=true;
-		}
-	}
-
-	function sendData(){
-		// console.log("clicked");
-		// let details = JSON.stringify(Data_arr);
-		// console.log(details);
-		$.ajax({
-		url: "process/pdc_list.process.php",
-		type:"POST",
-		data: {'chequeData': Data_arr},
-		success: function(data)
-		{
-			alert("Success");
-			location.reload();
-		}
-	});	
-	}
-
-</script>

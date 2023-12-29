@@ -17,7 +17,7 @@ $landLordDB = new dbop(false,false,false,false,true);
 		public $landLordDB;
 		public $isLandLordDB;
 		
-		function __construct($dbConn, $dbConnRoot = "", $landLordDB)
+		function __construct($dbConn, $dbConnRoot = "", $landLordDB = "")
 		{
 			$this->m_dbConn = $dbConn;
 			$this->m_dbConnRoot = $dbConnRoot;
@@ -30,7 +30,20 @@ $landLordDB = new dbop(false,false,false,false,true);
 		
 		function setLog($desc, $changedBy, $changedTable, $changedKey, $Changed_Mode = "", $LastChangeId = 0)
 		{
-			if($this->isLandLordDB){
+			$logID = 0;
+
+			$currentTimeStamp = getCurrentTimeStamp(); 
+			
+			$sqlLog = "INSERT INTO `change_log`(`ChangedLogDec`, `ChangedBy`, `ChangedTable`, `ChangedKey`, `Changed_Mode`, `LastChangeId`, `ChangeTS`) VALUES ('" . $this->m_dbConn->escapeString($desc) . "', '" . $this->m_dbConn->escapeString($changedBy) . "', '" . $this->m_dbConn->escapeString($changedTable) . "', '" . $this->m_dbConn->escapeString($changedKey) . "', '" . $this->m_dbConn->escapeString($Changed_Mode) . "', '" . $this->m_dbConn->escapeString($LastChangeId) . "', '". $currentTimeStamp['DateTime']."')";
+			
+			$logID = $this->m_dbConn->insert($sqlLog);
+			
+			return $logID;
+		}
+
+		function setLog_pdc($desc, $changedBy, $changedTable, $changedKey, $Changed_Mode = "", $LastChangeId = 0)
+		{
+			if($_SESSION['res_flag'] == 1){
 				$logID = 0;
 
 				$currentTimeStamp = getCurrentTimeStamp(); 

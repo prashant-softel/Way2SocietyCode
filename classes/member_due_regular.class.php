@@ -6,14 +6,16 @@ class memberDuesRegular extends dbop
 {
 	public $m_dbConn;
 	public $m_dbConnRoot;
+	public $m_landlord;
 	public $obj_utility;
 	public $ShowDebugTrace;
 	private $testUnitID;
 	
-	function __construct($dbConn,$dbConnRoot)
+	function __construct($dbConn,$dbConnRoot,$landlord ="")
 	{
 		$this->m_dbConn = $dbConn;
 		$this->m_dbConnRoot= $dbConnRoot;
+		$this->m_landlord= $landlord;
 		$this->obj_utility = new utility($this->m_dbConn);
 		$this->ShowDebugTrace = 0;
 		$this->testUnitID = 52; //set to unit id you want to debug
@@ -99,7 +101,7 @@ class memberDuesRegular extends dbop
 		$today = date("Y-m-d");
 		$calulatedAmount = array();
 		$calulatedTotalAmount = array();
-		$sql = "SELECT VoucherDate,ChequeDate,ChequeNumber,sum(Amount) as 'Amount',PaidBy,IsReturn from `chequeentrydetails` where  PaidBy=".$uid." and IsReturn=0 and VoucherDate  between '".$billdate."' and '".$dateTo."' ";
+		$sql = "SELECT VoucherDate,ChequeDate,ChequeNumber,sum(Amount) as 'Amount',PaidBy,IsReturn from `chequeentrydetails` where  PaidBy=".$uid." and IsReturn=0 and VoucherDate  between '".$billdate."' and '".$dateTo."' and BillTYpe='".$BillType."'";
 		$res = $this->m_dbConn->select($sql);
 /*
 		if($uid == $testUnitID && $this->ShowDebugTrace = 1)
@@ -122,7 +124,7 @@ class memberDuesRegular extends dbop
 		$debitAmount = $debitNoteDetails[0]['Amount'];
 		
 		
-	   $sql2="Select MAX(ChequeDate) as ChequeDate, MAX(VoucherDate) as VoucherDate from chequeentrydetails where PaidBy='".$uid."' and VoucherDate <= '".$dateTo."'";
+	 	$sql2="Select MAX(ChequeDate) as ChequeDate, MAX(VoucherDate) as VoucherDate from chequeentrydetails where PaidBy='".$uid."' and VoucherDate <= '".$dateTo."' and BillType='".$BillType."'";
 		$res2 = $this->m_dbConn->select($sql2);
 	 
 		 $date=$res2[0]['ChequeDate'];
@@ -142,8 +144,17 @@ class memberDuesRegular extends dbop
 			$date = DateTime::createFromFormat('m-d-Y', $lockeDate);
 			$date = $date->format('Y-m-d');
 			//echo $date;
-			$days = $this->obj_utility->getDateDiff($dateTo, $date);
-			//echo 
+			if($billdate <> '')
+			{
+				$days = $this->obj_utility->getDateDiff($dateTo, $billdate);
+
+			}
+			else
+			{
+				$days = $this->obj_utility->getDateDiff($dateTo, $date);
+
+			}
+						//echo 
 			if($days > 0)
 			{
 				$days;
@@ -254,6 +265,108 @@ class memberDuesRegular extends dbop
 		$result = $this->m_dbConnRoot->select($selectTemplate); 
 		return $result;
 	}
+	
+	public function getTenantDuesRegular($dues, $wing,$to,$BillType,$rental=false)
+	{
+		//$TenantIDS = $this->getTenantIDs(getDBFormatDate($to));
+		
+		$wingsCollection = array();
+		$result = array();
+	
+		//$sql = "SELECT tenant_id,ledger_id,unit_id,tenant_name,create_date FROM `tenant_module`";
+		$sql = "SELECT tm.tenant_id,tm.ledger_id,tm.unit_id,tm.email,tm.tenant_name,u.unit_no,w.wing  FROM tenant_module as tm,unit as u,wing as w where tm.unit_id=u.unit_id and u.wing_id=w.wing_id and tm.status='Y' ";
+
+		$sql .= " order by wing,u.sort_order";
+		if($rental == true)
+		{
+			$res =  $this->m_landlord->select($sql);
+		}
+		else
+		{
+			$res = $this->m_dbConn->select($sql);
+		}
+		for($i= 0;$i<sizeof($res); $i++)
+		{
+			$duesAmount = $this->getTenantDueAmount($res[$i]['ledger_id'],getDBFormatDate($to),$rental);
+			//print_r($duesAmount);
+			if($duesAmount[0]['Total'] == "" )
+			{
+				$res[$i]['totaldues']="0";
+			}
+			else
+			{
+				$res[$i]['totaldues']=$duesAmount[0]['Total'];
+
+			}
+			$res[$i]['days']=$duesAmount[0]['days'];
+		}
+		
+		/*$res = $this->m_landlord->select($sql); 
+		
+		$sqlWing = 'SELECT unittbl.unit_id, wingtbl.wing from `unit` as unittbl JOIN `wing` as wingtbl on unittbl.wing_id=wingtbl.wing_id';
+		if($wing <> "")
+		{
+			$sqlWing .= ' WHERE wingtbl.wing = "'.$wing.'"';	
+		}		
+		$wing_details = $this->m_dbConn->select($sqlWing);
+		for($i = 0; $i < sizeof($wing_details); $i++)
+		{			
+			$wingsCollection[$wing_details[$i]['unit_id']] = $wing_details[$i]['wing'];
+		}
+		
+		for($i = 0; $i < sizeof($res); $i++)
+		{
+			if($wingsCollection[$res[$i]['UnitID']] <> "")
+			{
+				$final = array();
+				$final['BillDate'] = $res[$i]['BillDate'];
+				$final['UnitID'] = $res[$i]['UnitID'];
+				$final['UnitNo'] = $res[$i]['unit_no'];
+				$final['Principal'] = $res[$i]['Principal'];
+				$final['Interest'] = $res[$i]['Interest'];
+				$final['GSTTax'] = $res[$i]['GSTTax'];
+				$final['owner_name'] = $res[$i]['owner_name'];
+				$final['member_id'] = $res[$i]['member_id'];
+				$final['Wing'] = $wingsCollection[$res[$i]['UnitID']];
+				array_push($result, $final);				
+			}
+		}*/		
+		
+		return $res;				
+	}
+	public function getTenantDueAmount($unitID, $date,$rental)
+	{
+			
+		 $sql = "SELECT SUM(`Debit`) as Debit , SUM(`Credit`) as Credit, (SUM(Debit) - SUM(Credit)) as Total FROM `assetregister` WHERE `LedgerID` = '".$unitID."'  ";
+		 if($rental == true)
+		{
+			$details=  $this->m_landlord->select($sql);
+		}
+		else
+		{
+			$details = $this->m_dbConn->select($sql);
+		}
+		
+		
+		$sql1 = "SELECT MAX(`date`) as date FROM `assetregister` WHERE `LedgerID` = '".$unitID."'";
+		if($rental == true)
+		{
+			$details1=  $this->m_landlord->select($sql1);
+		}
+		else
+		{
+			$details1 = $this->m_dbConn->select($sql1);
+		}
+		//$details1=$this->m_landlord->select($sql1);
+		$date1=date_create($details1[0]['date']);
+		$date2=date_create($date);
+		$diff=date_diff($date1,$date2);
+		//echo $diff->format("%a");
+		$details[0]['days'] = $diff->format("%a"); 
+		
+		
+		return $details;	
+	}			
 	
 }
 

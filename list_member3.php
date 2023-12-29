@@ -39,6 +39,7 @@ $(document).ready(function(){
 	if(socID) {
 		document.getElementById('mapid').value = socID;
 	}
+//console.log("demo3");
 });
 
 
@@ -221,7 +222,7 @@ if(localStorage.getItem("client_id") != "" && localStorage.getItem("client_id") 
 <div class="panel panel-info" id="panel" style="display:none">
 <?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
 	<div class="panel-heading" id="pageheader">List of Tenants</div>
-<?php }?>
+<?php  }?>
 
 
 <center>
@@ -229,19 +230,26 @@ if(localStorage.getItem("client_id") != "" && localStorage.getItem("client_id") 
 <!--<a href="unit.php?imp&ssid=<?php echo $_SESSION['society_id'];?>&idd=<?php echo time();?>"><input type="button" value="Add Unit"></a>-->
 <?php if($_SESSION['role']==ROLE_SUPER_ADMIN || $_SESSION['profile'][PROFILE_MANAGE_MASTER] == 1) 
 { 
-	if($_SESSION['res_flag'] == 1) {?>
-		<button type="button" class="btn btn-primary" onClick="window.location.href='tenant.php?imp&ssid=<?php echo $_SESSION['society_id'];?>&idd=<?php echo time();?>'" style="float:center;margin-right:2%">Add New Tenant</button>
-		<button type="button" class="btn btn-primary"  onClick="window.open('list_member.php?scm')" style="float:center;margin-right:2%" >Tenant Reports</button>
+	if($_SESSION['res_flag'] == 1) {
+		if($_SESSION['landLordDB'] <> ''){?>
+			<button type="button" class="btn btn-primary" onClick="window.location.href='rentaltenant.php?imp&ssid=<?php echo $_SESSION['society_id'];?>&idd=<?php echo time();?>'" style="float:center;margin-right:2%">Add New Tenant</button>
+			<button type="button" class="btn btn-primary"  onClick="window.open('tenant_ledger_report.php?uid=0&rec=1')" style="float:center;margin-right:2%" >Tenant Reports</button>
+		<?php }else { ?>
+			<button type="button" class="btn btn-primary" disabled onClick="window.location.href='rentaltenant.php?imp&ssid=<?php echo $_SESSION['society_id'];?>&idd=<?php echo time();?>'" style="float:center;margin-right:2%">Add New Tenant</button>
+			<button type="button" class="btn btn-primary"  disabled onClick="window.open('tenant_ledger_report.php?uid=0&rec=1')" style="float:center;margin-right:2%" >Tenant Reports</button>
+		<?php } ?>
 		<br /><br />
-		<label> Landlords: </label>
+		<span style="font-size: 14px; font-style: revert;">
+		<label> Select Landlords: </label>
+	</span>
 		<select id="mapid" name="mapid" style="width:142px;" onChange= "selectDB(this.value);" value="<?php echo $_REQUEST['mapid']; ?>">
 			<?php  echo $mapList = $obj_initialize->combobox("Select societytbl.society_id, concat_ws(' - ',societytbl.society_id, societytbl.society_name) from mapping as maptbl JOIN society as societytbl ON maptbl.society_id = societytbl.society_id JOIN dbname as db ON db.society_id = societytbl.society_id WHERE maptbl.login_id = '" . $_SESSION['login_id'] . "' and societytbl.rental_flag = 1 and societytbl.status = 'Y' and maptbl.status = '2' ORDER BY societytbl.society_name ASC ", $_SESSION['current_mapping']);?>		
 			<input type="hidden" name="mode" value="set" />
 		</select>
 		<?php 
 		} else{?>
-			<button type="button" class="btn btn-primary" onClick="window.location.href='tenant.php?imp&ssid=<?php echo $_SESSION['society_id'];?>&idd=<?php echo time();?>'" style="float:center;margin-right:2%">Add New Tenant</button>
-			<button type="button" class="btn btn-primary"  onClick="window.open('list_member.php?scm')" style="float:center;margin-right:2%" >Tenant Reports</button>
+			<button type="button" class="btn btn-primary" onClick="window.location.href='rentaltenant.php?imp&ssid=<?php echo $_SESSION['society_id'];?>&idd=<?php echo time();?>'" style="float:center;margin-right:2%">Add New Tenant</button>
+			<button type="button" class="btn btn-primary"  onClick="window.open('tenant_ledger_report.php?uid=0')" style="float:center;margin-right:2%" >Tenant Reports</button>
 		<?php
 		}
 }?>
@@ -259,6 +267,7 @@ if(localStorage.getItem("client_id") != "" && localStorage.getItem("client_id") 
 <?php
 echo "<br>";
 echo "<br>";
+
 $str1 = $obj_list_member->pgnationNew3();
 
 ?>

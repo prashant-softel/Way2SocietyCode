@@ -2,7 +2,7 @@
 <head>
 <title>W2S - Service Request Details</title>
 </head>
-<!-- comment -->
+
 <?php 
 include_once("includes/head_s.php"); 
 include_once "classes/include/dbop.class.php";
@@ -19,6 +19,8 @@ $LoginIDQuery = "select `member_id` from `login` where `login_id`='".$_SESSION['
 $loginID = $dbConnRoot->select($LoginIDQuery);
 //$details = $obj_request->getViewDetails($_REQUEST['rq']);
 //
+// echo "debug";
+// echo $_REQUEST['socid'];
 $cnt=0;
 $SREmailIDs = array(); 
 $strSREMailIDs = "";
@@ -86,18 +88,16 @@ if(isset($_REQUEST['rq']))
 <script language="javascript" type="application/javascript">
 	function printTable()
 	{
-		//alert("test23");
-	 // document.getElementById('PrintableTable').style.width='80%';
-	 
-	 //alert("testnew");
+		
 	  var divToPrint=document.getElementById('PrintableDiv');
-	 document.getElementById('society_name').style.display='block';
-	  newWin= window.open("");
-	  newWin.document.write('<br><br><center>' + divToPrint.outerHTML + '</center>');
-	  newWin.print();
-	  newWin.close();
-	  //document.getElementById('PrintableTable').style.width='100%';
-	   document.getElementById('society_name').style.display='none';
+	  console.log(divToPrint);
+	
+	  document.body.innerHTML = divToPrint.outerHTML;
+	  
+	  window.print();
+	
+	location.reload();  
+	 
 	}
 </script>
 <script type="text/javascript" src="lib/jquery-1.7.2.min.js"></script>
@@ -335,8 +335,29 @@ if($details <> "")
         <!--<th style="width:20%;">Photo</th>-->
     </tr>
     <tr>
+    <?php $timestamp = strtotime($details[0]['timestamp']);
+	
+		//$sql = "SELECT `img` FROM `service_request` WHERE `request_id` = '".$_SESSION['unit_id']."' AND `society_id` = '".$_SESSION['society_id']."'";
+		//$result = $this->m_dbConn->select($sql);
+		$CategoryDetails = $obj_request->GetCategoryDetails( $details[0]['category']);
+		//var_dump($CategoryDetails);
+		$MemberName = $obj_request->GetMemberName( $details[0]['category']);
+		
+		$UnitNo = $obj_request->GetUnitNoIfZero( $_REQUEST['rq']);
+		$GotUnitNo = $obj_request->GetUnitNoIfNZero( $_REQUEST['rq']);
+		
+		//echo $details[0]['category'];
+		
+		if($UnitNo[0]['unit_id'] == 0)
+		{
+			$show = " - ";
+		}
+		else
+		{			
+			$show = $GotUnitNo[0]['unit_no'];
+		}
 
-    	
+    	?>
     	<td align="center"><?php echo $_REQUEST['rq'];?></td>
         <!-- <td align="center"><?php echo $show;?></td> -->
         <td align="center"><?php echo $details[0]['raisedDate'];?></td>
@@ -387,15 +408,11 @@ if($details <> "")
  <tr><td>
  <table width="500%"><tr><td  align="left">
      <?php 
-			// echo "debug images";
-			// echo "<pre>";
-			// print_r($image_collection);
-			// echo "</pre>";
-			// exit;
+	// print_r($image_collection);
 			for($i=0;$i<sizeof($image_collection[0]);$i++)
-			{
+		{
 				if(strlen($image_collection[0][$i]) >0 )
-				{
+			{
 		?>
         
 			<a href="upload/main/<?php echo $image_collection[0][$i]?>" class="fancybox"><img  style="    width: 100px; height: 70px;" src="upload/main/<?php echo $image_collection[0][$i]?>" ></a>
@@ -507,6 +524,11 @@ if($details <> "")
 		{?>
 			<tr height="30"><td colspan="3" align="center"><font color="red" style="size:11px;"><b id="error"></b></font></td></tr>
 <?php 	} ?>   
+	<tr>
+		<th style="width:20%;">&nbsp; Changed By</th>
+        <td style="width:10%;">&nbsp; : &nbsp;</td>
+        <td style="width:70%;"><?php echo $_SESSION['name'];?></td>
+    </tr>
     <tr><td colspan="3"><input type="hidden" name="changedby" id="changedby" value="<?php echo $_SESSION['name'];?>" /></td></tr>
      <?php if($_SESSION['role'] && $_SESSION['role']==ROLE_ADMIN){?>
      <tr align="left">

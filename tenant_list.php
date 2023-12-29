@@ -30,6 +30,7 @@ $details = $obj_tenant->MemberList( $_REQUEST['u_id']);
 	 {
 		page-break-inside: avoid;
 	}
+}
 </style>
 <script type="text/javascript" src="js/tenant_20190424.js"></script>
 <script type="text/javascript" src="js/ajax.js"></script>

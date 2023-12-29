@@ -507,13 +507,13 @@ body {
                     		<?php
                     	}
                     ?>
-                     <!--<tr>
+                     <tr>
                         <td colspan="3" align="center" style="padding:10px;">
                        <div class="g-recaptcha" data-sitekey="6LfrWr4aAAAAAEQzxH3tOj6kfk_PTxVpP12klOm3" data-callback="verifyCaptcha"></div>
                      <div id="g-recaptcha-error"></div>
                         
                         </td>
-                    </tr>-->
+                    </tr>
                     
                     
                     <tr><td></td></tr>

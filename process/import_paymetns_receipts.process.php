@@ -1,6 +1,7 @@
 <?php	
 //echo "try";
 include_once("../classes/payments_import.class.php"); 
+include_once("../classes/receipt_rc_import.class.php");
 include_once("../classes/receipt_import.class.php");
 include_once("../classes/include/dbop.class.php");
 		$dbConn = new dbop();
@@ -16,10 +17,17 @@ include_once("../classes/include/dbop.class.php");
 		}
 		else if(isset($_POST['type']) && $_POST['type']== 'receipts' )
 		{
-			$obj_receiptImport=new receiptImport($dbConnRoot,$dbConn);
-			$validator=$obj_receiptImport->ImportData($_POST['sid']);	
-			$actionPage=$obj_receiptImport->actionPage;
-			$ErrorLog=$obj_receiptImport->errorLog;
+			if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+				$obj_receiptImport=new receiptImport_rc($dbConnRoot,$dbConn);
+				$validator=$obj_receiptImport->ImportData($_POST['sid']);	
+				$actionPage=$obj_receiptImport->actionPage;
+				$ErrorLog=$obj_receiptImport->errorLog;
+			}else{
+				$obj_receiptImport=new receiptImport($dbConnRoot,$dbConn);
+				$validator=$obj_receiptImport->ImportData($_POST['sid']);	
+				$actionPage=$obj_receiptImport->actionPage;
+				$ErrorLog=$obj_receiptImport->errorLog;
+			}
 		}
 		//echo "end";
 			

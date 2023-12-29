@@ -548,8 +548,8 @@ function update_mode(fd_id)
 				//document.getElementById('mode').value = "Update";
 				document.getElementById('FD_Renew').hidden = true;
 				//document.getElementById('on_close').style.display = "table-row";
-				document.getElementById('Maturity_Amount_td').innerHTML = "<input type='text' id='Maturity_Amount' name='Maturity_Amount' value='" + document.getElementById('Maturity_Amount_td').innerHTML + "' />";
-				document.getElementById('Maturity_Date_td').innerHTML = "<input type='text' id='Maturity_Date' name='Maturity_Date' value='" + document.getElementById('Maturity_Date_td').innerHTML + "' />";
+				//document.getElementById('Maturity_Amount_td').innerHTML = "<input type='text' id='Maturity_Amount' name='Maturity_Amount' value='" + document.getElementById('Maturity_Amount_td').innerHTML + "' />";
+				//document.getElementById('Maturity_Date_td').innerHTML = "<input type='text' id='Maturity_Date' name='Maturity_Date' value='" + document.getElementById('Maturity_Date_td').innerHTML + "' />";
 				if(document.getElementById('FD_Bank_Payout').checked == true)
 				{
 					document.getElementById('accrued_interest_tr').style.display = "table-row";
@@ -778,6 +778,23 @@ function validateData()
 			var principal_amt_RN = document.getElementById('principal_amt_RN').value;
 			var ROI_RN = document.getElementById('ROI_RN').value;
 			var maturity_amt_RN = document.getElementById('maturity_amt_RN').value;
+			var principal_amt = document.getElementById('Principal_Amount').value;
+			var Accrud_int = document.getElementById('accrued_interest_amt').value;
+			var Intrest_amt = document.getElementById('interest_amt').value;
+			var TDS_amt = document.getElementById('tds_amt').value;
+			
+			var FD_Calc_NewPrincipal = Number(principal_amt) + Number(Accrud_int) + Number(Intrest_amt) - Number(TDS_amt);
+			
+			if(FD_Calc_NewPrincipal != principal_amt_RN)
+			{
+				alert("New FD Principal amount : "+ principal_amt_RN + " and Calculated Principal amount (Principal Amount + Accrued Interest Amount + Interest Amount - TDS Amount) : "+FD_Calc_NewPrincipal+" are not same.");
+				document.getElementById('error').innerHTML = "<span style=color:red>New FD Principal amount : "+ principal_amt_RN + " and Calculated Principal amount (Principal Amount + Accrued Interest Amount + Interest Amount - TDS Amount) : "+FD_Calc_NewPrincipal+" are not same.</span>";
+				go_error();
+				return false;
+				
+				//return false;
+			}
+			//return false;
 			//var Note_RN = document.getElementById('Note_RN').value;
 			if(FD_Name_RN == '' || FDR_No_RN == '' || DoD_RN == '' || DoM_RN == '' || principal_amt_RN == 0 || ROI_RN == 0 || maturity_amt_RN == 0)
 			{

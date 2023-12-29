@@ -215,43 +215,7 @@ class CAdminPanel
 		
 		return $retData;
 	}
-	//  ---------------------------- Expenses report Fourth card ----------------------------------------------------///
-	public function GetIncomeSummaryDetailedDashboard()
-	{
-		$arBankNameAndBalance = "";
-		$sqlSelect = "";
-		$sqlQuery = "SELECT  income.LedgerID,  sum(income.Debit) AS debit,  sum(income.Credit) AS credit,sum(income.Credit)- sum(income.Debit) as TotalAmt, income.VoucherID, led.ledger_name FROM incomeregister as income JOIN ledger as led ON led.id =income.LedgerID where led.society_id='".$_SESSION['society_id']."'";
-		if($_SESSION['default_year_start_date'] <> 0  && $_SESSION['default_year_end_date'] <> 0)
-		{
-			
-			$sqlQuery .= "  and income.Date BETWEEN '".getDBFormatDate($_SESSION['default_year_start_date'])."' AND '".getDBFormatDate($_SESSION['default_year_end_date'])."'";					
-		}
-		$sqlQuery .= "  GROUP BY income.LedgerID";
-		//echo "Sql".$sqlQuery;
-		
-		$retData = $this->m_dbConn->select($sqlQuery);
-		//echo "First";
-		//print_r($retData);
-		$finalArray = array();
-		for($i=0; $i < sizeof($retData) ; $i++)
-		{
-			if($retData[$i]['TotalAmt'] > 0)
-			{
-				$DebitAmount=$retData[$i]['TotalAmt'];
-				$LedgerName=$retData[$i]['ledger_name'];	
-			
-				$parentArray = array('DebitAmount' => $DebitAmount, 'LedgerName' => $LedgerName);
-				array_push($finalArray , $parentArray);	
-			}
-				
-		}
-		
-		
-	//echo "<pre>";
-	//print_r($finalArray);
-	//echo "</pre>";
-		return $finalArray;
-	}
+	
 	public function GetCategoryNameFromID($CategoryID)
 	{
 		$sqlQuery = "SELECT category_name FROM account_category where category_id=".$CategoryID;
@@ -581,8 +545,9 @@ class CAdminPanel
 	public function getServiceRequestList()
 	{
 		//$sqlServiceRequest= "SELECT * FROM `service_request` where status NOT IN('Closed') ORDER BY request_id DESC";
-		$sqlServiceRequest="SELECT sr.* ,u.unit_no FROM `legal_case` as sr join unit as u on sr.unit_id=u.unit_id where sr.status NOT IN('Closed') AND sr.status NOT IN('Resolved') ORDER BY request_id DESC";
+		$sqlServiceRequest="SELECT sr.* ,u.unit_no FROM `service_request` as sr join unit as u on sr.unit_id=u.unit_id where sr.status NOT IN('Closed') AND sr.status NOT IN('Resolved') ORDER BY request_id DESC";
 		$result=$this->m_dbConn->select($sqlServiceRequest);
+		// print_r($result);
 		return $result;
 	}
 	
@@ -665,21 +630,20 @@ class CAdminPanel
 			$sqlQuery .= "  and expense.Date BETWEEN '".getDBFormatDate($_SESSION['default_year_start_date'])."' AND '".getDBFormatDate($_SESSION['default_year_end_date'])."'";					
 		}
 		$sqlQuery .= "  GROUP BY expense.LedgerID";
-		//echo $sqlQuery;
 		$retData = $this->m_dbConn->select($sqlQuery);
 		//echo "First";
 		//print_r($retData);
 		$finalArray = array();
 		for($i=0; $i < sizeof($retData) ; $i++)
 		{
-			//if($retData[$i]['debit'] > 10000)
-			//{
+			if($retData[$i]['debit'] > 10000)
+			{
 				$DebitAmount=$retData[$i]['debit'];
 				$LedgerName=$retData[$i]['ledger_name'];	
 			
 				$parentArray = array('DebitAmount' => $DebitAmount, 'LedgerName' => $LedgerName);
 				array_push($finalArray , $parentArray);	
-			//}
+			}
 				
 		}
 		

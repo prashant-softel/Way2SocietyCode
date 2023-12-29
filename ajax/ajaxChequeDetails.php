@@ -1,7 +1,8 @@
 <?php include_once("../classes/ChequeDetails.class.php");
 include_once("../classes/include/dbop.class.php");
-	  $dbConn = new dbop();
-$obj_ChequeDetails = new ChequeDetails($dbConn);
+$dbConn = new dbop();
+$landLordDB = new dbop();
+$obj_ChequeDetails = new ChequeDetails($dbConn,$landLordDB);
 //echo "<script>alert(testajax1);<//script>";
 echo $_REQUEST["method"]."@@@";
 
@@ -49,6 +50,7 @@ if(isset($_REQUEST["update"]))
 		$Comments = $chqDetail[$iCnt]["Comments"];
 		$BillType = $chqDetail[$iCnt]["BillType"];
 		
+
 		echo $obj_ChequeDetails->AddNewValuesWithTDS($VoucherDate, $ChequeDate, $ChequeNumber, $VoucherCounter,$SystemVoucherNo,$IsCallUpdtCnt, $Amount, $TDS_Amount, $PaidBy, $BankID, $PayerBank, $PayerChequeBranch, $DepositID, $Comments,$BillType,0,0,0,0);
 		
 	}

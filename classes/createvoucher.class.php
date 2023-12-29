@@ -48,8 +48,10 @@ class createVoucher
 		$this->request_mode = $_POST['mode'];
 
 		
+
 		if(isset($_POST['submit']) && $_POST['submit']== 'Update')
 	  	{
+
 			if($_POST['Updatetable'] == TABLE_PAYMENT_DETAILS && $_POST['mode'] == EDIT) // If transaction is payment then it will call edit payment
 			{
 				return $this->update_payment_details(EDIT); // Passing Edit flag
@@ -77,6 +79,7 @@ class createVoucher
 				$BankLedgers = array_column($ListOfAccounts, 'id');
 				$cnt = 0;	
 				$IsbankPresent = false;	
+
 				for($i=1;$i<=$_POST['maxrows'];$i++)
 				{
 					$arSubData = array();
@@ -100,7 +103,7 @@ class createVoucher
 					}
 				}
 				
-				
+			
 				$cnt = 0;
 				for($i=1;$i<=$_POST['maxrows'];$i++)
 				{
@@ -128,7 +131,7 @@ class createVoucher
 				{
 					$PaidBy = $ToArray[0]['Head'];	
 				}
-				
+			
 				$GetPriviousEntriesDetails = $this->m_dbConn->select("Select * from  chequeentrydetails where id = '".$_POST['RowID']."'"); 
 				$PaidByPrev = $GetPriviousEntriesDetails[0]['PaidBy'];
 				$PayerBankPre = $GetPriviousEntriesDetails[0]['PayerBank'];
@@ -137,7 +140,7 @@ class createVoucher
 				$DepositID = $GetPriviousEntriesDetails[0]['DepositID'];
 				
 				$Status = $this->obj_ChequeDetails->DeletePreviousRecord($PaidByPrev, $PayerBankPrev, $PayerChequeBranchPrev,$ChequeDetailsId);
-				
+			
 				if($Status == "Update")
 				{
 					$result = $this->obj_ChequeDetails->AddNewValues2($DepositID,$PaidBy,$ChequeNumber,$VoucherDate,$ChequeDate,$ByArray,$ToArray,$ListOfAccounts, $_POST['VoucherNumber'],$_POST['OnPageLoadTimeVoucherNumber'],$_POST['IsCallUpdtCnt'], $PayerAmount, $PayerBankID,$PayerBankPre,$PayerChequeBranchPrev,$_POST['Note'],VOUCHER_RECEIPT,$BillType,true,$GUID);
@@ -273,6 +276,7 @@ class createVoucher
 		
 		$VoucherNumber = $_POST['VoucherNumber'];
 		$IsCallUpdtCnt = $_POST['IsCallUpdtCnt'];
+
 	  	$Result = $this->createNewVoucher($PreviousMsg,$PreviousCounter,$UpdateInvoice,$TDSVNo,$IsSubmit,$VoucherDate,$arData,$is_invoice,$IGST_Amount,$CGST_Amount,$SGST_Amount,$Cess_Amount,$NewInvoiceNo,$InvoiceStatusID,$Note,$ExistVoucher,$RefNo,$RefTableID,$VoucherNumber,$IsCallUpdtCnt);
 		//print_r($Result);
 		//die();
@@ -516,14 +520,14 @@ class createVoucher
 	
 	public function createNewVoucher($PreviousMsg,$PreviousCounter,$UpdateInvoice,$invoicestatusID,$IsSubmit,$VoucherDate,$arData,$is_invoice,$IGST_Amount,$CGST_Amount,$SGST_Amount,$Cess_Amount,$NewInvoiceNo,$InvoiceStatusID,$Note,$ExistVoucherNo=0,$RefNo=0,$RefTableID=0,$EXVoucherNumber,$IsCallUpdtCnt)
 	{
-	//	echo '<br>Create New Voucher';
+		//echo '<br>Create New Voucher';
 		$GUID = "";
 		return $this->createNewVoucher_WithGUID($PreviousMsg,$PreviousCounter,$UpdateInvoice,$invoicestatusID,$IsSubmit,$VoucherDate,$arData,$is_invoice,$IGST_Amount,$CGST_Amount,$SGST_Amount,$Cess_Amount,$NewInvoiceNo,$InvoiceStatusID,$Note,$ExistVoucherNo,$RefNo,$RefTableID,$EXVoucherNumber,$IsCallUpdtCnt,$GUID);
 	}
 	
 	public function createNewVoucher_WithGUID($PreviousMsg,$PreviousCounter,$UpdateInvoice,$invoicestatusID,$IsSubmit,$VoucherDate,$arData,$is_invoice,$IGST_Amount,$CGST_Amount,$SGST_Amount,$Cess_Amount,$NewInvoiceNo,$InvoiceStatusID,$Note,$ExistVoucherNo=0,$RefNo=0,$RefTableID=0,$EXVoucherNumber,$IsCallUpdtCnt,$GUID)
 	{
-	//	echo '<br>main Function ; '.$GUID;
+		//echo '<br>main Function ; '.$GUID;
 		$dataVoucher1=0;
 		$Createmsg="";
 		$dataArr = array();
@@ -538,7 +542,8 @@ class createVoucher
 		
 							
 		if(isset($IsSubmit) && isset($VoucherDate) && $VoucherDate <> "")
-		{ 				
+		{ 
+				
 			$SrNo=0;
 			$total=0;
 			$TDSAMount=0;
@@ -550,6 +555,7 @@ class createVoucher
 			{	
 				$LatestVoucherNo = $this->m_latestcount->getLatestVoucherNo($_SESSION['society_id']);
 			}
+
 					//	$PaymentVoucherNo = $LatestVoucherNo;
 		//	$LatestVoucherNo = $this->m_latestcount->getLatestVoucherNo($_SESSION['society_id']);	
 			try
@@ -562,7 +568,9 @@ class createVoucher
 				$ExpectedCounter = $this->m_objUtility->GetCounter(VOUCHER_JOURNAL,0,false);
 				if($IsCallUpdtCnt == 1)
 				{
+
 					$this->m_objUtility->UpdateExVCounter(VOUCHER_JOURNAL,$EXVoucherNumber,0);
+
 				}
 				
 				for($i=0;$i<sizeof($arData);$i++)
@@ -722,6 +730,7 @@ $LatestVoucherNo,$SrNo,VOUCHER_JOURNAL,$arData[$i]['To'],TRANSACTION_DEBIT,$arDa
 					
 					//print_r($total);
 				}
+
 				if($UpdateInvoice==true)
 				{ 
 				//echo 'test' . $is_invoice;
@@ -759,6 +768,7 @@ $LatestVoucherNo,$SrNo,VOUCHER_JOURNAL,$arData[$i]['To'],TRANSACTION_DEBIT,$arDa
 				}
 				else
 				{
+
 					if(isset($is_invoice) && $is_invoice==1)
 		 			{
 						$DocumentStatus="Insert into `invoicestatus`(`NewInvoiceNo`,`InvoiceChequeAmount`,`InvoiceRaisedVoucherNo`,`AmountReceivable`,IGST_Amount,CGST_Amount,SGST_Amount,CESS_Amount,is_invoice) values('".$NewInvoiceNo."','".$total."','".$LatestVoucherNo."','".$total."','".$IGST_Amount."','".$CGST_Amount."','".$SGST_Amount."','".$Cess_Amount."','".$is_invoice."')";

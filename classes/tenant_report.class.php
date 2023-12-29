@@ -9,14 +9,16 @@ class tenant_report
 {
 	public $m_dbConn;
 	public $m_dbConnRoot;
+	public $m_landlord;
 	public $obj_utility;
 	public $obj_fetch;
 	public $obj_ledger_details;
 
-	function __construct($dbConn, $dbConnRoot = "")
+	function __construct($dbConn, $dbConnRoot = "",$landlord ="")
 	{
 		$this->m_dbConn = $dbConn;
 		$this->m_dbConnRoot = $dbConnRoot;
+		$this->m_landlord = $landlord;
 		$this->obj_utility = new utility($this->m_dbConn, $this->m_dbConnRoot);
 		$this->obj_ledger_details=new view_ledger_details($this->m_dbConn);
 		$this->obj_fetch = new FetchData($this->m_dbConn);
@@ -33,16 +35,42 @@ class tenant_report
 		  else
 		  {
             $tenantIDS = $this->obj_utility->getTenantIDs($to);	
-            $sql="select tenant_id,tenant_name,mobile_no,email,unittbl.unit_no,wingtbl.wing from tenant_module as tenant JOIN `unit` as unittbl on unittbl.unit_id=tenant.unit_id JOIN `wing` as wingtbl on unittbl.wing_id=wingtbl.wing_id where tenant.unit_id ='".$uid."' and  tenant.tenant_id IN (".$tenantIDS.") Group BY tenant.tenant_id  ";
+            $sql="select tenant_id,tenant_name,mobile_no,email,unittbl.unit_no,wingtbl.wing from tenant_module as tenant JOIN `unit` as unittbl on unittbl.unit_id=tenant.unit_id JOIN `wing` as wingtbl on unittbl.wing_id=wingtbl.wing_id where tenant.unit_id ='".$uid."' and  tenant.tenant_id IN (".$tenantIDS.")  Group BY tenant.tenant_id  ";
 		 }
 		  $data=$this->m_dbConn->select($sql);
 		  return $data;
 	
 	  
 	}
+	public function show_tenant_name($uid,$to = "",$rental=false)
+	{ 
 	
+		  if($to <> "")
+		  {
+			
+			$sql="select tenant_id,tenant_name,mobile_no,email,unittbl.unit_no,wingtbl.wing from tenant_module as tenant JOIN `unit` as unittbl on unittbl.unit_id = tenant.unit_id JOIN `wing` as wingtbl on unittbl.wing_id = wingtbl.wing_id where tenant.tenant_id ='".$uid."'";
+		  }
+		  else
+		  {
+           
+            $sql="select tenant_id,tenant_name,mobile_no,email,unittbl.unit_no,wingtbl.wing from tenant_module as tenant JOIN `unit` as unittbl on unittbl.unit_id=tenant.unit_id JOIN `wing` as wingtbl on unittbl.wing_id=wingtbl.wing_id where tenant.tenant_id ='".$uid."'";
+		 }
+		 //echo "sql =>".$sql;
+		 if($rental == true)
+		 {
+			 $data=$this->m_landlord->select($sql);
+		 }
+		 else
+		 {
+			$data=$this->m_dbConn->select($sql);
+		 }
+		//print_r($data);
+		  return $data;
 	
-	public function show_due_details($uid,$from = "",$to ="")
+	  
+	}
+	
+	public function show_due_details($uid,$from = "",$to ="",$rental=false)
 	{	  	
 		$starting3Month = array('04','05','06','07','08','09');  
 	 // $sql = "select assettbl.Date, ledgertbl.ledger_name as Particular, Debit, Credit,VoucherID,VoucherTypeID from `assetregister` as assettbl JOIN `ledger` as ledgertbl on assettbl.LedgerID=ledgertbl.id where assettbl.LedgerID='".$uid."' and assettbl.Is_Opening_Balance= 0";
@@ -62,7 +90,16 @@ class tenant_report
 		   $sql .= "  and assettbl.Date BETWEEN '".getDBFormatDate($from)."' AND '".getDBFormatDate($to)."'";					
 	   }
 	   $sql .= " ORDER BY assettbl.Date";
-	   $data = $this->m_dbConn->select($sql);
+	  // echo  $sql;
+	   if($rental == true)
+		 {
+			 $data=$this->m_landlord->select($sql);
+		 }
+		 else
+		 {
+			$data=$this->m_dbConn->select($sql);
+		 }
+	   //$data = $this->m_dbConn->select($sql);
 	   return $data;
 	}
 	
@@ -81,27 +118,65 @@ class tenant_report
 		 }
 	}
 	
-	public function details2($lid, $vid, $vtype = 0, $debit = 0, $credit = 0,  $byORto = "",$IsInvoice)
-	{		
-		$sql1 = "select `desc` from `vouchertype` where id='".$vtype."'";		
-		$data1 = $this->m_dbConn->select($sql1);
-		$voucher = $data1[0]['desc'];		
-		$sql2 = "select RefNo,RefTableID,VoucherNo from `voucher` where id='".$vid."' ";
-	
-		$data2 = $this->m_dbConn->select($sql2);
+	public function details2($lid, $vid, $vtype = 0, $debit = 0, $credit = 0,  $byORto = "",$IsInvoice,$rental=false)
+	{	
+	//echo "<br>LID=>".$lid;	
+	//echo "<br>VID=>".$vid;	
+	//echo "<br>Vtype=>".$vtype;	
+	//echo "<br>Debit=>".$debit;	
+	//echo "<br>Credit=>".$credit;	
+	//echo "<br>By or to=>".$byORto;
+	//echo "<br>is Invoice=>".$IsInvoice;
+	//echo "<br>rental=>".$rental;	
+		$sql1 = "select `desc` from `vouchertype` where id='".$vtype."'";	
+		 if($rental == true)
+		 {
+			 $data1=$this->m_landlord->select($sql1);
+		 }
+		 else
+		 {
+			$data1=$this->m_dbConn->select($sql1);
+		 }
+		//$data1 = $this->m_dbConn->select($sql1);
+		 $voucher = $data1[0]['desc'];		
+		 $sql2 = "select RefNo,RefTableID,VoucherNo from `voucher` where id='".$vid."' ";
+		// echo "Rental ::".$rental;
+		 if($rental == true)
+		 {
+			 //echo "Inside ";
+			 $data2=$this->m_landlord->select($sql2);
+		 }
+		 else
+		 {
+			 //echo "else";
+			$data2 =$this->m_dbConn->select($sql2);
+		 }
+		
 		$RefNo = $data2[0]['RefNo'];
 		$RefTableID = $data2[0]['RefTableID'];
 		$VoucherNo = $data2[0]['VoucherNo'];	
 		
 		if($byORto <> "" && $voucher == "Journal Voucher" || $RefTableID == TABLE_CREDIT_DEBIT_NOTE)
-		{	
+		{
+			//echo "Inside IF";	
 		 $sql3 = "select ledgertbl.id,`ledger_name`,vouchertbl.Note,vouchertbl.RefTableID,vouchertbl.RefNo,vouchertbl.VoucherNo,vouchertbl.".$byORto." as 'To' from `voucher` as vouchertbl JOIN `ledger` as ledgertbl on vouchertbl.".$byORto."=ledgertbl.id where vouchertbl.RefNo='".$RefNo."' and vouchertbl.RefTableID='".$RefTableID."' and vouchertbl.VoucherNo='".$VoucherNo."'";		
 		}
 		else
 		{
+			//echo "Inside else";
 		 	$sql3 = "select ledgertbl.id,`ledger_name`,vouchertbl.Note,vouchertbl.RefTableID,vouchertbl.RefNo,vouchertbl.VoucherNo,vouchertbl.To as 'To' from `voucher` as vouchertbl JOIN `ledger` as ledgertbl on vouchertbl.To=ledgertbl.id where vouchertbl.RefNo='".$RefNo."' and vouchertbl.RefTableID='".$RefTableID."' and vouchertbl.VoucherNo='".$VoucherNo."'";		
 		}
-		$data3 = $this->m_dbConn->select($sql3);		
+		
+		//echo $sql3;
+		 if($rental == true)
+		 {
+			 $data3=$this->m_landlord->select($sql3);
+		 }
+		 else
+		 {
+			$data3 = $this->m_dbConn->select($sql3);
+		 }
+		//$data3 = $this->m_dbConn->select($sql3);		
 		$data3[0]['voucher_name'] = $voucher;
 		if($data3[0]['RefTableID'] == TABLE_SALESINVOICE)
 		{
@@ -116,7 +191,15 @@ class tenant_report
 		if($voucher == 'Sales Voucher')
 		{
 			$sqlBill = "SELECT `BillNumber`,`PeriodID`,`BillType` FROM `billdetails` where `ID`= '".$data3[0]['RefNo']."' ";
-			$billresult = $this->m_dbConn->select($sqlBill);
+			if($rental == true)
+		 	{
+			 	$billresult=$this->m_landlord->select($sqlBill);
+		 	}
+		 	else
+		 	{
+				$billresult = $this->m_dbConn->select($sqlBill);
+		 	}
+			//$billresult = $this->m_dbConn->select($sqlBill);
 			$data3[0]['BillNumber'] = $billresult[0]['BillNumber'];	
 			$data3[0]['PeriodID'] = $billresult[0]['PeriodID'];	
 			$data3[0]['BillType'] = $billresult[0]['BillType'];	
@@ -126,7 +209,15 @@ class tenant_report
 		if($voucher == "Payment Voucher")
 		{ 
 			$PaymentDetailsSql = "SELECT pd.PayerBank, pd.ChqLeafID,pd.ChequeNumber, chklb.CustomLeaf FROM paymentdetails as pd JOIN chequeleafbook as chklb ON pd.ChqLeafID = chklb.id  WHERE pd.id = '".$RefNo."'";
-			$PaymentResult = $this->m_dbConn->select($PaymentDetailsSql);
+			if($rental == true)
+		 	{
+			 	$PaymentResult=$this->m_landlord->select($PaymentDetailsSql);
+		 	}
+		 	else
+		 	{
+				$PaymentResult = $this->m_dbConn->select($PaymentDetailsSql);
+		 	}
+			//$PaymentResult = $this->m_dbConn->select($PaymentDetailsSql);
 			$data3[0]['PayerBank'] = $PaymentResult[0]['PayerBank'];	
 			$data3[0]['ChqLeafID'] = $PaymentResult[0]['ChqLeafID'];
 			$data3[0]['CustomLeaf'] = $PaymentResult[0]['CustomLeaf'];
@@ -142,18 +233,41 @@ class tenant_report
 
 			if($RefTableID == TABLE_PAYMENT_DETAILS) {
 				$sqlCheque="SELECT pmtdetail.ChequeNumber, pmtdetail.PaidTo, pmtdetail.PayerBank, pmtdetail.Bill_Type as BillType FROM `paymentdetails` as pmtdetail where pmtdetail.id='".$data3[0]['RefNo']."'";
-				$Chequedetails = $this->m_dbConn->select($sqlCheque);
+				if($rental == true)
+		 		{
+			 		$Chequedetails=$this->m_landlord->select($sqlCheque);
+		 		}
+		 		else
+		 		{
+					$Chequedetails = $this->m_dbConn->select($sqlCheque);
+		 		}
+				//$Chequedetails = $this->m_dbConn->select($sqlCheque);
 			}
 			
 			if($Chequedetails <> "")
 			{
 				//Check whether its return entry of receipt
 				$sqlChkEntry = "SELECT cheque.BillType, bank.return, bank.ReceivedAmount FROM chequeentrydetails as cheque JOIN (SELECT b2.ChkDetailID, b2.`return`, b2.`ReceivedAmount` FROM `bankregister` as b1 INNER JOIN `bankregister` as b2 ON b1.Ref = b2.id where b1.Ref != 0 and b1.chkDetailID = '".$data3[0]['RefNo']."' and b1.voucherTypeID IN('".VOUCHER_PAYMENT."', '".VOUCHER_CONTRA."')) as bank ON cheque.ID = bank.ChkDetailID";
-				$ChequeEntrydetails = $this->m_dbConn->select($sqlChkEntry);
+				if($rental == true)
+		 		{
+			 		$ChequeEntrydetails=$this->m_landlord->select($sqlChkEntry);
+		 		}
+		 		else
+		 		{
+					$ChequeEntrydetails = $this->m_dbConn->select($sqlChkEntry);
+		 		}
+				//$ChequeEntrydetails = $this->m_dbConn->select($sqlChkEntry);
 				
 				$sqlBank="SELECT * FROM `ledger` where id='".$Chequedetails[0]['PayerBank']."'";
-				$BankDetail = $this->m_dbConn->select($sqlBank);
-				
+				//$BankDetail = $this->m_dbConn->select($sqlBank);
+				if($rental == true)
+		 		{
+			 		$BankDetail=$this->m_landlord->select($sqlBank);
+		 		}
+		 		else
+		 		{
+					$BankDetail = $this->m_dbConn->select($sqlBank);
+		 		}
 				// It is return entry of receipt then it's bill type will same as receipt
 				if(!empty($ChequeEntrydetails)){
 					$data3[0]['Return']   = $ChequeEntrydetails[0]['return'];
@@ -172,13 +286,29 @@ class tenant_report
 				if($credit > 0)
 				{
 					$bankRegQuery = 'SELECT `Reconcile`, `Return`, `ChkDetailID`,`DepositGrp` FROM `bankregister` WHERE `ChkDetailID` = "'.$RefNo.'" AND `ReceivedAmount` > 0';
-					$res = $this->m_dbConn->select($bankRegQuery);
+					if($rental == true)
+		 			{
+			 			$res=$this->m_landlord->select($bankRegQuery);
+		 			}
+		 			else
+		 			{
+						$res = $this->m_dbConn->select($bankRegQuery);
+		 			}
+					//$res = $this->m_dbConn->select($bankRegQuery);
 					$data3[0]['DepositGrp'] = $res[0]['DepositGrp'];
 				}
 				elseif($debit > 0)
 				{
 					$bankRegQuery = 'SELECT `Reconcile`, `Return`, `ChkDetailID`,`DepositGrp` FROM `bankregister` WHERE `ChkDetailID` = "'.$RefNo.'" AND `PaidAmount` > 0';
-					$res = $this->m_dbConn->select($bankRegQuery);
+					//$res = $this->m_dbConn->select($bankRegQuery);
+					if($rental == true)
+		 			{
+			 			$res=$this->m_landlord->select($bankRegQuery);
+		 			}
+		 			else
+		 			{
+						$res = $this->m_dbConn->select($bankRegQuery);
+		 			}
 					$data3[0]['DepositGrp'] = $res[0]['DepositGrp'];
 				}	
 				
@@ -204,7 +334,15 @@ class tenant_report
 				{	
 					$sql = "SELECT cheque_details.`ChequeNumber`, cheque_details.`PayerBank`, cheque_details.`PayerChequeBranch`,cheque_details.`BillType`,period.`ID` as PeriodID FROM `chequeentrydetails` as cheque_details join period on cheque_details.ChequeDate between period.BeginingDate and period.EndingDate WHERE cheque_details.`ID` = '".$res[0]['ChkDetailID']."'";				
 					//echo $sql = "SELECT `ChequeNumber`, `PayerBank`, `PayerChequeBranch`,`BillType` FROM `chequeentrydetails` WHERE `ID` = '".$res[0]['ChkDetailID']."'";									
-					$result = $this->m_dbConn->select($sql);					
+					//$result = $this->m_dbConn->select($sql);
+					if($rental == true)
+		 			{
+			 			$result=$this->m_landlord->select($sql);
+		 			}
+		 			else
+		 			{
+						$result = $this->m_dbConn->select($sql);
+		 			}					
 					$data3[0]['ChequeNumber'] = $result[0]['ChequeNumber'];
 					$data3[0]['PayerBank'] = $result[0]['PayerBank'];
 					$data3[0]['PayerChequeBranch'] =  $result[0]['PayerChequeBranch'];
@@ -218,12 +356,28 @@ class tenant_report
 			if($voucher=="Sales Voucher")
 			{
 				$sqlQuery = 'SELECT `PeriodID`,`BillType` FROM `billdetails` WHERE `ID` = '.$RefNo;
-				$res = $this->m_dbConn->select($sqlQuery);
+				//$res = $this->m_dbConn->select($sqlQuery);
+				if($rental == true)
+				{
+					$res=$this->m_landlord->select($sqlQuery);
+				}
+				else
+				{
+					$res = $this->m_dbConn->select($sqlQuery);
+				}
 				if($res <> "")
 				{
 					$sqlPeriod = "Select periodtbl.type, yeartbl.YearDescription from period as periodtbl JOIN year as yeartbl ON periodtbl.YearID = yeartbl.YearID where periodtbl.ID = '" . $res[0]['PeriodID'] . "'";
 				
-					$sqlResult = $this->m_dbConn->select($sqlPeriod);
+					//$sqlResult = $this->m_dbConn->select($sqlPeriod);
+					if($rental == true)
+					{
+						$sqlResult=$this->m_landlord->select($sqlPeriod);
+					}
+					else
+					{
+						$sqlResult = $this->m_dbConn->select($sqlPeriod);
+					}
 					$data3[0]['billFor'] =  $sqlResult[0]['type'] . " "  . $sqlResult[0]['YearDescription'];
 					$data3[0]['BillType'] = $res[0]['BillType'];
 
@@ -231,7 +385,15 @@ class tenant_report
 
 					$sqlBillRegister = "SELECT  `BillFor_Message` FROM `billregister` where `PeriodID`='".$res[0]['PeriodID']."' AND `BillType`='".$res[0]['BillType']."' ";
 					//echo $sqlBillRegister;
-					$BillRegResult = $this->m_dbConn->select($sqlBillRegister);
+					if($rental == true)
+					{
+						$BillRegResult=$this->m_landlord->select($sqlBillRegister);
+					}
+					else
+					{
+						$BillRegResult = $this->m_dbConn->select($sqlBillRegister);
+					}
+					//$BillRegResult = $this->m_dbConn->select($sqlBillRegister);
 					//print_r($BillRegResult);
 					//echo "Msg:".$BillRegResult[0]["BillFor_Message"];
 					$BillMsg =$BillRegResult[0]["BillFor_Message"];
@@ -248,7 +410,15 @@ class tenant_report
 		{
 			$data3[0]['RefNo'] = $RefNo;
 			$BillTypeQuery = "SELECT BillType FROM credit_debit_note WHERE ID = '".$RefNo."'";
-			$BillTypeResult =  $this->m_dbConn->select($BillTypeQuery);
+			if($rental == true)
+			{
+				$BillTypeResult=$this->m_landlord->select($BillTypeQuery);
+			}
+			else
+			{
+				$BillTypeResult =  $this->m_dbConn->select($BillTypeQuery);
+			}
+			//$BillTypeResult =  $this->m_dbConn->select($BillTypeQuery);
 			$data3[0]['BillType'] = $BillTypeResult[0]['BillType'];
 			
 			if($byORto == 'By')
@@ -483,12 +653,34 @@ class tenant_report
 	
 	public function getAllUnits()
 	{
-		$sql="select `unit_id` from `tenant_module` where `status` = 'Y' order by tenant_id asc";
-		$res=$this->m_dbConn->select($sql);
+		$sql="select `tenant_id` from `tenant_module` where `status` = 'Y' and end_date >= curdate() order by tenant_id asc";
+		if($_SESSION['res_flag'] == 1){
+			$res=$this->m_landlord->select($sql);
+		}else{
+			$res=$this->m_dbConn->select($sql);
+		}
 		$flatten = array();
     	foreach($res as $key)
 		{
-			$flatten[] = $key['unit_id'];
+			$flatten[] = $key['tenant_id'];
+		}
+
+    	return $flatten;
+	}
+
+	public function getAllLedegrID()
+	{
+		$sql="select `ledger_id` from `tenant_module` where `status` = 'Y' and end_date >= curdate() order by tenant_id asc";
+		if($_SESSION['res_flag'] == 1){
+			$res=$this->m_landlord->select($sql);
+		}else{
+			$res=$this->m_dbConn->select($sql);
+		}
+		// print_r($res);
+		$flatten = array();
+    	foreach($res as $key)
+		{
+			$flatten[] = $key['ledger_id'];
 		}
 
     	return $flatten;

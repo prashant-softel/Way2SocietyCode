@@ -11,10 +11,15 @@
 <?php
 include_once("classes/list_member.class.php");
 include_once("classes/initialize.class.php");
+// include_once("classes/utility.class.php");
 
-$obj_list_member = new list_member($m_dbConn);
+$obj_list_member = new list_member($m_dbConn, $m_dbConnRoot);
 $obj_initialize = new initialize($m_dbConnRoot);
-
+// $obj_utility = new utility($m_dbConn, $m_dbConnRoot);
+// $arUnitsWithAppInstalled = $obj_utility->GetListMobileAppUsers();
+// echo "<pre>";
+// print_r($arUnitsWithAppInstalled);
+// echo "</pre>";
 ?>
 <link rel="stylesheet" type="text/css" href="css/pagination.css" >
 	<link href="css/messagebox.css" rel="stylesheet" type="text/css" />
@@ -239,6 +244,13 @@ if(localStorage.getItem("client_id") != "" && localStorage.getItem("client_id") 
 });		
 
 </script>
+<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ 
+$headName = "List of Landlord";
+}
+else
+{
+	$headName = "List of Members";
+}?>
 
 <?php if(isset($_REQUEST['del'])){ ?>
 <body onLoad="go_error();">
@@ -249,7 +261,7 @@ if(localStorage.getItem("client_id") != "" && localStorage.getItem("client_id") 
 <!--<center><h2><font color="#43729F"><b><?php //echo $obj_list_member->display_society_name($_SESSION['society_id']);?></b></font></h2>-->
 <br><center>
 <div class="panel panel-info" id="panel" style="display:none">
-	<div class="panel-heading" id="pageheader">List of Members</div>
+	<div class="panel-heading" id="pageheader"><?php echo $headName ?></div>
 <?php if(isset($_SESSION['role']) && $_SESSION['role']=='Super Admin'){?>
 
 <!--<a href="member_main_new.php?scm" style="color:#00F; text-decoration:none;"><b>Add New Member</b></a>

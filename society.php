@@ -148,7 +148,13 @@ else
 <center>
 <br>
 <div class="panel panel-info" id="panel" style="display:block">
-<div class="panel-heading" id="pageheader">Society Master</div>
+<?php 
+if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+ 	<div class="panel-heading" id="pageheader">Company Master</div>
+<?php }else{ ?>
+	<div class="panel-heading" id="pageheader">Society Master</div>
+<?php } ?>
+
 <br>
 
 <?php $val = 'onSubmit="return val();"';

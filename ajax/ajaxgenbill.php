@@ -4,7 +4,8 @@
 	include_once ("../classes/include/exportToExcel.php");
 	include_once("../classes/parking.class.php");
 	$dbConn = new dbop();
-	$obj_genbill = new genbill($dbConn);
+	$landLordDB = new dbop(false,false,false,false,true);	
+	$obj_genbill = new genbill($dbConn,$landLordDB);
    	$objParking = new Parking($dbConn);
 	
 	    //remove all empty spaces after php closing brackets

@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <head>
-<title>W2S - Service Request Details</title>
+<title>W2S - Legal Case Details</title>
 </head>
 
 <?php 
@@ -11,13 +11,12 @@ include_once ("classes/include/fetch_data.php");
 include_once ("dbconst.class.php"); 
 $dbConn = new dbop();
 $dbConnRoot = new dbop(true);
+$landLordDB = new dbop(false,false,false,false,true);
 $objFetchData = new FetchData($dbConn);
 $objFetchData->GetSocietyDetails($_SESSION['society_id']);
-$obj_request = new legalcase($dbConn);
+$obj_request = new legalcase($dbConn,$dbConnRoot,$landLordDB);
 $LoginIDQuery = "select `member_id` from `login` where `login_id`='".$_SESSION['login_id']."'";
 $loginID = $dbConnRoot->select($LoginIDQuery);
-//$details = $obj_request->getViewDetails($_REQUEST['rq']);
-//
 $cnt=0;
 $SREmailIDs = array(); 
 $strSREMailIDs = "";
@@ -25,7 +24,8 @@ if(isset($_REQUEST['rq']))
 {
 	if($_REQUEST['rq']<>"")
 	{
-		$details = $obj_request->getViewDetails($_REQUEST['rq'],true);
+		//$details = $obj_request->getViewDetails($_REQUEST['rq'],true);
+		$details = $obj_request->getViewDetails($_REQUEST['rq'],true, $_REQUEST['socid']);
 		
 		//for($i=0;$i <= sizeof($edit)-1; $i++)
 			//{ 
@@ -46,7 +46,7 @@ if(isset($_REQUEST['rq']))
 				$strSREMailIDs = implode(";", $SREmailIDs);
 			}
 			
-			$histortdetails = array_reverse($obj_request->getViewDetails1($_REQUEST['rq'],true));
+			$histortdetails = array_reverse($obj_request->getViewDetails1($_REQUEST['rq'],true,$_REQUEST['socid']));
 	}
 	}
 ?>
@@ -85,18 +85,22 @@ if(isset($_REQUEST['rq']))
 <script language="javascript" type="application/javascript">
 	function printTable()
 	{
-		//alert("test23");
-	 // document.getElementById('PrintableTable').style.width='80%';
-	 
-	 //alert("testnew");
-	  var divToPrint=document.getElementById('PrintableDiv');
+		 var divToPrint=document.getElementById('PrintableDiv');
+	  console.log(divToPrint);
+	
+	  document.body.innerHTML = divToPrint.outerHTML;
+	  
+	  window.print();
+	
+	location.reload();  
+	 /* var divToPrint=document.getElementById('PrintableDiv');
 	 document.getElementById('society_name').style.display='block';
 	  newWin= window.open("");
 	  newWin.document.write('<br><br><center>' + divToPrint.outerHTML + '</center>');
 	  newWin.print();
 	  newWin.close();
 	  //document.getElementById('PrintableTable').style.width='100%';
-	   document.getElementById('society_name').style.display='none';
+	   document.getElementById('society_name').style.display='none';*/
 	}
 </script>
 <script type="text/javascript" src="lib/jquery-1.7.2.min.js"></script>
@@ -212,8 +216,8 @@ if($details <> "")
 <table width="100%" style="font-size:12px;" id="PrintableTable">
 
 	<tr style="background-color:#bce8f1;font-size:12px;" height="30">
-        <th style="width:10%;"><center>Building No.</center></th>
-        <th style="width:10%;"><center>Flat No.</center></th>
+        <!-- <th style="width:10%;"><center>Building No.</center></th> -->
+        <!-- <th style="width:10%;"><center>Flat No.</center></th> -->
         <th style="width:20%;"><center>Tenant Name</center></th>
         <th style="width:20%;"><center>Created Date</center></th>
         <th style="width:10%;"><center>Status</center></th>
@@ -235,25 +239,25 @@ if($details <> "")
 		$UnitNo = $obj_request->GetUnitNoIfZero( $_REQUEST['rq']);
 		$GotUnitNo = $obj_request->GetUnitNoIfNZero( $_REQUEST['rq']);
 		$MemName = $obj_request->getmemDetails($GotUnitNo[0]['unit_id']);
-		$latestStatus = $obj_request->getLatestStatus($_REQUEST['rq']);
+		$latestStatus = $obj_request->getLatestStatus($_REQUEST['rq'], $_REQUEST['socid']);
 		$show = $GotUnitNo[0]['unit_no'];
 		
 		$totalAmt = 0;
-		if($latestStatus[0]['status'] == 'Case Closed')
-		{
-			$ExpenseAmountSum = $obj_request->getTotalExpense($_REQUEST['rq']);
+		//if($latestStatus[0]['status'] == 'Case Closed')
+		//{
+			$ExpenseAmountSum = $obj_request->getTotalExpense($_REQUEST['rq'],$_REQUEST['socid']);
 			//$totalAmt = $details[0]['outstanding_rent']+$ExpenseAmountSum;
 			$totalAmt = $ExpenseAmountSum;
-		}
+		//}
 		//else
 		//{
 			//$totalAmt = $details[0]['outstanding_rent'];
 		//}
 	?>
     	
-    	<td align="center"><?php echo $_REQUEST['rq'];?></td>
-        <td align="center"><?php echo $show;?></td>
-        <td align="center"><?php echo $MemName;?></td>
+    	<!-- <td align="center"><?php echo $_REQUEST['rq'];?></td> -->
+        <!-- <td align="center"><?php echo $show;?></td> -->
+        <td align="center"><?php echo $details[0]['tenant_name'];?></td>
         <td align="center"><?php echo $details[0]['raisedDate'];?></td>
         <td align="center"><?php echo $latestStatus[0]['status'];?></td>
         
@@ -334,6 +338,7 @@ if($details <> "")
         <th align="center" style="text-align:center" >Up. Hearing Date</th>
         <th align="center"  style="text-align:center" >Expense Amount</th>
         <th align="left">Status</th>
+        <th align="left">Attachments</th>
         <!--<th align="left" style="width: 10%;">Timestamp</th>-->
     </tr>
    
@@ -357,6 +362,22 @@ if($details <> "")
         <td align="center" style="border-bottom:1px solid #988e8e30;padding-top:10px" ><?php echo getDisplayFormatDate($histortdetails[$i]['up_hearing_date']); ?></td>
         <td align="center" style=" border-bottom:1px solid #988e8e30;padding-top:10px"><?php echo number_format($histortdetails[$i]['expense_amt'], 2); ?></td>
         <td align="left" style="border-bottom:1px solid #988e8e30;padding-top:10px"><?php echo $histortdetails[$i]['status']; ?></td>
+		<td  align="left" style="border-bottom:1px solid #988e8e30;padding-top:10px">
+		<?php 
+		$image=$histortdetails[$i]['img'];
+		$image_collection = explode(',', $image);
+		// print_r($image_collection);
+			for($j=0;$j<sizeof($image_collection);$j++)
+			{
+				if(strlen($image_collection[$j]) > 0 )
+				{
+			?>
+				<a href="upload/main/<?php echo $image_collection[$j]?>" class="fancybox"><img  style="    width: 25px;height: 25px;" src="upload/main/<?php echo $image_collection[$j]?>" ></a>
+				<?php
+				}
+			}
+		?>
+       </td>
         </tr>
        
     <?php
@@ -369,7 +390,7 @@ if($details <> "")
 </table>
 </div>
 <br />
-<form name="viewrequest" id="viewrequest" method="post" action="process/legalcase.process.php?vr=<?php echo $_REQUEST['rq'];?>" onSubmit="return val();">
+<form name="viewrequest" id="viewrequest" method="post" action="process/legalcase.process.php?vr=<?php echo $_REQUEST['rq'];?>" enctype="multipart/form-data" onSubmit="return val();">
 <center>
 <table style="border:1px solid #CCC; width:85%;font-size:12px; padding:10px; border-radius: 15px;">
 <?php
@@ -416,6 +437,9 @@ if($details <> "")
         <th >&nbsp; Case No.</th>
         <td>&nbsp; : &nbsp;</td>
         <td><input type="text" name="case_no" id="case_no" value=""/></td>
+        <th >&nbsp;   Upload Image</th>
+        <td>&nbsp; : &nbsp;</td>
+		<td><input  style=" width: 200px;" name="img[]" id="img" type="file" accept=".jpg, .png, .jpeg, .gif" multiple /></td>
     </tr>
     <tr><td colspan="6"><br /></td></tr>
     <tr>       
@@ -441,7 +465,7 @@ if($details <> "")
 								 });
 		</script>
       
-   <tr><td colspan="6"><br /><input type="hidden" id="unit" name="unit" value="<?php echo $details[0]['unit_id'] ?>"></td></tr>
+   <tr><td colspan="6"><br /><input type="hidden" id="unit" name="unit" value="<?php echo $details[0]['unit_id'] ?>"><input type="hidden" id="society_id" name="society_id" value="<?php echo $_REQUEST['socid'] ?>"></td></tr>
     <tr align="center">
     	<td colspan="6"><input type="submit" name="submit" id="submit" value="Submit Comments"  class="btn btn-primary"/> </td>
     </tr>

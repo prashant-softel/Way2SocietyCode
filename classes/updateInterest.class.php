@@ -56,7 +56,6 @@ class updateInterest extends dbop
 					
 					if($ExitingCGST <> $CGST || $ExitingSGST <> $SGST)
 					{
-						
 						 $this->m_objGenbill->UpdateGst($BillDetailID,$CGST,$SGST);	
 					}
 					

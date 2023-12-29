@@ -1,5 +1,4 @@
 <?php
-// comment
 if(!isset($_SESSION)){ session_start(); }
 include_once ("dbconst.class.php"); 
 include_once("include/dbop.class.php");
@@ -155,28 +154,19 @@ class servicerequest
 		{
 			$_SESSION['renovation_service_request_id'] = $result;
 		}
+		$sqlSR = $this->GetCategoryDetails( $_POST['category']);
+		$EmailIDOfCategory = ""; 
+		if(isset($sqlSR) && sizeof($sqlSR) > 0)
+		{
+			$EmailIDOfCategory = $sqlSR[0]['email'];
+			$CCEmailIDOfCategory = $sqlSR[0]['email_cc'];
+		}
+		//echo $EmailIDOfCategory;
+		$this->sendEmail($request_no, $_POST['reportedby'], 'Raised', $_POST['details'], $_POST['email'], $EmailIDOfCategory, $CCEmailIDOfCategory,$_POST['unit_no2']);
 		
-		// $sqlSR = $this->GetCategoryDetails( $_POST['category']);
-		// $EmailIDOfCategory = ""; 
-		// if(isset($sqlSR) && sizeof($sqlSR) > 0)
-		// {
-		// 	$EmailIDOfCategory = $sqlSR[0]['email'];
-		// 	$CCEmailIDOfCategory = $sqlSR[0]['email_cc'];
-		// }
-
-		// if($this->isLandLordDB){
-		// 	//echo $EmailIDOfCategory;
-		// 	$this->sendEmail($request_no_land_lord, $_POST['reportedby'], 'Raised', $_POST['details'], $_POST['email'], $EmailIDOfCategory, $CCEmailIDOfCategory,$_POST['unit_no2']);
-			
-		// 	$this->ServiceRequestMobileNotification($request_no_land_lord, $_POST['category'], $_POST['priority'], $_POST['summery'], $EmailIDOfCategory, $CCEmailIDOfCategory,$sqlSR[0]['unitID'],$sqlSR[0]['co_unitID'], $_POST['unit_no'], true);
-		// }
-
-		// //echo $EmailIDOfCategory;
-		// $this->sendEmail($request_no, $_POST['reportedby'], 'Raised', $_POST['details'], $_POST['email'], $EmailIDOfCategory, $CCEmailIDOfCategory,$_POST['unit_no2']);
+		$this->ServiceRequestMobileNotification($request_no, $_POST['category'], $_POST['priority'], $_POST['summery'], $EmailIDOfCategory, $CCEmailIDOfCategory,$sqlSR[0]['unitID'],$sqlSR[0]['co_unitID'], $_POST['unit_no'], true);
 		
-		// $this->ServiceRequestMobileNotification($request_no, $_POST['category'], $_POST['priority'], $_POST['summery'], $EmailIDOfCategory, $CCEmailIDOfCategory,$sqlSR[0]['unitID'],$sqlSR[0]['co_unitID'], $_POST['unit_no'], true);
-		
-		// $this->ServiceRequestSMS($_POST['summery'],$sqlSR[0]['unitID'],$sqlSR[0]['co_unitID'],$_POST['unit_no']);
+		$this->ServiceRequestSMS($_POST['summery'],$sqlSR[0]['unitID'],$sqlSR[0]['co_unitID'],$_POST['unit_no']);
 		header("Location: ../servicerequest.php?type=open");
 	}
 	}
@@ -402,7 +392,6 @@ class servicerequest
 	{
 		$sql = "SELECT * FROM `member_main` WHERE `unit` = '".$_SESSION['unit_id']."' AND `society_id` = '".$_SESSION['society_id']."'";
 		$result = $this->m_dbConn->select($sql);
-		echo "debug result";
 		return $result;	
 	}	
 	
@@ -518,11 +507,6 @@ class servicerequest
 		else{
 			$result = $this->m_dbConn->select($sql);
 		}
-		
-		// echo "<pre>";
-		// print_r($result);
-		// echo "</pre>";
-
 		// $landLordDB = new dbop(false,false,false,false,true);
 
 		// for($i=0;$i<count($result);$i++)
@@ -538,10 +522,6 @@ class servicerequest
 		// 	$result[$i]['reportedby'] = $res1[(sizeof($res1)-1)]['reportedby']; 
 				
 		// }
-
-		// echo "<pre>";
-		// print_r($result);
-		// echo "</pre>";
 	//}
 		//var_dump($result);	
 		return $result;
@@ -668,7 +648,6 @@ class servicerequest
 		}
 		else
 		{
-			echo "society request";
 			$result = $this->m_dbConn->select($sql);
 		}
 		$result[0]['raisedDate'] = getDisplayFormatDate($result[0]['dateofrequest']);
@@ -749,13 +728,12 @@ class servicerequest
 		
 	public function comboboxEx($query, $id, $dbselected = false)
 	{ //$str.="<option value=''>All</option>";
-		// echo "debug class";
-		// echo "<pre>";
-		// print_r($dbselected);
-		// echo "</pre>";
-		// exit;
+
+	
+		
 		$str.="<option value='0'>Please Select</option>";
 		if($dbselected){
+
 			$data = $this->m_landLordDB->select($query);
 		}else{
 			$data = $this->m_dbConn->select($query);

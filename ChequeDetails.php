@@ -13,11 +13,14 @@ include_once ("check_default.php");
 
 include_once("classes/dbconst.class.php");
 include_once("classes/ChequeDetails.class.php");
-$obj_ChequeDetails = new ChequeDetails($m_dbConn);
+$dbConn = new dbop();
+$dbConnRoot = new dbop(true);
+$landLordDB = new dbop(false,false,false,false,true);
+$landLordDBRoot = new dbop(false,false,false,false,false,true);
 
-//include_once("classes/genbill.class.php");
-//$objGenBill = new genbill($m_dbConn);
-
+$obj_ChequeDetails = new ChequeDetails($m_dbConn,$landLordDB,$landLordDBRoot);
+// var_dump($obj_tenant);
+// var_dump($landLordDBRoot);
 include_once("classes/include/fetch_data.php");
 $objFetchDetails = new FetchData($m_dbConn);
 //include_once("classes/wing.class.php");
@@ -30,8 +33,6 @@ $memberIDS = $objUtility->getMemberIDs($_SESSION['default_year_end_date']);
 $VoucherDate = '';
 $status = $objUtility->getIsDateInRange( date("Y-m-d") , getDBFormatDate($_SESSION['default_year_start_date']) , getDBFormatDate($_SESSION['default_year_end_date'])); 
 $CurrentYearBeginingDate = $objUtility->getCurrentYearBeginingDate($_SESSION['default_year']);
-
-
 if($status)
 {
 	$VoucherDate = 	date("d-m-Y");	
@@ -41,7 +42,8 @@ else
 	$VoucherDate = 	getDisplayFormatDate($_SESSION['default_year_end_date']);		
 }
 $Latest_Bill_Start_Date = $objFetchDetails->getlatestbillstartdate();
-
+$newDate = date('Y-m-d', strtotime(getDBFormatDate($Latest_Bill_Start_Date) . ' -23 day'));
+$Latest_Bill_Start_Date1 = getDisplayFormatDate($newDate);
 $IsSameCntApply = $objUtility->IsSameCounterApply();
 /*if($_REQUEST['depositid'] != -3)
 {
@@ -72,7 +74,9 @@ else
 		$Counter = $objUtility->GetCounter(VOUCHER_RECEIPT, $_REQUEST['bankid']);
 	}
 
-
+	// echo "<pre>";
+	// print_r($_SESSION);
+	// echo "</pre>";
 $depositid = "";
 //echo $_REQUEST["select"];
 //echo $_REQUEST["depositid"];
@@ -149,16 +153,26 @@ $_SESSION['wwid'] = $_REQUEST['wwid'];
 		var PaidToVal = document.getElementById(PaidTo.id).value;
 		if((iMembersOnly == 1))
 		{
-			document.getElementById(PaidTo.id).innerHTML = "<?php echo $obj_ChequeDetails->comboboxEx("select led.id as id,concat_ws(' - ',led.ledger_name,mem.owner_name) as ledger_name from ledger as led JOIN unit as unittable on led.id=unittable.unit_id JOIN member_main as mem  on mem.unit=unittable.unit_id where receipt='1' and led.society_id=".$_SESSION['society_id']." and led.categoryid=".DUE_FROM_MEMBERS." and  mem.member_id IN (".$memberIDS.") ORDER BY unittable.sort_order ASC"); ?>";
+			<?php if($_SESSION['res_flag'] == 1){ ?>
+				document.getElementById(PaidTo.id).innerHTML = "<?php echo $obj_ChequeDetails->getCategory(); ?>";
+			<?php }else if($_SESSION['rental_flag'] == 1){ ?>
+				document.getElementById(PaidTo.id).innerHTML = "<?php echo $obj_ChequeDetails->comboboxEx("select id , ledger_name from ledger where receipt='1' and society_id=".$_SESSION['society_id']." and categoryid=".DUE_FROM_TENANTS." ORDER BY ledger_name ASC"); ?>";
+			<?php }else {?>
+				document.getElementById(PaidTo.id).innerHTML = "<?php echo $obj_ChequeDetails->comboboxEx("select led.id as id,concat_ws(' - ',led.ledger_name,mem.owner_name) as ledger_name from ledger as led JOIN unit as unittable on led.id=unittable.unit_id JOIN member_main as mem  on mem.unit=unittable.unit_id where receipt='1' and led.society_id=".$_SESSION['society_id']." and led.categoryid=".DUE_FROM_MEMBERS." and  mem.member_id IN (".$memberIDS.") ORDER BY unittable.sort_order ASC"); ?>";
+			// document.getElementById(PaidTo.id).innerHTML = "<?php echo $obj_ChequeDetails->comboboxEx("select id , ledger_name from ledger where receipt='1' and society_id=".$_SESSION['society_id']." and categoryid IN(21,22)  ORDER BY ledger_name ASC"); ?>";
+			<?php } ?>
 		 //alert('done');
-		 toggleSupplementaryCheckbox(mCounter);
+		  toggleSupplementaryCheckbox(mCounter);
 		}
 		else
 		{
+			<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+			document.getElementById(PaidTo.id).innerHTML = "<?php echo $obj_ChequeDetails->comboboxEx("select id,ledger_name from ledger where receipt='1' and categoryid NOT IN(".DUE_FROM_MEMBERS.", ".DUE_FROM_TENANTS.") and society_id=".$_SESSION['society_id']."  ORDER BY ledger_name ASC"); ?>";
+			<?php }else{  ?>
 			document.getElementById(PaidTo.id).innerHTML = "<?php echo $obj_ChequeDetails->comboboxEx("select id,ledger_name from ledger where receipt='1' and categoryid !=".DUE_FROM_MEMBERS." and society_id=".$_SESSION['society_id']."  ORDER BY ledger_name ASC"); ?>";
+			<?php } ?>
 			toggleSupplementaryCheckbox(mCounter);
 		}
-		
 	}
 	function myTestFunc(iCounter)
 	{
@@ -281,8 +295,8 @@ $_SESSION['wwid'] = $_REQUEST['wwid'];
 			
 	    <?php if($_SESSION['role'] == ROLE_MANAGER)
 	   { ?>
-		minGlobalCurrentYearStartDate = '<?php echo $Latest_Bill_Start_Date;?>';
-				
+		minGlobalCurrentYearStartDate = '<?php echo $Latest_Bill_Start_Date1;?>';
+		console.log(minGlobalCurrentYearStartDate);		
 	   <?php }?>
 			
 	    $.datepicker.setDefaults($.datepicker.regional['']);
@@ -343,7 +357,13 @@ else
 </form>
 <?php 
 if(IsReadonlyPage() == false){?>
-<div style="margin-left:5vw"><table><tr><td><input type="checkbox" id="MembersOnly" checked><b> Show Members Only</b></input></td></tr></table></div>
+<div style="margin-left:5vw"><table><tr><td><input type="checkbox" id="MembersOnly" checked>
+<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+	<b>Show Tenants Only</b></input></td></tr></table></div>
+<?php }else{ ?> 
+	<b>Show Members Only</b></input></td></tr></table></div>
+<?php } ?>
+
 
 <?php
 $star = "<font color='#FF0000'>*</font>";

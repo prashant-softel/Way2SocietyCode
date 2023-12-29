@@ -1,5 +1,6 @@
-<?php
+ <?php
 	include_once "dbconst.class.php";
+	include_once("include/dbop.class.php");
 	
 	class regiser
 	{
@@ -182,9 +183,27 @@
 			}
 
 		}
+
 		public function SetIncomeRegister($ledgerID, $date, $voucherID, $voucherTypeID, $transactionType, $amount, $isOpeningBalance = 0)
 		{
-			if($this->isLandLordDB){
+			if($this->ShowDebugTrace == 1)
+			{	
+				echo "<BR>In SetIncome. Ledger:". $ledgerID . " VoucherID :" . $voucherID . "   Amount :" . $amount . "<BR>";
+			}
+			
+			
+			$sqlInsert = "INSERT INTO `incomeregister`(`LedgerID`, `Date`, `VoucherID`, `VoucherTypeID`, `" . $transactionType . "`, Is_Opening_Balance) VALUES ('" . $ledgerID . "', '" . getDBFormatDate($date) . "', '" . $voucherID .  "', '" . $voucherTypeID . "', '" . $amount . "','".$isOpeningBalance."')";	
+			$sqlResult = $this->m_dbConn->insert($sqlInsert);
+			if($this->ShowDebugTrace == 1)
+			{	
+				echo "<BR>Result Inserted ID: " . $sqlResult . "<BR>";
+			}
+			return $sqlResult;
+		}
+
+		public function SetIncomeRegister_pdc($ledgerID, $date, $voucherID, $voucherTypeID, $transactionType, $amount, $isOpeningBalance = 0)
+		{
+			if($_SESSION['res_flag'] == 1){
 				if($this->ShowDebugTrace == 1)
 				{	
 					echo "<BR>In SetIncome. Ledger:". $ledgerID . " VoucherID :" . $voucherID . "   Amount :" . $amount . "<BR>";
@@ -215,9 +234,28 @@
 				return $sqlResult;
 			}
 		}
+
 		public function SetExpenseRegister($ledgerID, $date, $voucherID, $voucherTypeID, $transactionType, $amount, $ExpenseHead = 0, $isOpeningBalance = 0)
 		{
-			if($this->isLandLordDB){
+			if($this->ShowDebugTrace == 1)
+			{
+				echo "<BR>In SetExpense  LedgerID:". $ledgerID . " VoucherID :" . $voucherID . "   Amount :" . $amount . "<BR>";
+			}
+			
+			$sqlInsert = "INSERT INTO `expenseregister`(`LedgerID`, `Date`, `VoucherID`, `VoucherTypeID`, `" . $transactionType . "`,`Is_Opening_Balance`,`ExpenseHead`) VALUES ('" . $ledgerID . "', '" . getDBFormatDate($date) . "', '" . $voucherID .  "', '" . $voucherTypeID . "', '" . $amount . "', '".$isOpeningBalance."','".$ExpenseHead."')";
+			$sqlResult = $this->m_dbConn->insert($sqlInsert);
+			
+			if($this->ShowDebugTrace == 1)
+			{	
+				echo "<BR>Result Inserted ID: " . $sqlResult . "<BR>";
+			}
+			return $sqlResult;
+		}
+
+
+		public function SetExpenseRegister_pdc($ledgerID, $date, $voucherID, $voucherTypeID, $transactionType, $amount, $ExpenseHead = 0, $isOpeningBalance = 0)
+		{
+			if($_SESSION['res_flag'] == 1){
 				if($this->ShowDebugTrace == 1)
 				{
 					echo "<BR>In SetExpense  LedgerID:". $ledgerID . " VoucherID :" . $voucherID . "   Amount :" . $amount . "<BR>";
@@ -264,7 +302,36 @@
 
 		public function SetAssetRegister2($date, $groupID, $categoryID, $ledgerID, $voucherID, $voucherTypeID, $transactionType, $amount, $isOpeningBalance)
 		{
-			if($this->isLandLordDB){
+			if($this->ShowDebugTrace == 1)
+			{
+				echo "<BR>Inside SetAssetRegister2<BR>";
+			}
+			$sqlInsert = "INSERT INTO `assetregister`(`Date`, `CategoryID`, `SubCategoryID`, `LedgerID`, `VoucherID`, `VoucherTypeID`, `" . $transactionType . "`, `Is_Opening_Balance`) VALUES ('" . getDBFormatDate($date) . "', '" . $groupID . "', '" . $categoryID . "', '" . $ledgerID . "', '" . $voucherID . "',  '" . $voucherTypeID . "', '" . $amount . "', '" . $isOpeningBalance . "')";
+			$sqlResult = $this->m_dbConn->insert($sqlInsert);
+			if($this->ShowDebugTrace == 1)
+			{	
+				echo "<BR>Result Inserted ID: " . $sqlResult . "<BR>";
+			}
+			
+			return $sqlResult;
+		}
+
+		public function SetAssetRegister_pdc($date, $ledgerID, $voucherID, $voucherTypeID, $transactionType, $amount, $isOpeningBalance)
+		{
+			if($this->ShowDebugTrace == 1)
+			{
+				echo "<BR>In SetAssetRegister Ledger:". $ledgerID . " VoucherID :" . $voucherID . "   Amount :" . $amount . "<BR>";
+			}
+			$aryParent = $this->getLedgerParent($ledgerID);
+		
+			$groupID = $aryParent['group'];
+			$categoryID = $aryParent['category'];
+		 	return $this->SetAssetRegister2_pdc($date, $groupID, $categoryID, $ledgerID, $voucherID, $voucherTypeID, $transactionType, $amount, $isOpeningBalance);
+		}
+
+		public function SetAssetRegister2_pdc($date, $groupID, $categoryID, $ledgerID, $voucherID, $voucherTypeID, $transactionType, $amount, $isOpeningBalance)
+		{
+			if($_SESSION['res_flag'] == 1){
 				if($this->ShowDebugTrace == 1)
 				{
 					echo "<BR>Inside SetAssetRegister2<BR>";
@@ -307,10 +374,42 @@
 			
 		 	$this->SetLiabilityRegister2($date, $groupID, $categoryID, $ledgerID, $voucherID, $voucherTypeID, $transactionType, $amount, $isOpeningBalance);
 		}
-		
+
 		public function SetLiabilityRegister2($date, $groupID, $categoryID, $ledgerID, $voucherID, $voucherTypeID, $transactionType, $amount, $isOpeningBalance)
 		{
-			if($this->isLandLordDB){
+			if($this->ShowDebugTrace == 1)
+			{
+				echo "<BR>Inside SetLiabilityRegister2";
+			}
+			$sqlInsert = "INSERT INTO `liabilityregister`(`Date`, `CategoryID`, `SubCategoryID`, `LedgerID`, `VoucherID`, `VoucherTypeID`, `" . $transactionType . "`, `Is_Opening_Balance`) VALUES ('" . getDBFormatDate($date) . "', '" . $groupID . "', '" . $categoryID . "', '" . $ledgerID . "', '" . $voucherID . "',  '" . $voucherTypeID . "', '" . $amount . "', '" . $isOpeningBalance . "')";
+		
+			$sqlResult = $this->m_dbConn->insert($sqlInsert);
+			
+			if($this->ShowDebugTrace == 1)
+			{	
+				echo "<br>" . $sqlInsert ;
+				echo "<BR>Result Inserted ID: " . $sqlResult . "<BR>";
+			}			
+			return $sqlResult;
+		}
+
+		public function SetLiabilityRegister_pdc($date, $ledgerID, $voucherID, $voucherTypeID, $transactionType, $amount, $isOpeningBalance)
+		{
+			if($this->ShowDebugTrace == 1)
+			{
+					echo "<BR>Liability:". $ledgerID . " VoucherID :" . $voucherID . "   Amount :" . $amount . "<BR>";
+			}
+			$aryParent = $this->getLedgerParent($ledgerID);
+		
+			$groupID = $aryParent['group'];
+			$categoryID = $aryParent['category'];
+			
+		 	$this->SetLiabilityRegister2_pdc($date, $groupID, $categoryID, $ledgerID, $voucherID, $voucherTypeID, $transactionType, $amount, $isOpeningBalance);
+		}
+		
+		public function SetLiabilityRegister2_pdc($date, $groupID, $categoryID, $ledgerID, $voucherID, $voucherTypeID, $transactionType, $amount, $isOpeningBalance)
+		{
+			if($_SESSION['res_flag'] == 1){
 				if($this->ShowDebugTrace == 1)
 				{
 					echo "<BR>Inside SetLiabilityRegister2";
@@ -344,10 +443,22 @@
 			}
 		}
 		
-		
 		public function SetBankRegister($date, $ledgerID, $voucherID, $voucherTypeID, $transactionType, $amount, $depositGroup, $chequeDetailID, $isOpeningBalance = 0, $chequeDate = 0, $ref = 0, $reconcileDate = 0, $reconcileStatus = 0, $reconcile = 0, $return = 0)
 		{
-			if($this->isLandLordDB){
+			if($this->ShowDebugTrace == 1)
+			{
+				echo "<BR>Bank Register:". $ledgerID . " VoucherID :" . $voucherID . "   Amount :" . $amount . "<BR>";
+			}
+			
+			$sqlInsert = "INSERT INTO `bankregister`(`Date`, `LedgerID`, `VoucherID`, `VoucherTypeID`, `" . $transactionType . "`, `DepositGrp`, `ChkDetailID`, `Is_Opening_Balance`, `Cheque Date`, `Ref`, `Reconcile Date`, `ReconcileStatus`, `Reconcile`, `Return`) VALUES ('" . getDBFormatDate($date) . "', '" . $ledgerID . "', '" . $voucherID .  "', '" . $voucherTypeID . "', '" . $amount . "', '" . $depositGroup . "', '" . $chequeDetailID . "', '" . $isOpeningBalance . "', '".getDBFormatDate($chequeDate)."', '" . $ref . "', '".getDBFormatDate($reconcileDate)."', '".$reconcileStatus."', '".$reconcile."', '".$return."')";
+			$sqlResult = $this->m_dbConn->insert($sqlInsert);
+			
+			return $sqlResult;
+		}
+
+		public function SetBankRegister_pdc($date, $ledgerID, $voucherID, $voucherTypeID, $transactionType, $amount, $depositGroup, $chequeDetailID, $isOpeningBalance = 0, $chequeDate = 0, $ref = 0, $reconcileDate = 0, $reconcileStatus = 0, $reconcile = 0, $return = 0)
+		{
+			if($_SESSION['res_flag'] == 1){
 				if($this->ShowDebugTrace == 1)
 				{
 					echo "<BR>Bank Register:". $ledgerID . " VoucherID :" . $voucherID . "   Amount :" . $amount . "<BR>";
@@ -402,11 +513,23 @@
 			return $sqlResult;
 		}
 	
-	
 		public function getLedgerParent($ledgerID)
+		{	
+			$sqlSelect = "select categorytbl.group_id, ledgertbl.categoryid from ledger As ledgertbl JOIN account_category As categorytbl ON ledgertbl.categoryid = categorytbl.category_id where ledgertbl.id = '" . $ledgerID . "'";
+			$result = $this->m_dbConn->select($sqlSelect);
+			
+			$aryParent = array();
+			$aryParent['group'] = $result[0]['group_id'];
+			$aryParent['category'] = $result[0]['categoryid'];
+			
+			return $aryParent;
+		}
+	
+
+		public function getLedgerParent_pdc($ledgerID)
 		{
 			//echo "<BR><BR>Inside getLedgerParent<BR><BR>";
-			if($this->isLandLordDB){
+			if($_SESSION['res_flag'] == 1){
 				$sqlSelect = "select categorytbl.group_id, ledgertbl.categoryid from ledger As ledgertbl JOIN account_category As categorytbl ON ledgertbl.categoryid = categorytbl.category_id where ledgertbl.id = '" . $ledgerID . "'";
 				$result = $this->landLordDB->select($sqlSelect);
 				

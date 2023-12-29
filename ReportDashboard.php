@@ -202,9 +202,11 @@ $getCatName=$obj_rep_dash->getCatName($_REQUEST['catval']);
 	function ShowAdminView(SelectedTab)
 	{
 		//alert("test");
-		
-		
-		window.location.href = "home_s.php?View=ADMIN";
+		if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+            window.location.href = "home_res.php?View=ADMIN";
+        }else{
+            window.location.href = "home_s.php?View=ADMIN";
+        }
 //		//location.reload(true);
 	}
 	</script>

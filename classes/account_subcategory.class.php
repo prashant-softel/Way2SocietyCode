@@ -5,9 +5,6 @@ include_once("utility.class.php");
 include_once("dbconst.class.php");// enviroment.
 include_once("register.class.php");
 include_once("changelog.class.php");
-// echo "<pre>";
-// print_r($_SESSION);
-// echo "</pre>";
 $dbConn = new dbop();
 $dbConnRoot = new dbop(true);
 class account_subcategory
@@ -573,7 +570,7 @@ class account_subcategory
 	public function display1($rsas)
 	{
 		/*$thheader = array('Category','Ledger','Opening Balance','Type','Show_In_Bill','Taxable','Sale','Purchase','Income','Expense','Payment','Receipt','Note','Opening Date');*/
-		$thheader = array('Sr.No.', 'Group Name','Category','Ledger','OpeningBalance/Prev.YearBalance','OpeningType','TaxFlag','TariffTag','Remark','GSTIN No','Opening Date');
+		$thheader = array('Sr.No.', 'Group Name','Category','Ledger','OpeningBalance/Prev.YearBalance','End of YearBalance','OpeningType','TaxFlag','TariffTag','Remark','GSTIN No','Opening Date');
 		$this->display_pg->edit		= "getaccount_subcategory";
 		$this->display_pg->th		= $thheader;
 		$this->display_pg->mainpg	= "ledger.php";
@@ -593,9 +590,9 @@ class account_subcategory
 	
 	public function pgnation()
 	{
-		//echo "inside pagination";
 		//$sql1 = "select ledger_table.id,ledger_table.society_id,Account.category_name,ledger_table.ledger_name,ledger_table.show_in_bill,ledger_table.taxable,ledger_table.sale,ledger_table.purchase,ledger_table.income,ledger_table.expense,ledger_table.payment,ledger_table.receipt,ledger_table.opening_type,ledger_table.opening_balance,ledger_table.note from `account_category` as `Account` Join `ledger` as `ledger_table` where Account.category_id = ledger_table.categoryid";
-		if($_SESSION['res_flag'] == 1){
+		
+if($_SESSION['res_flag'] == 1){
 		$sql11= "SELECT `APP_DEFAULT_DUE_FROM_MEMBERS`,`APP_DEFAULT_DUE_FROM_TENANTS`,`APP_DEFAULT_MAYANK_PATEL_TENANTS`,`APP_DEFAULT_JUMA_SUHAIL_TENANTS`, `APP_DEFAULT_BANK_ACCOUNT`,`APP_DEFAULT_CASH_ACCOUNT` FROM `appdefault` WHERE `APP_DEFAULT_SOCIETY`='".$_SESSION['society_id']."'";
 		}
 		else
@@ -604,6 +601,8 @@ class account_subcategory
 			
 			}
 		$result1 = $this->m_dbConn->select($sql11);
+
+
 		/*$sql1 = "select ledger_table.id,CONCAT(Account.category_name,CONCAT('(',Account.category_id,')')) as 'Category Name',CONCAT(ledger_table.ledger_name, CONCAT('(',ledger_table.id,')')) as 'ledger',ledger_table.opening_balance,IF(ledger_table.opening_type = '0', 'None',IF(ledger_table.opening_type = '1', 'Credit',IF(ledger_table.opening_type = '2', 'Debit',''))) as opening_type, ledger_table.show_in_bill,ledger_table.taxable,ledger_table.sale,ledger_table.purchase,ledger_table.income,ledger_table.expense,ledger_table.payment,ledger_table.receipt,ledger_table.note,DATE(DATE_ADD(ledger_table.opening_date, INTERVAL 1 DAY)) as opening_date from `account_category` as `Account`,`ledger` as `ledger_table`, `society` as `society_table` where Account.category_id = ledger_table.categoryid and society_table.society_id = ledger_table.society_id and society_table.society_id =".$_SESSION['society_id']; */
 		// $sql1 = "select ledger_table.id,CONCAT(Account.category_name,CONCAT('(',Account.category_id,')')) as 'Category Name',CONCAT(ledger_table.ledger_name, CONCAT('(',ledger_table.id,')')) as 'ledger',FORMAT(ledger_table.opening_balance,2) as opening_balance,IF(ledger_table.opening_type = '0', 'None',IF(ledger_table.opening_type = '1', 'Credit',IF(ledger_table.opening_type = '2', 'Debit',''))) as opening_type, ledger_table.show_in_bill,ledger_table.note,DATE_FORMAT(DATE(DATE_ADD(ledger_table.opening_date, INTERVAL 1 DAY)),'%d-%m-%Y') as opening_date from `account_category` as `Account`,`ledger` as `ledger_table`, `society` as `society_table` where Account.category_id = ledger_table.categoryid and society_table.society_id = ledger_table.society_id and society_table.society_id =".$_SESSION['society_id'];
 		if($_SESSION['res_flag'] == 1){
@@ -626,29 +625,36 @@ class account_subcategory
 	 // $sql1 ="select ledger_table.id,CONCAT(Account.category_name,CONCAT('(',Account.category_id,')')) as 'Category Name',CONCAT(ledger_table.ledger_name, CONCAT('(',ledger_table.id,')')) as 'ledger',ld.GSTIN_No,FORMAT(ledger_table.opening_balance,2) as opening_balance,IF(ledger_table.opening_type = '0', 'None',IF(ledger_table.opening_type = '1', 'Credit',IF(ledger_table.opening_type = '2', 'Debit',''))) as opening_type, ledger_table.show_in_bill,ledger_table.note,DATE_FORMAT(DATE(DATE_ADD(ledger_table.opening_date, INTERVAL 1 DAY)),'%d-%m-%Y') as opening_date  from `account_category` as `Account` join `ledger` as `ledger_table` on Account.category_id = ledger_table.categoryid join `society` as `society_table` on society_table.society_id = ledger_table.society_id left join `ledger_details` as ld on ledger_table.id=ld.LedgerID where society_table.society_id ='".$_SESSION['society_id']."' order by ledger_table.id";
 
 		$currentYearOpeningDate = $this->obj_utility->getCurrentYearBeginingDate($_SESSION['default_year']);	
+		$endingYearClosingDate = $this->obj_utility->getBeginningAndEndingDate($_SESSION['default_year']);
+		//print_r($endingYearClosingDate);
 		$firstYearOpeningDate = $this->obj_utility->getSocietyCreatedOpeningDate();
 
 		$fetchOpeningBalance = true;
-		if(strtotime($currentYearOpeningDate)  == strtotime($firstYearOpeningDate)){
+		$fetchClosingBalance = true;
+		if(strtotime($currentYearOpeningDate)  == strtotime($firstYearOpeningDate) || strtotime($endingYearClosingDate) == strtotime($firstYearOpeningDate)){
 
 			$fetchOpeningBalance = false;
+			$fetchClosingBalance = false;
 		}
 
 		for($i = 0 ; $i< sizeof($result);$i++)
 		{
-			if($fetchOpeningBalance){
+			if($fetchOpeningBalance || $fetchClosingBalance){
 
 				$ledgerDetail = $this->obj_utility->getParentOfLedger($result[$i]['id']);
 
 				$openingBalanceDetail = $this->obj_utility->getOpeningBalance($result[$i]['id'],$currentYearOpeningDate);
-				
+				$endOfYearBalanceDetail = $this->obj_utility->getendYearBalance($result[$i]['id']);
+
 				if($ledgerDetail['group'] == ASSET || $ledgerDetail['group'] == LIABILITY) {
 					$openingBalanceDetail = $this->obj_utility->getOpeningBalance($result[$i]['id'],$currentYearOpeningDate);
+					$endOfYearBalanceDetail = $this->obj_utility->getendYearBalance($result[$i]['id']);
 				}
 				else {
 					$openingBalanceDetail = $this->obj_utility->getLedgerTotal($result[$i]['id'], $ledgerDetail['group']);
 				}
 				$result[$i]['opening_balance'] = number_format($openingBalanceDetail['Total'],2);
+				$result[$i]['endOfYearBalance'] = number_format($endOfYearBalanceDetail['Total'],2);
 				$result[$i]['opening_type'] = $openingBalanceDetail['OpeningType'];
 				$result[$i]['opening_date'] = $openingBalanceDetail['OpeningDate'];
 			}

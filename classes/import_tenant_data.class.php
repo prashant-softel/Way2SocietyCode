@@ -1,7 +1,7 @@
 <?php
 include_once("include/dbop.class.php");
 include_once("utility.class.php");
-include_once("dbconst.class.php"
+include_once("dbconst.class.php");
 include_once("register.class.php");
 include_once("changelog.class.php");//Pending - Verify
 

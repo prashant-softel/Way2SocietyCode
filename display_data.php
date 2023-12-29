@@ -192,6 +192,10 @@ $mimes = array('application/vnd.ms-excel','text/csv','text/tsv');
         elseif($_POST['flag']==18){
             include('import_rc_tenant_data.php');
         }
+        elseif($_POST['flag']==19){
+            include('import_rc_invoice.php');
+
+        }
 	}
  }
 ?>
@@ -441,6 +445,23 @@ $(document).ready(function () {
             window.location.href = "import_rc_tenant_data.php";
         });   	
 	}
+    else if(flag==19)
+	{
+        for (let j = 0; j <=30 ; j++)
+        {
+			if(j==0 || j==1  || j==2 )
+			{
+				document.getElementsByClassName('columns')[j].checked = true;
+            	document.getElementsByClassName('columns')[j].disabled = true;
+			}
+        }
+        
+        $("#Cancel").click(function() {
+            window.location.href = "import_rc_invoice.php";
+        });   	
+	}
+    
+
 });
     
 function selectColumns(source) 
@@ -638,7 +659,13 @@ function validateData()
         <form name="import_rc_tenant_data" id="import_rc_tenant_data" action="process/import_tenant_data.process.php" method="post" enctype="multipart/form-data" >
         <?php
         }
-        }  
+        elseif ($_POST['flag'] == 19 )
+        {
+       ?>
+      <form name="import_rc_invoice_data" id="import_rc_invoice_data" action="process/import_invoice.process.php" method="post" enctype="multipart/form-data" >
+      <?php
+        }
+       }  
     }
 ?>    
 <center>
@@ -773,6 +800,12 @@ function validateData()
                     <div class="panel-heading" id="pageheader">Import Tenant Data</div>
                 <?php 
                 }
+                elseif($_POST['flag'] == 19)
+				{?>
+					 <div class="panel-heading" id="pageheader">Import Invoice</div>
+				<?php
+				
+				 }
             }  
         }
     ?>

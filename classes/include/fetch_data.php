@@ -122,9 +122,13 @@ class FetchData
 	public $obj_utility;
 	
 	public $m_dbConn;
-	public function __construct($dbConn)
+	public $m_dbConnRoot;
+	public $m_landlord;
+	public function __construct($dbConn,$dbConnRoot="",$landlord ="")
 	{
 		$this->m_dbConn = $dbConn;
+		$this->m_dbConnRoot = $dbConnRoot;
+		$this->m_landlord = $landlord;
 		$this->objSocietyDetails = new CSocietyDetails($this->m_dbConn);
 		$this->objMemeberDetails = new CMemberDetails($this->m_dbConn);
 	}
@@ -186,10 +190,20 @@ class FetchData
 			return $ResultGetNotes;
 		}
 	}
-	function GetSocietyDetails($ReqSocietyID)
+	function GetSocietyDetails($ReqSocietyID,$rental=false)
 	{
-		$sqlFetch = "select * from society where society_id=".$ReqSocietyID."";		
-		$res02 = $this->m_dbConn->select($sqlFetch); 
+		
+		if($rental == true)
+		{
+			$sqlFetch = "select * from society where society_id=".$ReqSocietyID."";		
+			$res02 = $this->m_landlord->select($sqlFetch); 
+		}
+		else
+		{
+			$sqlFetch = "select * from society where society_id=".$ReqSocietyID."";		
+			$res02 = $this->m_dbConn->select($sqlFetch); 
+		}	
+		
 		if($res02 <> "")
 		{
 			foreach($res02 as $row => $v )
@@ -240,21 +254,29 @@ class FetchData
 	
 	function GetMemberDetails($sUnitID,$Date = "")
 	{
+		
 		$CheckCategory = "SELECT categoryid FROM ledger WHERE id = '".$sUnitID."'";
 		$ResultCheckCategory = $this->m_dbConn->select($CheckCategory);
 		if($ResultCheckCategory[0]['categoryid'] <> DUE_FROM_MEMBERS)
 		{
 			$LedgerName = $this->LedgerDetails($sUnitID);
 		}
-		if($Date <> "")
+		if($_SESSION['res_falg']== 1 || $_SESSION['rental_flag'] == 1)
 		{
-			$sqlMember = 'select * from member_main where unit='.$sUnitID.' and  ownership_date <= "' .getDBFormatDate($Date). '"  ORDER BY ownership_date 
-
-DESC LIMIT 1 ';
+			$sqlMember = 'select tenant_name as owner_name from tenant_module where unit_id='.$sUnitID;
 		}
 		else
 		{
-			$sqlMember = 'select * from member_main where unit='.$sUnitID.' and  ownership_status = 1 ';	
+			if($Date <> "")
+			{
+				$sqlMember = 'select * from member_main where unit='.$sUnitID.' and  ownership_date <= "' .getDBFormatDate($Date). '"  ORDER BY ownership_date 
+
+DESC LIMIT 1 ';
+			}
+			else
+			{
+				$sqlMember = 'select * from member_main where unit='.$sUnitID.' and  ownership_status = 1 ';	
+			}
 		}
 		
 		$res02 = $this->m_dbConn->select($sqlMember);
@@ -314,7 +336,60 @@ tmem.tenant_id = tmod.tenant_id where tmod.unit_id = '" . $sUnitID . "' AND tmod
 			}
 		}
 	}
-	
+	function GetMemberDetailsRec($sUnitID,$Date = "")
+	{
+		
+		$CheckCategory = "SELECT categoryid FROM ledger WHERE id = '".$sUnitID."'";
+		$ResultCheckCategory = $this->m_dbConn->select($CheckCategory);
+		if($ResultCheckCategory[0]['categoryid'] <> DUE_FROM_MEMBERS)
+		{
+			$LedgerName = $this->LedgerDetails($sUnitID);
+		}
+		
+		//if($_SESSION['res_falg']== 1 || $_SESSION['rental_flag'] == 1)
+		//{
+			//$sqlMember = 'select tenant_name as owner_name from tenant_module where ledger_id='.$sUnitID;
+		//}
+		//else
+		//{
+			//if($Date <> "")
+			//{
+				//$sqlMember = 'select * from member_main where unit='.$sUnitID.' and  ownership_date <= "' .getDBFormatDate($Date). '"  ORDER BY ownership_date 
+
+//DESC LIMIT 1 ';
+			//}
+			//else
+			//{
+				$sqlMember = 'select * from tenant_module where ledger_id='.$sUnitID;;
+				//$sqlMember = 'select * from member_main where unit='.$sUnitID.' and  ownership_status = 1 ';	
+			//}
+		//}
+		
+		$res02 = $this->m_dbConn->select($sqlMember);
+		//print_r($res02);
+		if($res02 <> "")
+		{
+			if($sqlMember)
+			{
+				foreach($res02 as $row => $v )
+				{
+					$this->objMemeberDetails->sMemberName = $res02[$row]['tenant_name'];
+					$this->objMemeberDetails->sUnitNumber = $this->GetUnitNumber($sUnitID);	
+					//$this->objMemeberDetails->sParkingNumber = $res02[$row]['parking_no'];
+					//$this->objMemeberDetails->sGender = $res02[$row]["gender"];
+					$this->objMemeberDetails->sEmail = $res02[$row]["email"];
+					$this->objMemeberDetails->sMobile = $res02[$row]["mobile_no"];
+					//$this->objMemeberDetails->arListOfMembers = $arListOfOtherMember;
+					//$this->objMemeberDetails->arListOfTenants = $arListOfActiveTenants;
+					//$this->objMemeberDetails->sMemberGstinNo = $res02[$row]["owner_gstin_no"];
+				}
+			}
+			else
+			{
+				//echo "No Data Found from Members database.";
+			}
+		}
+	}
 	public function getMobileNumber($unitID)
 	{
 		$Mobile = $this->m_dbConn->select("SELECT mob from member_main where unit = '".$unitID."' And society_id = '".$_SESSION['society_id']."' and 
@@ -376,7 +451,14 @@ ownership_status = 1");
 
 	public function GetUnitNumber($sUnitID)
 	{
-		$sqlMember = 'select unit_no from unit where unit_id='.$sUnitID.'';
+		if($_SESSION['res_flag'] ==1 || $_SESSION['rental_flag'] == 1)
+		{
+			$sqlMember = 'select unit_no from unit join `tenant_module` as tm on tm.unit_id=unit.unit_id where tm.ledger_id='.$sUnitID.'';
+		}
+		else
+		{
+			$sqlMember = 'select unit_no from unit where unit_id='.$sUnitID.'';
+		}
 		$res02 = $this->m_dbConn->select($sqlMember);
 		$UnitNumber = "0";
 		if($res02 <> "")
@@ -417,12 +499,21 @@ ownership_status = 1");
 				//echo "No WingID found for UnitID <" . $sUnitID. ">";
 			}
 		}
+		
 		return $UnitNumber;
 	}
 	
 	function GetSocietyID($sUnitID)
 	{
-		$sqlMember = 'select society_id from unit where unit_id='.$sUnitID.'';
+		
+		if($_SESSION['rental_flag'] == 1 || $_SESSION['res_flag'] ==1)
+		{
+			$sqlMember = "select unit.society_id from unit join `tenant_module` as tm on tm.unit_id = unit.unit_id where tm.ledger_id='".$sUnitID."'";
+		}
+		else
+		{
+			$sqlMember = 'select society_id from unit where unit_id='.$sUnitID.'';
+		}
 		$res02 = $this->m_dbConn->select($sqlMember);
 		$SocietyID = "0";
 		if($res02 <> "")
@@ -787,7 +878,7 @@ where  voucherdate >= '". $EndDate . "'  AND PaidBy = " . $UnitID." AND periodtb
 		{
 			$PeriodID=$this->getNextPeriodID($PeriodID);
 		}
-		if($_SESSION['society_id'] == 427)
+		if($_SESSION['society_id'] == 427 || $_SESSION['society_id'] == 439)
 		{
 			$Prevresult = $this->getBeginEndReceiptDate($UnitID, $PeriodID,$BillType);
 		}
@@ -813,6 +904,11 @@ where  voucherdate >= '". $EndDate . "'  AND PaidBy = " . $UnitID." AND periodtb
 			{
 				//$StartDate = '2016-04-01';
 				$StartDate = '2019-04-01';	
+			}
+			else if($_SESSION['society_id'] == 439)  //RAHEJA XION CONDOMINIUM
+			{
+				//$StartDate = '2016-04-01';
+				$StartDate = '2023-04-01';	
 			}
 			else
 			{
@@ -948,9 +1044,17 @@ function getReverseChargesDetails($UnitID, $Date)
 	}	
 	function getWing_AreaDetails($UnitID)
 	{
-		$detailsquery = 'SELECT unittable.area,unittable.floor_no,wingtable.wing, unittable.taxable_no_threshold,unittable.virtual_acc_no,unittable.intercom_no FROM `unit` as `unittable` join `wing` as 
+		if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag']==1)
+		{
+			$detailsquery = 'SELECT unittable.area,unittable.floor_no,wingtable.wing, unittable.taxable_no_threshold,unittable.virtual_acc_no,unittable.intercom_no FROM `unit` as `unittable` join `wing` as `wingtable` on unittable.wing_id = wingtable.wing_id join `tenant_module` as tm on tm.unit_id=unittable.unit_id and tm.`ledger_id` ='.$UnitID;
+		}
+		else
+		{
+		
+			$detailsquery = 'SELECT unittable.area,unittable.floor_no,wingtable.wing, unittable.taxable_no_threshold,unittable.virtual_acc_no,unittable.intercom_no FROM `unit` as `unittable` join `wing` as 
 
 `wingtable` on unittable.wing_id = wingtable.wing_id and `unit_id` = '.$UnitID;
+		}
 		$result = $this->m_dbConn->select($detailsquery);
 		return $result; 	
 	}
@@ -1270,9 +1374,14 @@ src="http://way2society.com/images/icon1.jpg" alt=""></a>
 	
 	public function getUnitPresentation($UnitID)
 	{
-		$sql = "SELECT unittypetbl.description  as description FROM `unit` as unittbl JOIN `unit_type` as unittypetbl on unittbl.unit_presentation = 
-
-unittypetbl.id where unittbl.unit_id = '".$UnitID."' ";	
+		if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1)
+		{
+			$sql = "SELECT unittypetbl.description as description FROM `unit` as unittbl JOIN `unit_type` as unittypetbl on unittbl.unit_presentation = unittypetbl.id join `tenant_module` as tm on tm.unit_id=unittbl.unit_id where tm.ledger_id = '".$UnitID."'";
+		}
+		else
+		{
+			$sql = "SELECT unittypetbl.description  as description FROM `unit` as unittbl JOIN `unit_type` as unittypetbl on unittbl.unit_presentation = unittypetbl.id where unittbl.unit_id = '".$UnitID."' ";	
+		}
 		$details = $this->m_dbConn->select($sql);
 		return $details[0]['description'];		
 	}

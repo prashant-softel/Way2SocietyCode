@@ -2,6 +2,8 @@
 var bIsSendEmail = false;
 function jsBillUpdate(HeaderAndAmount,NewRowCounter)
 {
+	console.log("header ::" +HeaderAndAmount);
+	console.log("Counter ::" +NewRowCounter);
 	var obj = [];
 	var CurrentValue =0;
 	var PreviousValue =0;
@@ -17,11 +19,9 @@ function jsBillUpdate(HeaderAndAmount,NewRowCounter)
 	var mode = 3;
 	
 	//Request type Will define where bill is updating or created
-	
 	var RequestType = document.getElementById('request_type').value;
-	
+	console.log("Request Type"+ RequestType);
 	// Here Checking the Society is GST Appy or not
-	
 	if(RequestType =='Invoice')
 	{
 		CheckSocietyApplyGST = document.getElementById('SocietyTaxable').value;
@@ -30,6 +30,8 @@ function jsBillUpdate(HeaderAndAmount,NewRowCounter)
 	{
 		arr23 = HeaderAndAmount[i].split("@@@");
 		HeaderID = arr23[1].toString();
+		console.log(HeaderID );
+		console.log(document.getElementById("txtInterestOnArrears").value);
 		if(document.getElementById("txtInterestOnArrears").value != HeaderID)
 		{ 
 			VoucherID = arr23[0].toString();
@@ -43,167 +45,167 @@ function jsBillUpdate(HeaderAndAmount,NewRowCounter)
 		}
 	}
 	
-	  if(NewRowCounter != 0)
-	  {
-		 arDataToSubmit = ReturnNewRowCounter(NewRowCounter,arDataToSubmit,RequestType,0);
-	  }
-	
-
-	for (var key in obj) 
-				{
-					//alert(obj[key]);
-				}
-			
+	if(NewRowCounter != 0)
+	{
+		arDataToSubmit = ReturnNewRowCounter(NewRowCounter,arDataToSubmit,RequestType,0);
+	}
+	for(var key in obj) 
+	{
+		//alert(obj[key]);
+	}
 	var IsSuppBill = document.getElementById('IsSupplementaryBill').value;
 	//if(IsSuppBill == 0)
 	{	
-			if(RequestType == 'Invoice')
-				{
-				// We checking here whether is it on edit mode to create
-				var InvoiceMode = document.getElementById('IsInvoiceEdit').value
-				var IsOutSider = document.getElementById('IsOutSider').value;	
-				var InterestOnPrincipleDue = 0;
-				var IntrestOnPreviousarrears = 0;
-	    		var PrinciplePreviousArrears = 0;
-				var AdjustmentCredit = 0;
-				var Note  = CKEDITOR.instances['note'].getData();
-				//var Note = document.getElementById('note').value;
-				//console.log(Note);
+		if(RequestType == 'Invoice')
+		{
+			// We checking here whether is it on edit mode to create
+			var InvoiceMode = document.getElementById('IsInvoiceEdit').value
+			var IsOutSider = document.getElementById('IsOutSider').value;	
+			var InterestOnPrincipleDue = 0;
+			var IntrestOnPreviousarrears = 0;
+	    	var PrinciplePreviousArrears = 0;
+			var AdjustmentCredit = 0;
+			var Note  = CKEDITOR.instances['note'].getData();
+			//var Note = document.getElementById('note').value;
+			//console.log(Note);
 				
-				var bill_date = document.getElementById('bill_date').value;
-				invoiceNumber =  document.getElementById('invoiceNumber').value;
-				
-				if(InvoiceMode == 1)
+			var bill_date = document.getElementById('bill_date').value;
+			invoiceNumber =  document.getElementById('invoiceNumber').value;
+			if(InvoiceMode == 1)
+			{
+				//setting the value for edit mode
+				IsInvoiceEdit = 1;
+				IsCallUpdtCnt = 0;
+				VoucherNumber = document.getElementById('bill_no').value;
+				EditableInvoiceNo = document.getElementById('EditInvoiceNo').value;
+				ExitingInvoiceUnitID = document.getElementById('ExitingInvoiceUnitID').value;
+				var isDuplicateCounter =  IsCounterDuplicate(VoucherNumber,mode,EditableInvoiceNo);
+				if(isDuplicateCounter == false)
 				{
-					//setting the value for edit mode
-					IsInvoiceEdit = 1;
-					IsCallUpdtCnt = 0;
-					
-					VoucherNumber = document.getElementById('bill_no').value;
-					EditableInvoiceNo = document.getElementById('EditInvoiceNo').value;
-					ExitingInvoiceUnitID = document.getElementById('ExitingInvoiceUnitID').value;
-					
-					var isDuplicateCounter =  IsCounterDuplicate(VoucherNumber,mode,EditableInvoiceNo);
-					
-					if(isDuplicateCounter == false)
-					{
-						return false;
-					}
-					
-					if(EditableInvoiceNo != VoucherNumber)
-					{
-						IsCallUpdtCnt = UserResponseOnExCount(VoucherNumber,invoiceNumber);
-					}		
+					return false;
 				}
-				
-				if(IsOutSider == 0)
+				if(EditableInvoiceNo != VoucherNumber)
 				{
-					var UnitID = document.getElementById('UnitID').value;
-				}
-				else if(IsOutSider == 1)
-				{
-				   var UnitID = document.getElementById('Outsider').value;
-				}
-				
- 				}
-			else
-				{
-				var InterestOnPrincipleDue = document.getElementById('InterestOnPrincipleDue').value;
-				var IntrestOnPreviousarrears = document.getElementById('IntrestOnPreviousarrears').value;
-	    		var PrinciplePreviousArrears = document.getElementById('PrinciplePreviousArrears').value;
-				var AdjustmentCredit = document.getElementById('AdjustmentCredit').value;;
-				var Note = 0; 
-				CheckSocietyApplyGST = 0;
-				var bill_date = 0;
+					IsCallUpdtCnt = UserResponseOnExCount(VoucherNumber,invoiceNumber);
+				}		
+			}
+			if(IsOutSider == 0)
+			{
 				var UnitID = document.getElementById('UnitID').value;
-				}
-					
-	    		var PeriodID = document.getElementById('PeriodID').value;
-				
-				
-				//Now we Validating Sale Invoice Data
-				
-				if(RequestType=='Invoice')
+			}
+			else if(IsOutSider == 1)
+			{
+				var UnitID = document.getElementById('Outsider').value;
+			}
+		}
+		else
+		{
+			
+			var InterestOnPrincipleDue = document.getElementById('InterestOnPrincipleDue').value;
+			var IntrestOnPreviousarrears = document.getElementById('IntrestOnPreviousarrears').value;
+			var PrinciplePreviousArrears = document.getElementById('PrinciplePreviousArrears').value;
+			var AdjustmentCredit = document.getElementById('AdjustmentCredit').value;;
+			var Note = 0; 
+			CheckSocietyApplyGST = 0;
+			var bill_date = 0;
+			var UnitID = document.getElementById('UnitID').value;
+		}
+		var PeriodID = document.getElementById('PeriodID').value;
+		//Now we Validating Sale Invoice Data
+		if(RequestType=='Invoice')
+		{
+			//This just for identify whether it is unit or outsider select box
+			if(IsOutSider == 1)
+			{
+				var OutSiderCombo = document.getElementById('Outsider').value;
+				if(OutSiderCombo == "" || OutSiderCombo == 0)
 				{
-					//This just for identify whether it is unit or outsider select box
-					if(IsOutSider == 1)
-					{
-						var OutSiderCombo = document.getElementById('Outsider').value;
-						if(OutSiderCombo == "" || OutSiderCombo == 0)
-						{
-						alert('Please Select Ledger which you want to create invoice');
-						return false;
-						}
-					}
-					if(IsOutSider == 0)
-					{
-						if((UnitID=="" || UnitID==0) || (bill_date=="" || bill_date==0))
-							{
-								alert("Please check  UnitID & bill date field is not empty");
-								return false;
-							}
-					}
-				
-					
-					if(InvoiceMode == 1)
-					{
-						//During the edit mode if for any particular unit has already  voucher number and next bill for same unit voucher numer is edited to same as previuos unit voucher number then problem occur to prevent that below code is written.
-						var isVoucherAlreadyExits = CheckSameVoucherNumberNotAssingSameUnit(VoucherNumber,EditableInvoiceNo);
-						if(isVoucherAlreadyExits == true)
-						{
-								alert("Please change the voucher Number because same voucher number already register to this unit");
-								return false;		
-						}
-					}
-				}	
+					alert('Please Select Ledger which you want to create invoice');
+					return false;
+				}
+			}
+			if(IsOutSider == 0)
+			{
+				if((UnitID=="" || UnitID==0) || (bill_date=="" || bill_date==0))
+				{
+					alert("Please check  UnitID & bill date field is not empty");
+					return false;
+				}
+			}
+			if(InvoiceMode == 1)
+			{
+				//During the edit mode if for any particular unit has already  voucher number and next bill for same unit voucher numer is edited to same as previuos unit voucher number then problem occur to prevent that below code is written.
+				var isVoucherAlreadyExits = CheckSameVoucherNumberNotAssingSameUnit(VoucherNumber,EditableInvoiceNo);
+				if(isVoucherAlreadyExits == true)
+				{
+					alert("Please change the voucher Number because same voucher number already register to this unit");
+					return false;		
+				}
+			}
+		}	
+		if(IsInvoiceEdit == 0 && RequestType=='Invoice')
+		{
+			document.getElementById('add').disabled = true;
+			document.getElementById('add').style.backgroundColor = "#337ab770";
+			document.getElementById('add1').disabled = true;
+			document.getElementById('add1').style.backgroundColor = "#337ab770";
+			//document.getElementsByClassName("add-btn")[0].disabled = true;
+			//document.getElementsByClassName("add-btn")[0].style.backgroundColor = "#337ab770";
+		}
 		var objData = {'data' : JSON.stringify(arDataToSubmit), "method" : 'BillEdit',"RequestType":RequestType, "Note": Note,"UnitID" : UnitID,"bill_date":bill_date,"PeriodID" : PeriodID,"InterestOnPrincipleDue" : InterestOnPrincipleDue,"IntrestOnPreviousarrears" : IntrestOnPreviousarrears,"PrinciplePreviousArrears" : PrinciplePreviousArrears,"AdjustmentCredit":AdjustmentCredit,"SupplementaryBill" : IsSuppBill, "IsInvoiceEdit":IsInvoiceEdit, "EditableInvoiceNo":EditableInvoiceNo, "ExitingInvoiceUnitID":ExitingInvoiceUnitID, "IsCallUpdtCnt":IsCallUpdtCnt,"VoucherCounter":VoucherNumber};
-		
 		$.ajax({
-				url : "ajax/ajaxgenbill.php",
-				type : "POST",
-				data: objData ,
-				success : function(data)
-				{	
-					if(RequestType == 'edt')
-					{
+			url : "ajax/ajaxgenbill.php",
+			type : "POST",
+			data: objData ,
+			success : function(data)
+			{	
+				if(RequestType == 'edt')
+				{
 					alert('Bill Updated Successfully');
 					location.reload(true);
 					window.location.href = "Maintenance_bill.php?UnitID="+ UnitID + '&PeriodID='+ PeriodID+ '&BT='+IsSuppBill;
-					}
-					else if(RequestType == 'Invoice')
-					{	
-						if(IsInvoiceEdit == 1)
-						{		
+				}
+				else if(RequestType == 'Invoice')
+				{	
+					if(IsInvoiceEdit == 1)
+					{		
 						alert("Invoice bill Updated Successfully");
 						location.reload(true);
 						window.location.href = "Invoice.php?UnitID="+ UnitID+'&inv_number='+VoucherNumber;
-						}
-						else
-						{
-							alert("Invoice bill created");
-							location.reload(true);
-							window.location.href = "Invoice.php?UnitID="+ UnitID+'&inv_number='+invoiceNumber;
-						}		
 					}
-					else if(IsInvoiceEdit == 1)
-					{		
-					}
-					else if(data='emptyfield')
+					else
 					{
-						alert("Please fill all the required field");
-					}
-				},
-					
-				fail: function()
-				{
-					//hideLoader();
-				},
-				
-				error: function(XMLHttpRequest, textStatus, errorThrown) 
-				{
-					//hideLoader();
+						alert("Invoice bill created");
+						location.reload(true);
+						window.location.href = "Invoice.php?UnitID="+ UnitID+'&inv_number='+invoiceNumber;
+					}		
 				}
-			});
+				else if(IsInvoiceEdit == 1)
+				{		
+				}
+				else if(data='emptyfield')
+				{
+					alert("Please fill all the required field");
+				}
+				if(IsInvoiceEdit == 0 && RequestType=='Invoice')
+				{
+					document.getElementById('add').disabled = false;
+					document.getElementById('add').style.backgroundColor = "#337ab7";
+					document.getElementById('add1').disabled = false;
+					document.getElementById('add1').style.backgroundColor = "#337ab7";	
+					//document.getElementsByClassName("add-btn")[0].disabled = false;
+					//document.getElementsByClassName("add-btn")[0].style.backgroundColor = "#337ab7";
+				}
+			},
+			fail: function()
+			{
+				//hideLoader();
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) 
+			{
+				//hideLoader();
+			}
+		});
 	}
 }
 
@@ -239,6 +241,8 @@ function CheckSameVoucherNumberNotAssingSameUnit(voucherNumber,EditableInovoiceN
 
 function Regenerate_Bill(UnitID,PeriodID,BillType)
 {
+	
+	
 	//var user_response = confirm("Are you sure you want to regenerate this bill");
 	//if(user_response == true)
 	//{

@@ -26,9 +26,35 @@
 			$GUID = "";
 			return $this->SetVoucherDetails_WithGUID($BillDate, $RefNo, $RefTableID, $VoucherNo, $SrNo, $VoucherTypeID, $LedgerID, $TransactionType, $Amount, $note,$ExVoucherNo, $GUID);
 		}
+
 		public function SetVoucherDetails_WithGUID($BillDate, $RefNo, $RefTableID, $VoucherNo, $SrNo, $VoucherTypeID, $LedgerID, $TransactionType, $Amount, $note = "",$ExVoucherNo, $GUID)
+		{
+			if($SrNo <> 1)
+			{
+				$GUID = "";
+			}		
+			$ColName = 'By';
+			if($TransactionType == TRANSACTION_CREDIT)
+			{
+				$ColName = 'To';
+			}
+			
+			 $sqlInsert = "INSERT INTO `voucher`(`Date`, `RefNo`, `RefTableID`, `VoucherNo`, `SrNo`, `VoucherTypeID`, `" . $ColName . "`, `" . $TransactionType . "`,`Note`,`ExternalCounter`,`GUID`) VALUES ('" . getDBFormatDate($BillDate) . "', '" . $RefNo .  "', '" . $RefTableID . "', '" .  $VoucherNo .  "', '" . $SrNo . "', '" . $VoucherTypeID . "' , '" . $LedgerID .  "', '" . $Amount . "', '" . $this->m_dbConn->escapeString($note) ."','".$ExVoucherNo."','".$GUID."')";
+			//echo $sqlInsert;
+			$sqlResult = $this->m_dbConn->insert($sqlInsert);
+			
+			return $sqlResult;
+		}
+
+		public function SetVoucherDetails_pdc($BillDate, $RefNo, $RefTableID, $VoucherNo, $SrNo, $VoucherTypeID, $LedgerID, $TransactionType, $Amount, $note = "",$ExVoucherNo)
+		{			
+			$GUID = "";
+			return $this->SetVoucherDetails_WithGUID_pdc($BillDate, $RefNo, $RefTableID, $VoucherNo, $SrNo, $VoucherTypeID, $LedgerID, $TransactionType, $Amount, $note,$ExVoucherNo, $GUID);
+		}
+
+		public function SetVoucherDetails_WithGUID_pdc($BillDate, $RefNo, $RefTableID, $VoucherNo, $SrNo, $VoucherTypeID, $LedgerID, $TransactionType, $Amount, $note = "",$ExVoucherNo, $GUID)
 		{	
-			if($this->isLandLordDB){
+			if($_SESSION['res_flag'] == 1){
 				if($SrNo <> 1)
 				{
 					$GUID = "";

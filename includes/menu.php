@@ -20,11 +20,19 @@
 	<div id="header" style="padding-top:40px">
 		<div class="container" style="text-align:center;">
 			<div class="row-1">
-				
-                <div class="logo" style="width:600px; margin-top:0px;" onclick="window.location.href = 'home_s.php?hm'">
-                <table width="100%"><tr><td>
-                	<a href="home_s.php?hm" style="color:#FF8000;font-size:28px;"><img src="images/logo.png" width="70%" /></a></td><td style="color:#000;font-size:28px;text-align:right;vertical-align:middle"><b>Society Software</b></td></tr></table>
-                </div>
+				<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+                    <div class="logo" style="width:600px; margin-top:0px;" onclick= "window.location.href = 'home_res.php?hm'">
+                    <table width="100%"><tr><td>
+                        <a href="home_res.php?hm" style="color:#FF8000;font-size:28px;"><img src="images/logo.png" width="70%" /></a></td><td style="color:#000;font-size:28px;text-align:right;vertical-align:middle"><b>Society Software</b></td></tr></table>
+                    </div>
+                    <?php
+                    } else{ ?>
+                        <div class="logo" style="width:600px; margin-top:0px;" onclick="window.location.href = 'home_s.php?hm'">
+                        <table width="100%"><tr><td>
+                            <a href="home_s.php?hm" style="color:#FF8000;font-size:28px;"><img src="images/logo.png" width="70%" /></a></td><td style="color:#000;font-size:28px;text-align:right;vertical-align:middle"><b>Society Software</b></td></tr></table>
+                        </div>
+                        <?php
+                    }?>
                </div>
 			<div class="row-2" style="text-align:center">
 				<?php //include_once "../includes/menu.php";?>
@@ -34,6 +42,13 @@
                     <div class="left" style="width:100%;text-align:center">
                         <div class="right" style="width:100%;text-align:center">
                             <ul id="chromemenu" class="top-navigation" style="text-align:center">
+                            <?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+                                <li><a href="home_res.php?hm" class="first"><em><b style="height:50px;text-align:center;margin-top:5px;">HOME</b></em></a></li>
+                                <?php
+                                } else{ ?>
+                                <li><a href="home_s.php?hm" class="first"><em><b style="height:50px;text-align:center;margin-top:5px;">HOME</b></em></a></li>
+                                    <?php
+                                }?>
                                 <li><a href="home_s.php?hm" class="first"><em><b style="height:50px;text-align:center;margin-top:5px;">HOME</b></em></a></li>
                                 <li><a href="javascript:void(0);" id="<?php echo $cls01;?>" rel="dropmenu0"><em><b style="height:50px;text-align:center;margin-top:5px;">PERMISSIONS</b></em></a></li>
                                 <li><a href="javascript:void(0);" id="<?php echo $cls1;?>" rel="dropmenu1"><em><b style="height:50px;text-align:center;margin-top:5px">TOOLS</b></em></a></li>
