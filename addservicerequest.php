@@ -6,10 +6,13 @@
 <?php 
 	include_once("includes/head_s.php"); 
 	include_once("classes/servicerequest.class.php");
+	include_once("classes/legalcase.class.php");
 	include_once("classes/dbconst.class.php");
 	$obj_initialize = new initialize($m_dbConnRoot);
 
 	$obj_servicerequest = new servicerequest($m_dbConn, $m_dbConnRoot, $m_landLordDB);
+	$obj_legalcase = new legalcase($m_dbConn,$m_dbConnRoot,$m_landLordDB);
+
 	//$details = $obj_servicerequest->getDetails();
 	  //print_r($_SESSION);
     //  $loginID = $_SESSION["login_id"];
@@ -352,13 +355,12 @@ if($_SESSION['role'] && ($_SESSION['role']==ROLE_ADMIN || $_SESSION['role']==ROL
 <center>
 <?php if($_SESSION['res_flag']) { ?>
 <h2 style="padding: 0;">Select A Landlord to Create Service Request</h2>
-<select id="socid" name="socid" style="width:auto; height:auto;">
-	<?php  echo $mapList = $obj_initialize->combobox("Select societytbl.society_id, concat_ws(' - ', societytbl.society_name, maptbl.desc) from mapping as maptbl JOIN society as societytbl ON maptbl.society_id = societytbl.society_id JOIN dbname as db ON db.society_id = societytbl.society_id WHERE maptbl.login_id = '" . $_SESSION['login_id'] . "' and societytbl.status = 'Y' and maptbl.status = '2' ORDER BY societytbl.society_name ASC ", $_SESSION['current_mapping']);
+<select id="socid" name="socid" style="width:auto; height:auto;" onchange="selectSociety()">
+	<?php  echo $mapList = $obj_initialize->combobox("Select societytbl.society_id, concat_ws(' - ', societytbl.society_name, maptbl.desc) from mapping as maptbl JOIN society as societytbl ON maptbl.society_id = societytbl.society_id JOIN dbname as db ON db.society_id = societytbl.society_id WHERE maptbl.login_id = '" . $_SESSION['login_id'] . "' and societytbl.status = 'Y' and maptbl.status = '2' and societytbl.society_id != ".$_SESSION['society_id']." ORDER BY societytbl.society_name ASC  ", $_SESSION['current_mapping']);
 
 	?>			
 </select>
 <br /><br />
-<button class="btn btn-primary" onclick="selectSociety();">Select</button>
 <?php } ?>
 <form name="addrequest" id="addrequest" method="post" action="process/servicerequest.process.php" enctype="multipart/form-data" onSubmit="return validate(); ">
 <?php $star = "<font color='#FF0000'>*&nbsp;</font>";?>
@@ -384,12 +386,25 @@ if($_SESSION['role'] && ($_SESSION['role']==ROLE_ADMIN || $_SESSION['role']==ROL
         <td>&nbsp; &nbsp; &nbsp;</td>
         
         <td valign="middle"><?php //echo $star;?></td>
-        <th><b>Created for Unit No. </b></th>
+        <th><b>Created for Tenant </b></th>
         <td>&nbsp; : &nbsp;</td>
         <td>
+		<?php 
+			if($_SESSION['landLordDB']){
+				$t_data = $obj_legalcase->getTenants($_SESSION['unit_id']);
+			}
+		?>
         <input type = "hidden" id = "unit_no" name = "unit_no" value = "0"/> 
         <select id="unit_no2" name="unit_no2" value="<?php echo $_SESSION['unit_id'];?>"> 
-            	<?php echo $obj_servicerequest->getCreatedUnit($_SESSION['unit_id']); ?>
+		<?php 
+			$options = "<option value='0'>Select Tenant</option>";
+			
+			for($i=0;$i < sizeof($t_data); $i++)
+			{
+				$options .="<option value='".$t_data[$i]['tenantValue']."'>".$t_data[$i]['name']."</option>";
+			}
+			echo $options;
+			?>
 		</select>
 		</td>
 	</tr>

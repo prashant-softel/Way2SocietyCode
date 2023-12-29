@@ -311,13 +311,12 @@ else
  if($_SESSION['res_flag']) 
  { ?>
 	<h2 style="padding: 0;">Select A Landlord to Create Legal case</h2>
-	<select id="socid" name="socid" style="width:auto; height:auto;">
+	<select id="socid" name="socid" style="width:auto; height:auto;" onchange="selectSociety()">
 	<?php  echo $mapList = $obj_initialize->combobox("Select societytbl.society_id, concat_ws(' - ', societytbl.society_name, maptbl.desc) from mapping as maptbl JOIN society as societytbl ON maptbl.society_id = societytbl.society_id JOIN dbname as db ON db.society_id = societytbl.society_id WHERE maptbl.login_id = '" . $_SESSION['login_id'] . "' and societytbl.status = 'Y' and maptbl.status = '2' and societytbl.society_id != ".$_SESSION['society_id']." ORDER BY societytbl.society_name ASC ", $_SESSION['current_mapping']);
 
 	?>			
 </select>
 <br /><br />
-<button class="btn btn-primary" onclick="selectSociety();">Select</button>
 <?php } ?>
 </center>
 <br>
@@ -348,7 +347,11 @@ else
         	<th><b>Created for Tenant</b></th>
         	<td>&nbsp; : &nbsp;</td>
         	<td>
-        		<?php $t_data = $obj_servicerequest->getTenants($_SESSION['unit_id']) ?>
+        		<?php 
+				if($_SESSION['landLordDB']){
+					$t_data = $obj_servicerequest->getTenants($_SESSION['unit_id']);
+				 }
+				?>
         		<input type = "hidden" id = "unit_no" name = "unit_no" value = "0"/> 
         		<select id="tenant_id" name="tenant_id" value="" onchange="loadTanant(this.value);"> 
         		<?php 
