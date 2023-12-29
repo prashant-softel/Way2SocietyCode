@@ -20,7 +20,7 @@
 		}
 		
 		
-		public function UpdateRegister($ledgerID, $voucherID, $transactionType, $amount,$date)
+		public function UpdateRegister($ledgerID, $voucherID, $transactionType, $amount,$date="")
 		{
 			
 			if($this->ShowDebugTrace == 1)
