@@ -105,7 +105,7 @@ $obj_servicerequest->getRenovationId();
 		//alert("test");
 		
 		
-		window.location.href = "home_s.php?View=ADMIN";
+		window.location.href = "home_res.php?View=ADMIN";
 //		//location.reload(true);
 	}
 	</script>
