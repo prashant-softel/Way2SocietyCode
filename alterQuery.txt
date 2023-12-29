@@ -1,0 +1,126 @@
+legalcase.php
+legalcase.class.php
+addlegalcase.php
+header.php
+ajaxlegalcase.php
+legalcase.process.php
+jsLegalcase.js
+viewlegalcase.php
+
+
+ALTER TABLE `postdated_cheque` Add `type` varchar(100);
+ALTER TABLE `tenant_module` Add `security_id` INT(11) NOT NULL AFTER `ledger_id`;
+
+ALTER TABLE `tenant_module` ADD `ledger_id` INT NOT NULL DEFAULT '0' AFTER `property_type`; 
+
+CREATE TABLE `legal_case` (
+ `request_id` int(11) NOT NULL AUTO_INCREMENT,
+ `request_no` int(11) NOT NULL,
+ `society_id` int(11) NOT NULL,
+ `landlord_soc` int(11) NOT NULL,
+ `tenant_id` int(11) NOT NULL,
+ `tenant_name` varchar(256) NOT NULL,
+ `reportedby` varchar(50) NOT NULL,
+ `dateofrequest` date NOT NULL,
+ `email` varchar(50) NOT NULL,
+ `phone` varchar(20) NOT NULL DEFAULT '0',
+ `priority` varchar(50) NOT NULL,
+ `category` varchar(50) NOT NULL,
+ `summery` longtext NOT NULL,
+ `details` longtext NOT NULL,
+ `status` varchar(50) NOT NULL,
+ `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ `unit_id` int(11) NOT NULL,
+ `visibility` int(11) NOT NULL DEFAULT '1',
+ `img` varchar(500) NOT NULL,
+ `case_no` varchar(50) NOT NULL,
+ `outstanding_rent` double(50,2) NOT NULL,
+ `open_on` date NOT NULL,
+ `case_open_date` date NOT NULL,
+ PRIMARY KEY (`request_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1
+
+
+
+
+CREATE TABLE IF NOT EXISTS `legal_case_history` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sr_request_id` int(11) NOT NULL,
+  `case_no` varchar(250) NOT NULL,
+  `updated_by` varchar(300) NOT NULL,
+  `comment` longtext NOT NULL,
+  `expense_amt` double(50,2) NOT NULL,
+  `status` varchar(50) NOT NULL,
+  `up_hearing_date` date NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+
+
+Vrindha
+
+ALTER TABLE `appdefault` ADD `APP_DEFAULT_DUE_FROM_TENANTS` INT(11) NOT NULL AFTER `APP_DEFAULT_DUE_FROM_MEMBERS`;
+
+ALTER TABLE `society` ADD `res_flag` INT(11) NOT NULL DEFAULT '0' ;
+
+ALTER TABLE `society` ADD `rental_flag` INT(11) NOT NULL DEFAULT '0' ;
+
+ALTER TABLE `tenant_member` ADD `emirate_no` VARCHAR(200) NOT NULL AFTER `relation`;
+
+create table postdated_cheque (pdc_id int(11), tenant_id int(11), unit_id int(20), bank_name varchar(255), bank_branch varchar(255), cheque_no varchar(200), cheque_date datetime, amount int(50), remark varchar(50), status varchar(20))
+
+ALTER TABLE `tenant_module` ADD `noofcheque` INT(20) NOT NULL DEFAULT '0' ;
+
+ALTER TABLE `postdated_cheque` CHANGE `noofcheque` `unit_id` INT(20) NULL DEFAULT NULL;
+
+ALTER TABLE `appdefault` ADD `APP_DEFAULT_RECEIVABLE_FROM_TENANTS` INT(11) NOT NULL ;
+
+ALTER TABLE `appdefault` ADD `APP_DEFAULT_DUE_FROM_TENANTS` INT(11) NOT NULL AFTER `APP_DEFAULT_DUE_FROM_MEMBERS`;
+
+ALTER TABLE `appdefault` ADD `APP_DEFAULT_JUMA_ SUHAIL_TENANTS` INT(11) NOT NULL ; 
+  
+ALTER TABLE `landlords` ADD `emirate_no` INT(11) NOT NULL AFTER `email`, ADD `license_no` INT(20) NOT NULL AFTER `emirate_no`, ADD `license_authority` VARCHAR(50) NOT NULL AFTER `license_no`;   
+   
+ALTER TABLE `tenant_module` ADD `license_no` INT(20) NOT NULL , ADD `license_authority` VARCHAR(50) NOT NULL ;
+
+Alter table `tenant_module` ADD `annual_rent` INT(11) NOT NULL, ADD `contract_value` INT(11) NOT NULL, ADD `security_deposit` INT(11) NOT NULL, ADD `mode_of_payment` INT(10) NOT NULL;
+
+Create table `mode_of_payment` (id INT(11), name varchar(50), status varchar(20), society_id int(11))
+
+Insert into `mode_of_payment` values(1 , 'Cheque', 'Y',460); //
+Insert into `mode_of_payment` values(2 , 'Cash', 'Y',460); 
+
+Create table `property_usage`(id int(11), name varchar(50), society_id int(10), status varchar(20))
+
+INSERT INTO `property_usage`(`id`, `name`, `society_id`, `status`) VALUES (1, 'Industrial',462, 'Y');
+INSERT INTO `property_usage`(`id`, `name`, `society_id`, `status`) VALUES (2, 'Commercial',462, 'Y');
+INSERT INTO `property_usage`(`id`, `name`, `society_id`, `status`) VALUES (3, 'Residential',462, 'Y');
+
+INSERT INTO `property_usage`(`id`, `name`, `society_id`, `status`) VALUES (1, 'Industrial',463, 'Y');
+INSERT INTO `property_usage`(`id`, `name`, `society_id`, `status`) VALUES (2, 'Commercial',463, 'Y');
+INSERT INTO `property_usage`(`id`, `name`, `society_id`, `status`) VALUES (3, 'Residential',463, 'Y');
+
+INSERT INTO `property_usage`(`id`, `name`, `society_id`, `status`) VALUES (1, 'Industrial',464, 'Y');
+INSERT INTO `property_usage`(`id`, `name`, `society_id`, `status`) VALUES (2, 'Commercial',464, 'Y');
+INSERT INTO `property_usage`(`id`, `name`, `society_id`, `status`) VALUES (3, 'Residential',464, 'Y');
+
+Alter table `tenant_module` ADD `property_type` int(11);
+Alter table `tenant_module` ADD `emirate_no` int(11);
+
+Create table landlords (id INT(11), society_id INT(10), name varchar(255), mobile INT(20), email varchar(255), emirate_no INT(11), license_no INT(20), license_authority varchar(50), ownership_date date, category_id INT(11), status varchar(20));
+
+INSERT INTO `hostmjbt_society264`.`landlords` (`id`, `society_id`, `name`, `mobile`, `email`, `emirate_no`, `license_no`, `license_authority`, `ownership_date`, `category_id`, `status`) VALUES ('1', '461', 'Juma Suhail', '87691639', 'jumasuhail@gmail.com', '213325', '23325435', NULL, '2023-04-01', '53', 'Y');
+
+INSERT INTO `hostmjbt_society263`.`landlords` (`id`, `society_id`, `name`, `mobile`, `email`, `emirate_no`, `license_no`, `license_authority`, `ownership_date`, `category_id`, `status`) VALUES ('1', '460', 'Mayank Patel', '75432832', 'mayankpatel@gmail.com', '8374959', '6562858', NULL, '2023-02-01', '54', 'Y')
+
+Alter table tenant_module ADD ledger_id INT(11);
+
+ALTER TABLE `tenant_module` CHANGE `ledger_id` `ledger_id` INT(11) NULL DEFAULT NULL AFTER `tenant_id`
+
+
+
+06-11-2023
+ALTER TABLE `tenant_module` ADD `emirate_no` INT NOT NULL DEFAULT '0' AFTER `property_type`;
+ALTER TABLE `tenant_module` ADD `mobile_1` INT(20) NULL DEFAULT NULL AFTER `mobile_no`;
+ALTER TABLE `tenant_module` ADD `email_1` VARCHAR(200) NULL DEFAULT NULL AFTER `email`;
