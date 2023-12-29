@@ -136,11 +136,11 @@ $obj_utility = new utility($m_dbConn);
 	{
 		//alert("test");
 		
-		if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+		<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
             window.location.href = "home_res.php?View=ADMIN";
-        }else{
+        <?php }else{ ?>
             window.location.href = "home_s.php?View=ADMIN";
-        }
+		<?php } ?>
 //		//location.reload(true);
 	}
 	</script>
