@@ -59,6 +59,7 @@ class CSocietyDetails
 	public $sQRCode;
 	public $sShowLogoInBill;
 	public $sShowQRCodeInBill;
+	public $sPrintVoucherPortrait;
 	public function __construct($dbConn)
 	{
 		$this->sSocietyName = "";
@@ -85,6 +86,7 @@ class CSocietyDetails
 		$this->sQRCode='';
 		$this->sShowLogoInBill=0;
 		$this->sShowQRCodeInBill=0;
+		$this->sPrintVoucherPortrait=0;
 	}
 } 
 class CMemberDetails
@@ -233,8 +235,9 @@ class FetchData
 				$this->objSocietyDetails->sShowLogo = $res02[$row]['show_logo'];
 				$this->objSocietyDetails->sSocietyLogo = $res02[$row]['society_logo_main'];
 				$this->objSocietyDetails->sQRCode = $res02[$row]['society_QR_Code'];
-				$this->objSocietyDetails->sShowLogoInBill=$res02[$row]['show_logo'];;
+				$this->objSocietyDetails->sShowLogoInBill=$res02[$row]['show_logo'];
 				$this->objSocietyDetails->sShowQRCodeInBill=$res02[$row]['show_qr_code'];
+				$this->objSocietyDetails->sPrintVoucherPortrait=$res02[$row]['print_voucher_portrait'];
 				
 			}
 		}
