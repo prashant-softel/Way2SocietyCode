@@ -79,6 +79,8 @@ $data = $obj_ledger_details->details($grpid,$_SESSION['default_tds_payable'], ge
 				$Tds_Amount=0;
 				$SumOfGrossAmount=0;
 				$SumOfTDSAmount=0;
+				$month = '';
+				$last_val = end(array_keys($data));
 				if($data<>"")
 				{		
 					$cnt =1;	
@@ -119,6 +121,48 @@ $data = $obj_ledger_details->details($grpid,$_SESSION['default_tds_payable'], ge
 							}
 							$SumOfGrossAmount = $SumOfGrossAmount+$InvoiceData[0]['InvoiceChequeAmount'];
 							$SumOfTDSAmount = $SumOfTDSAmount+$Tds_Amount;
+							// echo $data[$k]['Date'];
+							// Convert the date to a DateTime object
+							$dateTime = new DateTime($data[$k]['Date']);
+							if(empty($month)){
+								$month = $dateTime->format('M');
+							}
+
+							if($month === $dateTime->format('M')){
+								$GrossAmountMonth = $GrossAmountMonth+$InvoiceData[0]['InvoiceChequeAmount'];
+								$TDSAmountMonth = $TDSAmountMonth+$Tds_Amount;
+								$monthTotal = 0;
+								$currentMonth = $month;
+								// echo $k;
+							}else{
+								$month = $dateTime->format('M');
+								$SumOfGrossAmountMonth = $GrossAmountMonth;
+								$SumOfTDSAmountMonth = $TDSAmountMonth;
+								$GrossAmountMonth = 0;
+								$TDSAmountMonth = 0;
+								$GrossAmountMonth = $GrossAmountMonth+$InvoiceData[0]['InvoiceChequeAmount'];
+								$TDSAmountMonth = $TDSAmountMonth+$Tds_Amount;
+								$monthTotal = 1;
+							}
+
+							if($last_val === $k){
+								$SumOfGrossAmountMonth = $GrossAmountMonth;
+								$SumOfTDSAmountMonth = $TDSAmountMonth;
+								$lastval = 1;
+							}
+
+							// echo "SumOfGrossAmountMonth : ".$SumOfGrossAmountMonth . "<br>";
+							// echo "SumOfTDSAmountMonth : ".$SumOfTDSAmountMonth . "<br>";
+
+							if($monthTotal){?>
+								<tr>
+									<td colspan="5" style="text-align:center;background-color: #D3D3D3;border-collapse: collapse;border:1px solid #cccccc;border-left:none; ">**<?php echo $currentMonth;?> Month Total **</td>
+									<td style="text-align:center;background-color: #D3D3D3;border-collapse: collapse;border:1px solid #cccccc;border-left:none; " ><?php echo number_format($SumOfGrossAmountMonth,2)?></td>
+									<td style="text-align:center;background-color: #D3D3D3;border-collapse: collapse;border:1px solid #cccccc;border-left:none; " >&nbsp;</td>
+									<td style="text-align:center;background-color: #D3D3D3;border-collapse: collapse;border:1px solid #cccccc;border-left:none; " ><?php echo number_format($SumOfTDSAmountMonth,2)?></td>
+								</tr>
+							<?php
+							}
 						?>
             			<tr>
             				<td style="text-align:center;border-collapse: collapse;border:1px solid #cccccc; border-left:none;"><?php echo $cnt?></td>
@@ -133,15 +177,23 @@ $data = $obj_ledger_details->details($grpid,$_SESSION['default_tds_payable'], ge
              	<?php 
 			  		$cnt++;
 					}
-				}?>
+				}
+				if($lastval){?>
 		
-            <!-- Total Amount Calculation -->
-           <tr>
-            	<td colspan="5" style="text-align:center;background-color: #D3D3D3;border-collapse: collapse;border:1px solid #cccccc;border-left:none; ">**Total **</td>
-                <td style="text-align:center;background-color: #D3D3D3;border-collapse: collapse;border:1px solid #cccccc;border-left:none; " ><?php echo number_format($SumOfGrossAmount,2)?></td>
-                <td style="text-align:center;background-color: #D3D3D3;border-collapse: collapse;border:1px solid #cccccc;border-left:none; " >&nbsp;</td>
-                <td style="text-align:center;background-color: #D3D3D3;border-collapse: collapse;border:1px solid #cccccc;border-left:none; " ><?php echo number_format($SumOfTDSAmount,2)?></td>
-            </tr>
+						<tr>
+							<td colspan="5" style="text-align:center;background-color: #D3D3D3;border-collapse: collapse;border:1px solid #cccccc;border-left:none; ">**<?php echo $currentMonth;?> Month Total **</td>
+							<td style="text-align:center;background-color: #D3D3D3;border-collapse: collapse;border:1px solid #cccccc;border-left:none; " ><?php echo number_format($SumOfGrossAmountMonth,2)?></td>
+							<td style="text-align:center;background-color: #D3D3D3;border-collapse: collapse;border:1px solid #cccccc;border-left:none; " >&nbsp;</td>
+							<td style="text-align:center;background-color: #D3D3D3;border-collapse: collapse;border:1px solid #cccccc;border-left:none; " ><?php echo number_format($SumOfTDSAmountMonth,2)?></td>
+						</tr>
+		<?php } ?>
+		<!-- Total Amount Calculation -->
+						<!-- <tr>
+							<td colspan="5" style="text-align:center;background-color: #D3D3D3;border-collapse: collapse;border:1px solid #cccccc;border-left:none; ">**Grand Total **</td>
+							<td style="text-align:center;background-color: #D3D3D3;border-collapse: collapse;border:1px solid #cccccc;border-left:none; " ><?php echo number_format($SumOfGrossAmount,2)?></td>
+							<td style="text-align:center;background-color: #D3D3D3;border-collapse: collapse;border:1px solid #cccccc;border-left:none; " >&nbsp;</td>
+							<td style="text-align:center;background-color: #D3D3D3;border-collapse: collapse;border:1px solid #cccccc;border-left:none; " ><?php echo number_format($SumOfTDSAmount,2)?></td>
+						</tr> -->
             
         </table>
         	<?php }
