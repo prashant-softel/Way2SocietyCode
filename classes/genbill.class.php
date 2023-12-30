@@ -6527,7 +6527,7 @@ function getCollectionOfDataToDisplay_optimize($society_id, $wing_id, $unit_id, 
 		//$ApplyServiceTax = $societyInfo['apply_service_tax'];
 		if($ApplyServiceTax == 1)
 		{
-			$sqlII	.="	bill.`BillSubTotal` as `Bill Sub Total` ,bill.`BillInterest` as `Interest On Arrears`,
+			$sqlII	.="	bill.`BillSubTotal` + bill.`BillSubTotal_NoInt` as `Bill Sub Total` ,bill.`BillInterest` as `Interest On Arrears`,
 								bill.`AdjustmentCredit` as `Adjustment Credit` , bill.`CGST` as CGST , bill.`SGST` as SGCT , bill.`Ledger_round_off` as `Round_Off_Amt`, bill.`PrincipalArrears` as `Previous Principal Arrears` , bill.`InterestArrears` as `Previous Interest Arrears` , bill.`PaymentReceived` as `Payment Received`,
 								(bill.`BillSubTotal` + bill.`AdjustmentCredit`  + bill.`BillInterest` + bill.`PrincipalArrears` + bill.`InterestArrears` + bill.`CGST` + bill.`SGST` + bill.`Ledger_round_off`) as Payable
 								FROM voucher AS vch JOIN billdetails AS bill ON vch.RefNo = bill.ID JOIN member_main AS mem ON bill.UnitID = mem.unit
@@ -6535,7 +6535,7 @@ function getCollectionOfDataToDisplay_optimize($society_id, $wing_id, $unit_id, 
 		}
 		else
 		{
-			$sqlII	.="	bill.`BillSubTotal` as `Bill Sub Total` ,bill.`BillInterest` as `Interest On Arrears`,
+			$sqlII	.="	bill.`BillSubTotal` + bill.`BillSubTotal_NoInt` as `Bill Sub Total` ,bill.`BillInterest` as `Interest On Arrears`,
 								bill.`AdjustmentCredit` as `Adjustment Credit` , bill.`Ledger_round_off` as `Round_Off_Amt`, bill.`PrincipalArrears` as `Previous Principal Arrears` , bill.`InterestArrears` as `Previous Interest Arrears`, bill.`PaymentReceived` as `Payment Received`,
 								(bill.`BillSubTotal` + bill.`AdjustmentCredit`  + bill.`BillInterest` + bill.`PrincipalArrears` + bill.`InterestArrears` + bill.`Ledger_round_off`) as Payable
 								FROM voucher AS vch JOIN billdetails AS bill ON vch.RefNo = bill.ID JOIN member_main AS mem ON bill.UnitID = mem.unit
