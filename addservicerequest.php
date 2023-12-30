@@ -398,21 +398,24 @@ if($_SESSION['role'] && ($_SESSION['role']==ROLE_ADMIN || $_SESSION['role']==ROL
         <th><b>Created for Tenant </b></th>
         <td>&nbsp; : &nbsp;</td>
         <td>
-		<?php 
-			if($_SESSION['landLordDB']){
-				$t_data = $obj_legalcase->getTenants($_SESSION['unit_id']);
-			}
-		?>
         <input type = "hidden" id = "unit_no" name = "unit_no" value = "0"/> 
         <select id="unit_no2" name="unit_no2" value="<?php echo $_SESSION['unit_id'];?>"> 
 		<?php 
-			$options = "<option value='0'>Select Tenant</option>";
-			
-			for($i=0;$i < sizeof($t_data); $i++)
+			if($_SESSION['res_flag'] || $_SESSION['rental_flag'])
 			{
-				$options .="<option value='".$t_data[$i]['tenantValue']."'>".$t_data[$i]['name']."</option>";
+				$t_data = $obj_legalcase->getTenants($_SESSION['unit_id']);
+				$options = "<option value='0'>Select Tenant</option>";
+				for($i=0;$i < sizeof($t_data); $i++)
+				{
+					$options .="<option value='".$t_data[$i]['tenantValue']."'>".$t_data[$i]['name']."</option>";
+				}
+				echo $options;
 			}
-			echo $options;
+			else
+			{
+				echo $obj_servicerequest->getCreatedUnit($_SESSION['unit_id']);
+			}
+			
 			?>
 		</select>
 		</td>

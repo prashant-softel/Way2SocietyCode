@@ -823,9 +823,13 @@ class legalcase
 		//$query = "SELECT CONCAT(tenant_id,'-',tenant_name ) as tenant_id, tenant_name FROM `tenant_module`";
 		$query = "SELECT CONCAT(u.unit_no,' - ',tm.tenant_name) as name,CONCAT(tm.tenant_id,'_',u.unit_no,' - ',tm.tenant_name) as tenantValue,tm.tenant_id,tm.tenant_name,u.unit_no FROM `tenant_module` as tm join unit as u on u.unit_id =tm.unit_id";
 		if($_SESSION['landLordDB']){
-			$landLordDB = true;
+			// $landLordDB = true;
+			return $data = $this->m_landLordDB->select($query);
 		}
-		return $data = $this->m_landLordDB->select($query);
+		else
+		{	
+			return $data = $this->m_dbConn->select($query);
+		}
 		//return $this->comboboxEx($query, $id, $landLordDB);
 						
 	}
