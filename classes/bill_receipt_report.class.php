@@ -1153,8 +1153,8 @@ class bill_receipt_report extends dbop
 					</tr>
 					<tr height='50px'>
 						<th width='5%'>Sr. No.</th>
-						<th width='7%'>Member's Code/<br>Flat No.</th>
-						<th width='10%'>Member's Name</th>
+						<th width='7%'>Tenant's Code/<br>Flat No.</th>
+						<th width='10%'>Tenant's Name</th>
 						<th width='7%'>Bill Amount</th>
 						<th width='7%'>Arrears</th>
 						<th width='7%'>Amount Due</th>
@@ -1245,18 +1245,32 @@ class bill_receipt_report extends dbop
 			}else{
 				$sql66 = $this->m_dbConn->select($sql06);	
 			}	
-		
-			$table .= "<tr height='50px' valign='middle'>
+			
+			if($_SESSION['res_flag'] == 1){
+				$table .= "<tr height='50px' valign='middle'>
 						<td>".($i + 1)."</td>
 						<td>".$sql66[0]['unit_no']."</td>
 						<td><a href='view_tenant_profile.php?scm&id=".$sql66[0]['tenant_id']."&tik_id=". time() ."&m&view' target='_blank'>".$sql66[0]['tenant_name'] ."</a></td>
 						<td><a href='Maintenance_bill.php?UnitID=".$sql66[0]['ledger_id'] ."&PeriodID=".$period_id. "&BT=".$bill_type. "' target='_blank'>".number_format($sql55[0]['CurrentBillAmount'],2)."</a></td>
 						<td>".number_format($total_arrears,2)."</td>
-						<td><a href='tenant_ledger_report.php?uid=".$sql66[0]['ledger_id']."&tid=".$sql66[0]['tenant_id']."&rec=' target='_blank'>".number_format($sql55[0]['TotalBillPayable'],2)."</a></td>
+						<td><a href='tenant_ledger_report.php?uid=".$sql66[0]['ledger_id']."&tid=".$sql66[0]['tenant_id']."&rec=1' target='_blank'>".number_format($sql55[0]['TotalBillPayable'],2)."</a></td>
 						<td>".getDisplayFormatDate($sql44[0]['VoucherDate'])."</td>
 						<td>".getDisplayFormatDate($sql44[0]['ChequeDate'])."</td>
 						<td>".$sql44[0]['ChequeNumber']."</td>
 						<td>".$sql44[0]['PayerBank']."</td>";
+			}else{
+				$table .= "<tr height='50px' valign='middle'>
+							<td>".($i + 1)."</td>
+							<td>".$sql66[0]['unit_no']."</td>
+							<td><a href='view_tenant_profile.php?scm&id=".$sql66[0]['tenant_id']."&tik_id=". time() ."&m&view' target='_blank'>".$sql66[0]['tenant_name'] ."</a></td>
+							<td><a href='Maintenance_bill.php?UnitID=".$sql66[0]['ledger_id'] ."&PeriodID=".$period_id. "&BT=".$bill_type. "' target='_blank'>".number_format($sql55[0]['CurrentBillAmount'],2)."</a></td>
+							<td>".number_format($total_arrears,2)."</td>
+							<td><a href='tenant_ledger_report.php?uid=".$sql66[0]['ledger_id']."&tid=".$sql66[0]['tenant_id']."&rec=' target='_blank'>".number_format($sql55[0]['TotalBillPayable'],2)."</a></td>
+							<td>".getDisplayFormatDate($sql44[0]['VoucherDate'])."</td>
+							<td>".getDisplayFormatDate($sql44[0]['ChequeDate'])."</td>
+							<td>".$sql44[0]['ChequeNumber']."</td>
+							<td>".$sql44[0]['PayerBank']."</td>";
+			}
 			
 			$total_BillAmount = $total_BillAmount + $sql55[0]['CurrentBillAmount'];
 			$total_BillArrears = $total_BillArrears + $total_arrears;

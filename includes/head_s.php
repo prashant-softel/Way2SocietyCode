@@ -218,68 +218,72 @@ else
 
  <div class="panel-body" <?php if($bIsHide == true){ echo 'style="display:none;"';}else{echo 'style="width:50%;height:40px;margin-top:0px;margin-left:40px;;margin-left:4vw;width:50.00vw;height:4.vw" ';} ?>>
                             <!-- Nav tabs -->
-                            
-                           
-                            
-                            <ul class="nav nav-pills" style="height:20px;height:2vw">
-                                 <?php 
-								// echo $_SESSION["View"] ;
-								 if($_SESSION["View"] == "MEMBER")
-								{
-									?>
-									<li class="active">
-								<?php 
-								}
-								else if($_SESSION["View"] == "ADMIN")
-								{
-									?>
-									
-									<li>
-								<?php
-								}
-								
-								if($_SESSION['role'] <> 'Master Admin')
-								{
-								?> 
-                                <a href="#home-pills" data-toggle="tab" onClick="ShowMemberView()" id="0">My Society</a>
-                                <?php } ?>
-                                </li>
-                                <?php
-								//print_r($_SESSION); 
-                                if($_SESSION["unit_id"] == "0" || $_SESSION['role'] == "Admin Member")
-								{
-									?>
-                                	<?php if($_SESSION["View"] == "ADMIN")
-												{
-													?>
-													<li class="active">
-												<?php 
-												}
-												else if($_SESSION["View"] == "MEMBER")
-												{
-													?>
-                                                    
-													<li>
-												<?php
-                                                }
-												
-										if($_SESSION['role'] <> 'Master Admin')
-										{
-												?> 
-                                    <a href="#profile-pills" data-toggle="tab" onClick="ShowAdminView()" id="1">Accounting / Admin</a>
-                                    <?php } ?> 
-                                	</li>
-                                    <?php 
-								}
-								?>
-                                <?php if($_SESSION['society_id'] == 288 && $IsthisMemberDashBoard == true && ($_SESSION['role'] == ROLE_MEMBER || $_SESSION['role'] == ROLE_ADMIN_MEMBER)){?>
-                               	<!--<span style="float:right;margin-top:15px;"><a style="font-size:15px;cursor:pointer;text-decoration:none" title="Renew Parking Registration" href="view_member_profile.php?scm&id=<?php echo $Member_id;?>&tik_id=<?php echo time();?>&m&view&renew" target="_blank"><b>Renew Parking Registration</b><sup class="blinking" style="color:red; padding-left:5px;"><b>News</b></sup></a></span>-->
-                                <span style="float:right;margin-top:20px;margin-right: -14%;"><a style="font-size:15px;cursor:pointer;text-decoration:none" title="" href="https://way2society.com/ViewNotice.php?id=144" target="_blank"><b>AGM 2019-20 </b><sup class="blinking" style="color:red; padding-left:5px;"><b>New</b></sup></a></span>
-                                <br><br>
-                                 <span style="float:right;margin-top:15px;margin-right: -20%;"><a style="font-size:15px;cursor:pointer;text-decoration:none" title="" href="https://way2society.com/Uploaded_Documents/Provisional_list_of_voters_31012021.pdf" target="_blank"><b>Provisional list of voters as of 31.01.2021 </b></a></span>
-                            	<?php }?>
-                            </ul>
-                            
+                            <?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+						   
+						   
+						}
+						else
+						{?>
+						 
+						 <ul class="nav nav-pills" style="height:20px;height:2vw">
+							  <?php 
+							 // echo $_SESSION["View"] ;
+							  if($_SESSION["View"] == "MEMBER")
+							 {
+								 ?>
+								 <li class="active">
+							 <?php 
+							 }
+							 else if($_SESSION["View"] == "ADMIN")
+							 {
+								 ?>
+								 
+								 <li>
+							 <?php
+							 }
+							 
+							 if($_SESSION['role'] <> 'Master Admin')
+							 {
+							 ?> 
+							 <a href="#home-pills" data-toggle="tab" onClick="ShowMemberView()" id="0">My Society</a>
+							 <?php } ?>
+							 </li>
+							 <?php
+							 //print_r($_SESSION); 
+							 if($_SESSION["unit_id"] == "0" || $_SESSION['role'] == "Admin Member")
+							 {
+								 ?>
+								 <?php if($_SESSION["View"] == "ADMIN")
+											 {
+												 ?>
+												 <li class="active">
+											 <?php 
+											 }
+											 else if($_SESSION["View"] == "MEMBER")
+											 {
+												 ?>
+												 
+												 <li>
+											 <?php
+											 }
+											 
+									 if($_SESSION['role'] <> 'Master Admin')
+									 {
+											 ?> 
+								 <a href="#profile-pills" data-toggle="tab" onClick="ShowAdminView()" id="1">Accounting / Admin</a>
+								 <?php } ?> 
+								 </li>
+								 <?php 
+							 }
+							 ?>
+							 <?php if($_SESSION['society_id'] == 288 && $IsthisMemberDashBoard == true && ($_SESSION['role'] == ROLE_MEMBER || $_SESSION['role'] == ROLE_ADMIN_MEMBER)){?>
+								<!--<span style="float:right;margin-top:15px;"><a style="font-size:15px;cursor:pointer;text-decoration:none" title="Renew Parking Registration" href="view_member_profile.php?scm&id=<?php echo $Member_id;?>&tik_id=<?php echo time();?>&m&view&renew" target="_blank"><b>Renew Parking Registration</b><sup class="blinking" style="color:red; padding-left:5px;"><b>News</b></sup></a></span>-->
+							 <span style="float:right;margin-top:20px;margin-right: -14%;"><a style="font-size:15px;cursor:pointer;text-decoration:none" title="" href="https://way2society.com/ViewNotice.php?id=144" target="_blank"><b>AGM 2019-20 </b><sup class="blinking" style="color:red; padding-left:5px;"><b>New</b></sup></a></span>
+							 <br><br>
+							  <span style="float:right;margin-top:15px;margin-right: -20%;"><a style="font-size:15px;cursor:pointer;text-decoration:none" title="" href="https://way2society.com/Uploaded_Documents/Provisional_list_of_voters_31012021.pdf" target="_blank"><b>Provisional list of voters as of 31.01.2021 </b></a></span>
+							 <?php }?>
+						 </ul>
+						 <?php }?>                          
 </div>
 <?php 
 if(sizeof($TipsDetails) > 0)

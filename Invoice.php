@@ -474,10 +474,15 @@ $(document).ready(function() {
        // $('landlord').val( localStorage.selectVal);
 		$("select#landlord option[value="+localStorage.selectVal+"]").attr('selected', true);
     }
-	 document.getElementById("OutSideServices").checked = true;
-	 document.getElementById('IsOutSider').value = '1';
-	 document.getElementById('Outside').style.display = "table-row";
-	 document.getElementById('Unit').style.display = "none"; 
+	<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+		document.getElementById("OutSideServices").checked = true;
+		document.getElementById('IsOutSider').value = '1';
+		document.getElementById('Outside').style.display = "table-row";
+		document.getElementById('Unit').style.display = "none"; 
+	<?php }else{ ?>
+		document.getElementById('IsOutSider').value = '0';
+	<?php } ?>
+	 
 	
 });
 	function selectLandlord()
