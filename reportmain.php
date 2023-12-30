@@ -137,7 +137,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 		<?php }
 		if($_SESSION['res_flag'] == 1){ ?>
 			<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('tenant_ledger_report.php?uid=0&rec=1', '_blank')"> Tenant Ledger Report</button>	
-		<?php }else{ ?>
+		<?php }
+		if($_SESSION['rental_flag'] == 1){ ?>
 			<button type="button"  style="border:none" class="btn btn-outline btn-primary btn-lg btn-block" onClick="window.open('tenant_ledger_report.php?uid=0', '_blank')"> Tenant Ledger Report</button>
 		<?php } ?>
 
