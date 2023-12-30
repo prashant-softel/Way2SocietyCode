@@ -1234,7 +1234,7 @@ function removeData(count)
 						<td style="text-align:right"></td>
 						<td style="text-align:right"><?php echo $star;?>&nbsp;<b> Name of the Tenant</b></td>
             			<td style="text-align:left">&nbsp; : &nbsp;</td>
-						<td style="text-align:left" id="td_1"><input type="text" name="t_name" id="t_name"  value="<?php echo $_GET['edit'] ? $show_member_main[0]['tenant_name'] : '';?>" <?php echo !empty($_GET['edit'])?'disabled':'';?>/>
+						<td style="text-align:left" id="td_1"><input type="text" name="t_name" id="t_name"  value="<?php echo $_GET['edit'] ? $show_member_main[0]['tenant_name'] : '';?>" <?php echo !empty($_GET['edit'])?'readonly':'';?>/>
 						<input type="hidden" name="profile_img" id="profile_img"   value=""/></td>
 					</tr>
         			<!--<tr>
