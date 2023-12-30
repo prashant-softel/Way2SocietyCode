@@ -499,7 +499,7 @@ function getTotalMonth()
 		
 		var monthDiff = (year2 - year1) * 12 + (month2 - month1)+1;
 	
-		document.getElementById('Lease_Period').value = monthDiff;		
+		//document.getElementById('Lease_Period').value = monthDiff;		
 	}
 }
 function enable_company()
@@ -1214,7 +1214,7 @@ function removeData(count)
 						<td style = "text-align:right"><?php echo $star;?>&nbsp;<b>Building</b></td>
 						<td>&nbsp;&nbsp; : &nbsp;&nbsp;</td>
 						<td>
-                			<select name="wing_id" id="wing_id" style="width:142px;" onChange=" fetchUnits(this.value); " value="<?php echo $_REQUEST['wing_id'];?>"<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN) { }else{echo 'disabled';} ?> >
+                			<select name="wing_id" id="wing_id" style="width:142px;" onChange=" fetchUnits(this.value); " value="<?php echo $_REQUEST['wing_id'];?>"<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN) { }else{echo 'disabled';} echo !empty($_GET['edit'])?'disabled':''; ?> >
 							<?php echo $combo_wing =  $obj_tenant->getTenantWing( $_SESSION['unit_id']); ?>
 							</select>
             			</td>
@@ -1224,7 +1224,7 @@ function removeData(count)
 						<td style="text-align:right"><?php echo $star;?>&nbsp;<b>Unit No. ( Flat No )</b></td>
             			<td>&nbsp; : &nbsp;</td>
 						<td>
-                			<select name="unit_no" id="unit_no" style="width:142px;" onChange="checkUnits();" value="<?php echo $_REQUEST['unit_no'];?>"<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN) { }else{echo 'disabled';} ?> >
+                			<select name="unit_no" id="unit_no" style="width:142px;" onChange="checkUnits();" value="<?php echo $_REQUEST['unit_no'];?>"<?php if($_SESSION['role'] == ROLE_SUPER_ADMIN) { }else{echo 'disabled';} echo !empty($_GET['edit'])?'disabled':'';?> >
 							<?php $dbName = $_SESSION['rentalDb']?>
 							<?php echo $combo_unit = $obj_tenant->getTenantUnit( $_SESSION['unit_id'], $_SESSION['default_wing_id']) ?>
 							</select>
@@ -1234,7 +1234,7 @@ function removeData(count)
 						<td style="text-align:right"></td>
 						<td style="text-align:right"><?php echo $star;?>&nbsp;<b> Name of the Tenant</b></td>
             			<td style="text-align:left">&nbsp; : &nbsp;</td>
-						<td style="text-align:left" id="td_1"><input type="text" name="t_name" id="t_name"  value="<?php echo $_GET['edit'] ? $show_member_main[0]['tenant_name'] : '';?>"/>
+						<td style="text-align:left" id="td_1"><input type="text" name="t_name" id="t_name"  value="<?php echo $_GET['edit'] ? $show_member_main[0]['tenant_name'] : '';?>" <?php echo !empty($_GET['edit'])?'disabled':'';?>/>
 						<input type="hidden" name="profile_img" id="profile_img"   value=""/></td>
 					</tr>
         			<!--<tr>
