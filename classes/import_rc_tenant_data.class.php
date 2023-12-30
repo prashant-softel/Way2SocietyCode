@@ -209,7 +209,7 @@ class import_rc_tenantdata
 						$tenantname = $Tenantfname." ".$Tenantmname." ".$Tenantlname;
 						$tenantName = trim($tenantname);
 						$sd_openingBal = $row[$sdOpeningBalance];
-                        $Ledgerid = $this->obj_tenant->InsertTenantLedgers($tenantName,$row[$wing],$row[$UnitNoCol],$sd_openingBal);
+                        $Ledgerid = $this->obj_tenant->InsertTenantLedgers($tenantName,$wingid,$row[$UnitNoCol],$sd_openingBal);
 						// echo $UnitnoCol;
 						// die();
 
