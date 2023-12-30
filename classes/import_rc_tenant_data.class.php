@@ -177,7 +177,7 @@ class import_rc_tenantdata
 						echo "rokade";
 					}
 					die();*/
-					
+						$unit_no = $row[$UnitNoCol];
 						$errormsg = '';
 
 						//getting wing id
@@ -185,7 +185,7 @@ class import_rc_tenantdata
 						$wingid = $this->m_dbConn->select($getwing);
 
 						
-						$unitidquery = "select `unit_id`, `unit_no` from unit where `unit_no` = '".$row[$UnitNoCol]."' and `wing_id`='".$wingid[0]['wing_id']."' ";
+						$unitidquery = "select `unit_id`, `unit_no` from unit where `unit_no` = '".$unit_no."' and `wing_id`='".$wingid[0]['wing_id']."' ";
 						$unitid = $this->m_dbConn->select($unitidquery);
 						
 						// echo $unitidquery;
@@ -209,7 +209,7 @@ class import_rc_tenantdata
 						$tenantname = $Tenantfname." ".$Tenantmname." ".$Tenantlname;
 						$tenantName = trim($tenantname);
 						$sd_openingBal = $row[$sdOpeningBalance];
-                        $Ledgerid = $this->obj_tenant->InsertTenantLedgers($tenantName,$wingid,$row[$UnitNoCol],$sd_openingBal);
+                        $Ledgerid = $this->obj_tenant->InsertTenantLedgers($tenantName,$wingid,$unit_no,$sd_openingBal);
 						// echo $UnitnoCol;
 						// die();
 
