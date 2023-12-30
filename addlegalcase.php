@@ -289,9 +289,18 @@ function selectSociety() {
 {?>
 	<body onLoad="go_error();">
 <?php 
-} ?>
+} 
+$width=76;
+if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+$width=95;
+}
+else
+{
+	$width=76;
+}
+?>
 <br><br>
-<div class="panel panel-info" id="panel" style="width:76%;display:block;margin-left: 1%;">
+<div class="panel panel-info" id="panel" style="width:76%;display:block;margin-left: 1%;width:<?php echo $width?>%;">
 <div class="panel-heading" style="font-size:20px;text-align:center;">
      Create New Legal Case
 </div>

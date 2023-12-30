@@ -56,7 +56,17 @@ $obj_request->getRenovationId();
 <script type="text/javascript" src="js/jsServiceRequest.js"></script>
 <script type="text/javascript" src="ckeditor/ckeditor.js"></script>
 -->
-<div class="panel panel-info" style="margin-top:4%;margin-left:1%; width:76%">
+<?php 
+$width=76;
+if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+$width=95;
+}
+else
+{
+	$width=76;
+}
+?>
+<div class="panel panel-info" style="margin-top:4%;margin-left:1%; width:<?php echo $width?>%;">
  
     <div class="panel-heading" style="font-size:20px;text-align:center;">
      Service Request

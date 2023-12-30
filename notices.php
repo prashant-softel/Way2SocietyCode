@@ -22,9 +22,17 @@ $display_notices=$obj_notice->FetchAllNotices($_REQUEST['in']);
 //echo "</pre>";
 $prevID = "";
 //print_r($_SESSION);
+$width=70;
+if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+$width=95;
+}
+else
+{
+	$width=70;
+}
 ?>
 
-<div class="panel panel-info" style="margin-top:6%;margin-left:3.5%; border:none;width:70%">
+<div class="panel panel-info" style="margin-top:6%;margin-left:3.5%; border:none;width:<?php echo $width?>%">
  
     <div class="panel-heading" style="font-size:20px;text-align:center;">
          Notices
