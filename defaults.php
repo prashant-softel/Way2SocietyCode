@@ -68,8 +68,6 @@
 	$igst_input = 0;
 	$default_sinking_fund = 0;
 	$default_investment_register = 0;
-	$default_sd_category = 0;
-	$default_bank_id = 0;
 	//$defaultEmailID = '';
 		
 	$defaultValues = $obj_defaults->getDefaults($default_society, false);
@@ -107,8 +105,6 @@
 		$default_Sundry_creditor = $defaultValues[0][APP_DEFAULT_SUNDRY_CREDITOR];
 		$default_sinking_fund = $defaultValues[0][APP_DEFAULT_SINKING_FUND];
 		$default_investment_register  = $defaultValues[0][APP_DEFAULT_INVESTMENT_REGISTER];
-		$default_sd_category = $defaultValues[0][APP_DEFAULT_SD_CATEGORY];
-		$default_bank_id = $defaultValues[0][APP_DEFAULT_BANK_ID];
 		//$defaultEmailID = $defaultValues[0][APP_DEFAULT_EMAILID];
 	}
 	 if($_SESSION['profile'][PROFILE_MANAGE_MASTER] == 1 && $_SESSION['role'] == ROLE_SUPER_ADMIN)
@@ -379,16 +375,6 @@
        </td>
    </tr>
 
-   <tr>
-       	<td><?php //echo $star;?>Default Bank: &nbsp;</td>
-        <td><select name="default_bank_id" id="default_bank_id" <?php echo $attrDisplay;?>>
-                	<?php 
-						echo $combo_period = $obj_defaults->combobox("select id, concat_ws(' - ' , ledgertable.ledger_name,'(',categorytbl.category_name, ')') from `ledger` as ledgertable join `account_category` as categorytbl on categorytbl.category_id=ledgertable.categoryid where  categorytbl.group_id=" . ASSET . " and society_id='" . $default_society .  "' ORDER BY ledgertable.ledger_name ASC", $default_bank_id, "Please Select"); 
-					?>
-           </select>
-       </td>
-   </tr>
-
   </table>
   
   <table style="width:5%; float:left;"><tr><td></td></tr></table>
@@ -497,15 +483,6 @@
        </td>
    </tr>
 
-   <tr>
-       	<td><?php //echo $star;?>SD Category: &nbsp;</td>
-        <td><select name="default_sd_category" id="default_sd_category" <?php echo $attrDisplay;?>>
-                	<?php 
-						echo $combo_period = $obj_defaults->combobox("select category_id, category_name from account_category where group_id=".LIABILITY." ORDER BY category_name ASC", $default_sd_category, "Please Select"); 
-					?>
-           </select>
-       </td>
-   </tr>
 
   </table>
   </td>

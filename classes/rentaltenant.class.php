@@ -74,8 +74,6 @@ class rentaltenant
 	}
 	public function InsertTenantLedgers($tenant_name,$wing ,$unit_no, $security_deposit)
 	{	
-		// $opening_date = "2022-12-31";
-		
 		$sql = "select APP_DEFAULT_SOCIETY from appdefault";
 		$res = $this->landLordDBRoot->select($sql);
 		$landLordSocietyID = $res[0]['APP_DEFAULT_SOCIETY'];
@@ -191,7 +189,7 @@ class rentaltenant
 				$insertAsset = $this->obj_register->SetAssetRegister(getDBFormatDate($Date), $sqlLegerID, 0, 0, TRANSACTION_DEBIT, abs($total_opening_balance), 1);
 				
 				//Create tenant security deposit ledger in landlord liability type
-			        $sd_sql = "INSERT INTO `ledger`(`society_id`, `categoryid`, `ledger_name`, `payment`, `receipt`,`show_in_bill`, `opening_balance`,`opening_type`,`opening_date`) VALUES ('".$_SESSION['society_id']."','".$_SESSION['default_sd_category']."','".$unit_no."-".$tenant_name."-Security deposit', 1,1,1,'".$security_deposit."' ,1,'".getDBFormatDate($startdate)."')";	
+			        $sd_sql = "INSERT INTO `ledger`(`society_id`, `categoryid`, `ledger_name`, `payment`, `receipt`,`show_in_bill`, `opening_balance`,`opening_type`,`opening_date`) VALUES ('".$_SESSION['society_id']."','".$sd_category_id."','".$unit_no."-".$tenant_name."-Security deposit', 1,1,1,'".$security_deposit."' ,1,'".getDBFormatDate($startdate)."')";	
 				$sd_res = $this->m_dbConn->insert($sd_sql);
 				$insertAsset = $this->obj_register->SetLiabilityRegister(getDBFormatDate($Date), $sd_res, 0, 0, TRANSACTION_CREDIT, abs($security_deposit), 1);
 					
