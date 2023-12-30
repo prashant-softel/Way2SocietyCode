@@ -6,5 +6,9 @@
 ?>
 
 <script language="javascript" type="application/javascript">
-	window.location.href = '../view_member_profile.php?prf&up&id=<?php echo $_POST['id'];?>&idd=<?php echo time();?>';
+	<?php if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){ ?>
+		window.location.href = '../view_landlord_profile.php?prf&up&id=<?php echo $_POST['id'];?>&idd=<?php echo time();?>';
+	<?php }else{ ?>
+		window.location.href = '../view_member_profile.php?prf&up&id=<?php echo $_POST['id'];?>&idd=<?php echo time();?>';
+	<?php } ?>
 </script>

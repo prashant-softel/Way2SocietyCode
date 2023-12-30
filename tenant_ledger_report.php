@@ -999,7 +999,7 @@ $SelectedBillType = $_COOKIE["BillType"];
 							}
 							else
 							{
-									echo "<a  href='Maintenance_billrec.php?UnitID=".$_REQUEST['uid']."&PeriodID=". $show_particulars[0]['PeriodID']."&BT=".$show_particulars[0]["BillType"]."' target='_blank'>".number_format($DebitAmt,2)."</a>";
+									echo "<a  href='Maintenance_billrec.php?UnitID=".$AryLedgerToDisplay[$iCnt]."&PeriodID=". $show_particulars[0]['PeriodID']."&BT=".$show_particulars[0]["BillType"]."' target='_blank'>".number_format($DebitAmt,2)."</a>";
 							}				
 						
 						}

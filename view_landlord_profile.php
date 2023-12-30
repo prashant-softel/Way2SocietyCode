@@ -216,7 +216,7 @@ $(function()
 		{  
 			?>
             <td style="padding:5px">
-				<input type="button"  class="btn btn-primary"  value="Edit Profile"  id="Edit" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='view_member_profile.php?edt&prf&mkm&tik_id=<?php echo time();?>&id=<?php echo $_GET['id'];?>'">
+				<input type="button"  class="btn btn-primary"  value="Edit Profile"  id="Edit" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='view_landlord_profile.php?edt&prf&mkm&tik_id=<?php echo time();?>&id=<?php echo $_GET['id'];?>'">
                 </td>
 			<?php
 		}
@@ -227,7 +227,7 @@ $(function()
 				<input type="submit"  class="btn btn-primary"  value="Update Profile"  id="insert" name="update" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal; background-color: #337ab7;color: #fff; border-color: #2e6da4;">
                 </td>
                 <td style="padding:5px">
-				<input type="button"  class="btn btn-primary"  value="Cancel" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='view_member_profile.php?prf&mkm&tik_id=<?php echo time();?>&id=<?php echo $_GET['id'];?>'">
+				<input type="button"  class="btn btn-primary"  value="Cancel" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='view_landlord_profile.php?prf&mkm&tik_id=<?php echo time();?>&id=<?php echo $_GET['id'];?>'">
                 </td>
 			<?php
 		}
@@ -239,7 +239,7 @@ $(function()
 	if($_SESSION['is_year_freeze'] == 0 && ($_SESSION['role']==ROLE_SUPER_ADMIN || $_SESSION['profile'][PROFILE_EDIT_MEMBER] == '1' || $_SESSION['owner_id']==$_GET['id']))
 	{
 	?>
-    <input type="button" class="btn btn-primary "  value="Edit Unit Details" style=" height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;" onClick="window.location.href='unit.php?uid=<?php echo $show_member_main[0]['unit']?>'">
+    <input type="button" class="btn btn-primary "  value="Edit Unit Details" style=" height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;" onClick="window.location.href='rentalunit.php?uid=<?php echo $show_member_main[0]['unit']?>'">
     <?php
 	}
 	?>
@@ -249,7 +249,7 @@ $(function()
 	if($_SESSION['is_year_freeze'] == 0 && ($_SESSION['role']==ROLE_SUPER_ADMIN || $_SESSION['profile'][PROFILE_EDIT_MEMBER] == '1'))
 	{
 	?>
-    <input type="button" class="btn btn-primary "  value="Transfer Ownership" style=" height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;" onClick="window.location.href='unit.php?mtfr&uid=<?php echo $show_member_main[0]['unit']?>'">
+    <input type="button" class="btn btn-primary "  value="Transfer Ownership" style=" height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;" onClick="window.location.href='rentalunit.php?mtfr&uid=<?php echo $show_member_main[0]['unit']?>'">
     <?php
 	}
 	?>
@@ -908,14 +908,14 @@ $(function()
                 if(!isset($_GET['edt']))
                 {  
                     ?>
-                        <input type="button"  class="btn btn-primary"  value="Edit Profile"  id="Edit" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='view_member_profile.php?edt&prf&mkm&tik_id=<?php echo time();?>&id=<?php echo $_GET['id'];?>'">
+                        <input type="button"  class="btn btn-primary"  value="Edit Profile"  id="Edit" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='view_landlord_profile.php?edt&prf&mkm&tik_id=<?php echo time();?>&id=<?php echo $_GET['id'];?>'">
                     <?php
                 }
                 else
                 {
                     ?>
                         <input type="submit"  class="btn btn-primary"  value="Update Profile"  id="insert" name="update" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal; background-color: #337ab7;color: #fff; border-color: #2e6da4;">
-                        <input type="button"  class="btn btn-primary"  value="Cancel" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='view_member_profile.php?prf&mkm&tik_id=<?php echo time();?>&id=<?php echo $_GET['id'];?>'">
+                        <input type="button"  class="btn btn-primary"  value="Cancel" style="width:100px; height:30px; font-family:'Times New Roman', Times, serif; font-style:normal;"onClick="window.location.href='view_landlord_profile.php?prf&mkm&tik_id=<?php echo time();?>&id=<?php echo $_GET['id'];?>'">
                     <?php
                 }
             ?>

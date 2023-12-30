@@ -686,7 +686,7 @@ class rentalunit
         	<td style="width:5.4%;text-align: center;border-left:1px solid #e8e8e8;"><?php echo $iCounter++;?></td>
             <td style="width:5.3%;text-align: center;border-left:1px solid #e8e8e8;"><?php echo $UnitDetails[$k]['wing'];?></td>
             <td align="center" style="width:10.7%;text-align: center;border-left:1px solid #e8e8e8;"><?php echo $UnitDetails[$k]['unit_no'];?></td>
-            <td align="center" style="width:26.1%;text-align: center;border-left:1px solid #e8e8e8;"><a href="view_member_profile.php?scm&id=<?php echo $UnitDetails[$k]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $UnitDetails[$k]['primary_owner_name'];?></a></td>
+            <td align="center" style="width:26.1%;text-align: center;border-left:1px solid #e8e8e8;"><a href="view_landlord_profile.php?scm&id=<?php echo $UnitDetails[$k]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $UnitDetails[$k]['primary_owner_name'];?></a></td>
             <td align="center" style="width:10%;border-left:1px solid #e8e8e8;"><input type="checkbox" <?php if($UnitDetails[$k]['taxable_no_threshold'] == 1){ ?> checked<?php }?>></td>
             <td align="left" style="width:10%;text-align: center;border-left:1px solid #e8e8e8;"><input type="checkbox" <?php if($UnitDetails[$k]['ThresholdCalculatedUnit'] == 1){ ?> checked<?php }?>></td>						
             <?php if($UnitDetails[$k]['taxable_no_threshold'] == $UnitDetails[$k]['ThresholdCalculatedUnit'])
@@ -1215,9 +1215,9 @@ class rentalunit
         	<!--<td align="center"><?php //echo $res[$k]['society_name'];?></td>-->
             <td align="center"><?php echo $res[$k]['wing'];?></td>
             <td align="center"><?php echo $res[$k]['unit_presentation'];?></td>
-            <td align="center" id="<?php echo 'unit_no_'.$res[$k]['unit_id']?>"> <a href="view_member_profile.php?scm&id=<?php echo $res[$k]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $res[$k]['unit_no'];?></a></td>
+            <td align="center" id="<?php echo 'unit_no_'.$res[$k]['unit_id']?>"> <a href="view_landlord_profile.php?scm&id=<?php echo $res[$k]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $res[$k]['unit_no'];?></a></td>
             
-            <td align="center" id="<?php echo 'owner_name_'.$res[$k]['unit_id']?>"><a href="view_member_profile.php?scm&id=<?php echo $res[$k]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $res[$k]['owner_name'];?></a></td>
+            <td align="center" id="<?php echo 'owner_name_'.$res[$k]['unit_id']?>"><a href="view_landlord_profile.php?scm&id=<?php echo $res[$k]['member_id'];?>&tik_id=<?php echo time();?>&m&view" target="_blank"><?php echo $res[$k]['owner_name'];?></a></td>
             <?php 
 			if(sizeof($UnitArray) > 0)
 			{

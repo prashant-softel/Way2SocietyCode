@@ -1251,7 +1251,7 @@ class bill_receipt_report extends dbop
 						<td>".($i + 1)."</td>
 						<td>".$sql66[0]['unit_no']."</td>
 						<td><a href='view_tenant_profile.php?scm&id=".$sql66[0]['tenant_id']."&tik_id=". time() ."&m&view' target='_blank'>".$sql66[0]['tenant_name'] ."</a></td>
-						<td><a href='Maintenance_bill.php?UnitID=".$sql66[0]['ledger_id'] ."&PeriodID=".$period_id. "&BT=".$bill_type. "' target='_blank'>".number_format($sql55[0]['CurrentBillAmount'],2)."</a></td>
+						<td>".number_format($sql55[0]['CurrentBillAmount'],2)."</td>
 						<td>".number_format($total_arrears,2)."</td>
 						<td><a href='tenant_ledger_report.php?uid=".$sql66[0]['ledger_id']."&tid=".$sql66[0]['tenant_id']."&rec=1' target='_blank'>".number_format($sql55[0]['TotalBillPayable'],2)."</a></td>
 						<td>".getDisplayFormatDate($sql44[0]['VoucherDate'])."</td>
@@ -1263,7 +1263,7 @@ class bill_receipt_report extends dbop
 							<td>".($i + 1)."</td>
 							<td>".$sql66[0]['unit_no']."</td>
 							<td><a href='view_tenant_profile.php?scm&id=".$sql66[0]['tenant_id']."&tik_id=". time() ."&m&view' target='_blank'>".$sql66[0]['tenant_name'] ."</a></td>
-							<td><a href='Maintenance_bill.php?UnitID=".$sql66[0]['ledger_id'] ."&PeriodID=".$period_id. "&BT=".$bill_type. "' target='_blank'>".number_format($sql55[0]['CurrentBillAmount'],2)."</a></td>
+							<td><a href='Maintenance_billrec.php?UnitID=".$sql66[0]['ledger_id'] ."&PeriodID=".$period_id. "&BT=".$bill_type. "' target='_blank'>".number_format($sql55[0]['CurrentBillAmount'],2)."</a></td>
 							<td>".number_format($total_arrears,2)."</td>
 							<td><a href='tenant_ledger_report.php?uid=".$sql66[0]['ledger_id']."&tid=".$sql66[0]['tenant_id']."&rec=' target='_blank'>".number_format($sql55[0]['TotalBillPayable'],2)."</a></td>
 							<td>".getDisplayFormatDate($sql44[0]['VoucherDate'])."</td>
