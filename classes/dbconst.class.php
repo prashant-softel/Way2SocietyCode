@@ -250,12 +250,41 @@
 		define('GST_START_DATE', $_SESSION['gst_start_date']);
 	
 	//Month names array as per cycle
-	$MONTHS_MONTHLY = array('April','May','June','July','August','September','October','November','December','January','February','March');
-	$MONTHS_BIMONTHLY = array('April-May','June-July','August-September','October-November','December-January','February-March');
-	$MONTHS_QUATERLY = array('April-June','July-September','October-December','January-March');
-	$MONTHS_QUADRUPLE = array('April-July','August-November','December-March');
-	$MONTHS_HALFYEARLY = array('April-September', 'October-March');
-	$MONTHS_YEARLY = array('April-March');
+	if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+		$MONTHS_MONTHLY = array('January','February','March','April','May','June','July','August','September','October','November','December');
+	}else{
+		$MONTHS_MONTHLY = array('April','May','June','July','August','September','October','November','December','January','February','March');
+	}
+
+	if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+		$MONTHS_BIMONTHLY = array('January-February','March-April','May-June','July-August','September-October','November-December');
+	}else{
+		$MONTHS_BIMONTHLY = array('April-May','June-July','August-September','October-November','December-January','February-March');
+	}
+
+	if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+		$MONTHS_QUATERLY = array('January-March','April-June','July-September','October-December');
+	}else{
+		$MONTHS_QUATERLY = array('April-June','July-September','October-December','January-March');
+	}
+
+	if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+		$MONTHS_QUADRUPLE = array('January-April','May-August','September-December');
+	}else{
+		$MONTHS_QUADRUPLE = array('April-July','August-November','December-March');
+	}
+
+	if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+		$MONTHS_HALFYEARLY = array('January-June', 'July-December');
+	}else{
+		$MONTHS_HALFYEARLY = array('April-September', 'October-March');
+	}
+
+	if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+		$MONTHS_YEARLY = array('January-December');
+	}else{
+		$MONTHS_YEARLY = array('April-March');
+	}
 		
 	//action constants
 	define ('NONE', '0');
