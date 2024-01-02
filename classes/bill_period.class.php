@@ -37,7 +37,16 @@ class bill_period
 				
 				if($res[0]['count'] <= 0)
 				{ 
-					$months = getMonths($_POST['Cycle']);
+					if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+						$months = getMonths_res($_POST['Cycle'],$res = 1);
+						print_r($months);
+						exit;
+					}else{
+						$months = getMonths($_POST['Cycle']);
+						print_r($months);
+						exit;
+					}
+					
 					$this->setPeriod($months ,$_POST['Cycle'],$_POST['YearID']);																																				
 									
 					return "Insert";
@@ -66,9 +75,9 @@ class bill_period
 	}		
 	
 	public function setPeriod($months, $billingcycle, $year)
-	{		
-		$prevPeriod = $this->getPreviousPeriodID($year,$billingcycle);				
-		
+	{	
+		$prevPeriod = $this->getPreviousPeriodID($year,$billingcycle);	
+			
 		for( $i = 0; $i < sizeof($months); $i++)
 		{
 			$isLast = 0;
