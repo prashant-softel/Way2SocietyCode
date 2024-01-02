@@ -443,6 +443,7 @@ if($_REQUEST["method"]=="AddPaymentDetails")
 		$Ref = 0;		
 		$InvoiceAmount = $Detail[$iCnt]['InvoiceAmount'];
 		$PaymentVoucherNo = 0;
+		$isMultipleExpInvoice = $InvoicesData[$iRow]['isMultipleExpInvoice'];
 		 //$obj_PaymentDetails->UpdatePaymentDetails($PaidTo,$ChequeNumber,$ChequeDate,$Amount,$PayerBank,$Comments,$VoucherDate,$InvoiceDate,$TDSAmount,$LeafID,$DoubleEntry,$ExpenseBy, $rowID, $ModeOfPayment, $reconcleDate, $rStatus, $reconcile, $returnFlag, $MultipleEntry, $Ref,$InvoiceAmount,$PaymentVoucherNo );
 		
 		$allLedgerDetails = $objUtility->GetLedgerDetails();
@@ -561,6 +562,7 @@ if($_REQUEST["method"]=="AddPaymentDetails")
 				$RoundOffAmount = $InvoicesData[$iRow]["RoundOffAmt"];
 			$InvoiceExternalVoucherNo = $InvoicesData[$iRow]["InvoiceExternalVoucherNo"];
 			$IsCallUpdtInvoiceCnt = $InvoicesData[$iRow]["IsCallUpdtInvoiceCnt"];
+			$isMultipleExpInvoice = $InvoicesData[$iRow]['isMultipleExpInvoice'];
 			
 			if($NewInvoice==1)
 			{
@@ -660,7 +662,7 @@ if($_REQUEST["method"]=="AddPaymentDetails")
 			$InvoiceExpenceBy = $InvoicesData[$iRow]["ExpenceBy"];
 			$InvoiceExternalVoucherNo = $InvoicesData[$iRow]["InvoiceExternalVoucherNo"];
 			$IsCallUpdtInvoiceCnt = $InvoicesData[$iRow]["IsCallUpdtInvoiceCnt"];
-
+			$isMultipleExpInvoice =$InvoicesData[$iRow]['isMultipleExpInvoice'];
 			$obj_PaymentDetails->UpdateInvoiceStatus_with_invoiceVoucher($PaymentVoucherNo,$InvoiceNumber,$VoucherNo,$InvoiceAmount, $TDSAmount,$DocStatusID,$IGSTAmount,$CGSTAmount,$SGSTAmount,$CESSAmount,$InvoiceRaisedVoucherNo,$PaidTo,$InvoiceExpenceBy,$InvoiceDate,$Comments, $InvoiceExternalVoucherNo, $IsCallUpdtInvoiceCnt);
 		
 			

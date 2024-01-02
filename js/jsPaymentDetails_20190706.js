@@ -2276,7 +2276,9 @@ function SubmitEntry(RowCounter)
 				var GrossAmount = document.getElementById('gross_amount_'+i).value;
 				var DocStatusID = document.getElementById('Doc_statusID_'+i).value;
 				var NewInvoice = document.getElementById('New_Invoice_'+i).value;
-				var InvoiceExternalVoucherNo = document.getElementById('invoice_external_voucher_no_'+i).value; // This is invoice exterval voucher which is currenty displaying on screen
+				var InvoiceExternalVoucherNo = document.getElementById('invoice_external_voucher_no_'+i).value; 
+				var isMultipleExpInvoice = document.getElementById('multiple_exp_invoices_'+i).value;
+				// This is invoice exterval voucher which is currenty displaying on screen
 				
 				if(voucherNumber != '' && voucherNumber != 0){ // voucher no exits means voucher already present in database
 				
@@ -2361,7 +2363,8 @@ function SubmitEntry(RowCounter)
 									'RoundOffAmt':RoundOffAmt,
 									'InvoiceExternalVoucherNo':InvoiceExternalVoucherNo,
 									'IsCallUpdtInvoiceCnt':IsCallUpdtInvoiceCnt,
-									'DeleteInvoice':DeleteInvoice}
+									'DeleteInvoice':DeleteInvoice,
+									'isMultipleExpInvoice':isMultipleExpInvoice}
 									
 			}
 			else 

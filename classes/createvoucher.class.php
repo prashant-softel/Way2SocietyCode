@@ -730,7 +730,14 @@ $LatestVoucherNo,$SrNo,VOUCHER_JOURNAL,$arData[$i]['To'],TRANSACTION_DEBIT,$arDa
 					
 					//print_r($total);
 				}
-
+				if($SrNo > 2)
+				{
+					$IsMultipleExpInvoice = 1;
+				}
+				else
+				{
+					$IsMultipleExpInvoice = 0;
+				}
 				if($UpdateInvoice==true)
 				{ 
 				//echo 'test' . $is_invoice;
@@ -751,7 +758,7 @@ $LatestVoucherNo,$SrNo,VOUCHER_JOURNAL,$arData[$i]['To'],TRANSACTION_DEBIT,$arDa
 						
 						else*/
 						{
-							 $updateQuery="update `invoicestatus` set InvoiceChequeAmount='".$total."',InvoiceRaisedVoucherNo='".$LatestVoucherNo."', AmountReceivable='".$total."',IGST_Amount='".$IGST_Amount."',CGST_Amount='".$CGST_Amount."',SGST_Amount='".$SGST_Amount."',CESS_Amount='".$Cess_Amount."',NewInvoiceNo='".$NewInvoiceNo."' where InvoiceStatusID='".$InvoiceStatusID."'";
+							 $updateQuery="update `invoicestatus` set InvoiceChequeAmount='".$total."',InvoiceRaisedVoucherNo='".$LatestVoucherNo."', AmountReceivable='".$total."',IGST_Amount='".$IGST_Amount."',CGST_Amount='".$CGST_Amount."',SGST_Amount='".$SGST_Amount."',CESS_Amount='".$Cess_Amount."',NewInvoiceNo='".$NewInvoiceNo."',isMultipleExpInvoice ='".$IsMultipleExpInvoice."' where InvoiceStatusID='".$InvoiceStatusID."'";
 						}
 							
 						//}
@@ -771,7 +778,7 @@ $LatestVoucherNo,$SrNo,VOUCHER_JOURNAL,$arData[$i]['To'],TRANSACTION_DEBIT,$arDa
 
 					if(isset($is_invoice) && $is_invoice==1)
 		 			{
-						$DocumentStatus="Insert into `invoicestatus`(`NewInvoiceNo`,`InvoiceChequeAmount`,`InvoiceRaisedVoucherNo`,`AmountReceivable`,IGST_Amount,CGST_Amount,SGST_Amount,CESS_Amount,is_invoice) values('".$NewInvoiceNo."','".$total."','".$LatestVoucherNo."','".$total."','".$IGST_Amount."','".$CGST_Amount."','".$SGST_Amount."','".$Cess_Amount."','".$is_invoice."')";
+						$DocumentStatus="Insert into `invoicestatus`(`NewInvoiceNo`,`InvoiceChequeAmount`,`InvoiceRaisedVoucherNo`,`AmountReceivable`,IGST_Amount,CGST_Amount,SGST_Amount,CESS_Amount,is_invoice,`isMultipleExpInvoice`) values('".$NewInvoiceNo."','".$total."','".$LatestVoucherNo."','".$total."','".$IGST_Amount."','".$CGST_Amount."','".$SGST_Amount."','".$Cess_Amount."','".$is_invoice."','".$IsMultipleExpInvoice."')";
 						$res=$this->m_dbConn->insert($DocumentStatus);
 					}
 				}
@@ -845,9 +852,9 @@ $LatestVoucherNo,$SrNo,VOUCHER_JOURNAL,$arData[$i]['To'],TRANSACTION_DEBIT,$arDa
 					$previousLogID = $previousLogDetails[0]['ChangeLogID'];
 				}
 			}
-		
-			$iLatestChangeID = $this->changeLog->setLog($logArr, $_SESSION['login_id'], TABLE_JOURNAL_VOUCHER, $LatestVoucherNo, $this->request_mode, $previousLogID);
-			
+			//echo "call Before";
+			//$iLatestChangeID = $this->changeLog->setLog($logArr, $_SESSION['login_id'], TABLE_JOURNAL_VOUCHER, $LatestVoucherNo, $this->request_mode, $previousLogID);
+			//echo "call After";
 			$sql09="Update `voucher` set LatestChangeID='".$iLatestChangeID."' where id='".$dataVoucher1."'";
 			$res=$this->m_dbConn->update($sql09);
 			

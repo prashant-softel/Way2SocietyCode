@@ -2235,7 +2235,7 @@ class PaymentDetails extends dbop
 		$this->UpdateInvoiceStatus_with_invoiceVoucher($PaymentVoucherNo,$InvoiceNumber,$TDSVoucherNo,$InvoiceAmount, $TDSAmount,$DocStatusID,$IGSTAmount,$CGSTAmount,$SGSTAmount,$CESSAmount,$InvoiceRaisedVoucherNo,$PaidTo,$InvoiceExpenceBy,$InvoiceDate,$Comments);
 	}
 	
-	function UpdateInvoiceStatus_with_invoiceVoucher($PaymentVoucherNo,$InvoiceNumber,$TDSVoucherNo,$InvoiceAmount, $TDSAmount,$DocStatusID,$IGSTAmount,$CGSTAmount,$SGSTAmount,$CESSAmount,$InvoiceRaisedVoucherNo,$PaidTo,$InvoiceExpenceBy,$InvoiceDate,$Comments, $EXVoucherNumber = 0, $IsCallUpdtInvoiceCnt = false, $isSuspense=0)
+	function UpdateInvoiceStatus_with_invoiceVoucher($PaymentVoucherNo,$InvoiceNumber,$TDSVoucherNo,$InvoiceAmount, $TDSAmount,$DocStatusID,$IGSTAmount,$CGSTAmount,$SGSTAmount,$CESSAmount,$InvoiceRaisedVoucherNo,$PaidTo,$InvoiceExpenceBy,$InvoiceDate,$Comments, $EXVoucherNumber = 0, $IsCallUpdtInvoiceCnt = false, $isSuspense=0,$isMultipleExpInvoice=0)
 	{
 		// Amit changes start
 		if($this->debug_trace == 1)
@@ -2244,10 +2244,12 @@ class PaymentDetails extends dbop
 		}
 		
 		$msg = ''; // msg for error_log
-		if(!empty($InvoiceRaisedVoucherNo) && $InvoiceRaisedVoucherNo <> 0)
+		if($isMultipleExpInvoice == 0)
 		{
-			$this->m_objUtility->Delete_VoucherandRegister_table($InvoiceRaisedVoucherNo,VOUCHER_JOURNAL); //Deleting exiting entries
-			$InvoiceRaisedVoucherNo = $LatestVoucherNo = $this->m_latestcount->getLatestVoucherNo($_SESSION['society_id']);
+			if(!empty($InvoiceRaisedVoucherNo) && $InvoiceRaisedVoucherNo <> 0)
+			{
+				$this->m_objUtility->Delete_VoucherandRegister_table($InvoiceRaisedVoucherNo,VOUCHER_JOURNAL); //Deleting exiting entries
+				$InvoiceRaisedVoucherNo = $LatestVoucherNo = $this->m_latestcount->getLatestVoucherNo($_SESSION['society_id']);
 			
 			if($EXVoucherNumber == 0){
 
@@ -2318,6 +2320,7 @@ $LatestVoucherNo,$SrNo,VOUCHER_JOURNAL,$PaidTo,TRANSACTION_CREDIT,$InvoiceAmount
 			}
 			$log = 'Invoice Added '.$msg;
 			$iLatestChangeID = $this->m_objLog->setLog($log, $_SESSION['login_id'], 'VOUCHER', 'Payment Invoice Edit'); // error log
+			}
 		}
 		
 		// Amit changes end

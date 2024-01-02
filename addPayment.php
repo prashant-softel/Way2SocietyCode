@@ -228,6 +228,7 @@ trData+="<td style = 'width:12%'><select id= \"TDS_Payable_"+ FieldCount +"\" na
 trData+="<td align = 'center' style = 'width:4%'><input type='checkbox'  id='delete_"+FieldCount+"' name='delete_"+FieldCount+"'style = 'display:none;' ></td>";
 
 trData +="<input type ='hidden' name ='invoice_raised_voucher_no_"+FieldCount+"' id='invoice_raised_voucher_no_"+FieldCount+"'>"
+trData +="<input type ='hidden' name ='multiple_exp_invoices_"+FieldCount+"' id='multiple_exp_invoices_"+FieldCount+"'>"
     return trData;
 }
 
@@ -533,6 +534,7 @@ $("#cheque_date").attr('readonly', 'readonly');
 			var RoundOff_Amt = '<?php echo $PopupDetails[$i]['RoundOffAmount']?>';
 			//var CESS_Amt=  '<?php //echo $PopupDetails[$i]['CESS_Amount']?>';
 			var IGST_flg =0;
+			var IsMultipleExpInvoice = '<?php echo $PopupDetails[$i]['isMultipleExpInvoice']?>'
 			<?php
 		if($PopupDetails[$i]['InvoiceClearedVoucherNo'] <> '0')	
 		{?>
@@ -593,7 +595,18 @@ $("#cheque_date").attr('readonly', 'readonly');
 			document.getElementById('ExpenseOnly').checked=false;
 			PaidToChanged(document.getElementById('Expence_by_'+FieldCount));
 		}
-		var exo = document.getElementById('Expence_by_'+FieldCount).value="<?php echo $PopupDetails[$i]['id']?>";
+		if(IsMultipleExpInvoice == 1)
+		{
+			//document.getElementById('Expence_by_'+FieldCount).disabled=true;
+			document.getElementById('Expence_by_'+FieldCount).readOnly=true;
+			//document.getElementById('Expence_by_'+FieldCount).setAttribute("pointer-events", "none");
+			document.getElementById('Expence_by_'+FieldCount).style.pointerEvents = "none";
+			document.getElementById('Expence_by_'+ FieldCount).style.backgroundColor = 'lightgray';	
+			document.getElementById('multiple_exp_invoices_'+ FieldCount).value="<?php echo $PopupDetails[$i]['isMultipleExpInvoice'] ?>";	
+			//document.getElementById('Expence_by_'+ FieldCount).replaceWith("Multiple Expenses");	
+		}
+		
+			var exo = document.getElementById('Expence_by_'+FieldCount).value="<?php echo $PopupDetails[$i]['id']?>";
 		
 		if(IsInvoiceEdit == 0)
 		{
