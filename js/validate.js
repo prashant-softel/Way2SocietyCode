@@ -6,6 +6,15 @@ var MONTHS_QUADRUPLE = ['April-May-June-July','August-September-October-November
 var MONTHS_HALFYEARLY = ['April-September', 'October-March'];
 //var MONTHS_YEARLY = ['April-May-June-July-August-September-October-November-December-January-February-March'];
 var MONTHS_YEARLY = ['April'];
+
+var MONTHS_MONTHLY_RES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var MONTHS_BIMONTHLY_RES = ['January-February','March-April','May-June','July-August','September-October','November-December'];
+var MONTHS_QUATERLY_RES = ['January-March','April-June','July-September','October-December'];
+var MONTHS_QUADRUPLE_RES = ['January-February-March-April','May-June-July-August','September-October-November-December'];
+//var MONTHS_HALFYEARLY = ['April-May-June-July-August-September', 'October-November-December-January-February-March'];
+var MONTHS_HALFYEARLY_RES = ['January-June', 'July-December'];
+//var MONTHS_YEARLY = ['April-May-June-July-August-September-October-November-December-January-February-March'];
+var MONTHS_YEARLY_RES = ['January-December'];
 	
 function extractNumber(obj, decimalPlaces, allowNegative)
 {
@@ -125,6 +134,35 @@ function getMonths(cycleID)
 	return Months;
 }
 
+
+function getMonths_res($cycleID)
+{
+	$Months = array();
+
+	switch($cycleID)
+	{
+		case 1:
+			$Months = $GLOBALS['MONTHS_YEARLY_RES'];
+			break;
+		case 2:
+			$Months = $GLOBALS['MONTHS_HALFYEARLY_RES'];
+			break;
+		case 3:
+			$Months = $GLOBALS['MONTHS_QUADRUPLE_RES'];
+			break;
+		case 4:
+			$Months = $GLOBALS['MONTHS_QUATERLY_RES'];
+			break;
+		case 5:
+			$Months = $GLOBALS['MONTHS_BIMONTHLY_RES'];
+			break;
+		case 6:
+			$Months = $GLOBALS['MONTHS_MONTHLY_RES'];
+			break;
+	}
+
+	return $Months;
+}
 
 function isValidDate(id){
 	var str = document.getElementById(id).value;

@@ -92,7 +92,11 @@ class dayBook
 									
 				if($res[0]['count'] == 0)
 				{ 
-					$months = getMonths($billing_cycle);
+					if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+						$months = getMonths_res($billing_cycle);
+					}else{
+						$months = getMonths($billing_cycle);
+					}
 					$this->obj_billperiod->setPeriod($months ,$billing_cycle,$YearID);																																				
 					$errormsg = "<br>Periods Inserted Successfully for Year ".$getYear[0]['YearDescription']."<br><br>";
 				}
