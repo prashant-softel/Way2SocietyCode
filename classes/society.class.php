@@ -582,12 +582,8 @@ public function AddPeriods($cycleID , $yearID)
 									
 		if($FetchPeriod[0]['count'] == 0)
 		{ 
-			if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
-				$months = getMonths_res($cycleID);
-			}else{
-				$months = getMonths($cycleID);
-			}
-			
+		
+			$months = getMonths($cycleID);
 			
 			$PrevYear =  $yearID - 1;
 			$sqlFetchData = $this->m_dbConn->select("SELECT * FROM `year`  where  `YearID`= '".$PrevYear."'");

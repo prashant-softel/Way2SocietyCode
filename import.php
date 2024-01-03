@@ -99,14 +99,7 @@
 				$('#eselObj').empty();
 				
 				var Months = [];
-				var res_flag = localStorage.getItem('res_flag');
-				var rental_flag = localStorage.getItem('rental_flag');
-				if(res_flag == 1 || rental_flag == 1){
-					Months = getMonths_res(parseInt(cycleid));
-				}else{
-					Months = getMonths(parseInt(cycleid));
-				}
-				
+				Months = getMonths(parseInt(cycleid));
 				
 				for (var iCnt = 0; iCnt < Months.length; iCnt++)
 				{

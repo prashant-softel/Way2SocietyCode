@@ -74,11 +74,8 @@ class import
 											
 					if($FetchPeriod[0]['count'] == 0)
 					{ 
-						if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
-							$months = getMonths_res($_SESSION['Cycle']);
-						}else{
-							$months = getMonths($_SESSION['Cycle']);
-						}
+					
+						$months = getMonths($_SESSION['Cycle']);
 						
 						$PrevYear =  $_SESSION['Year'] - 1;
 						$sqlFetchData = $this->m_dbConn->select("SELECT * FROM `year`  where  `YearID`= '".$PrevYear."'");

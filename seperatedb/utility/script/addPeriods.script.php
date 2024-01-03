@@ -68,11 +68,6 @@ include('config_script.php');
 													
 								if($res[0]['count'] == 0)
 								{ 
-									if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
-										$months = getMonths_res($billing_cycle);
-									}else{
-										$months = getMonths($billing_cycle);
-									}
 									$months = getMonths($billing_cycle);
 									print_r($months);
 									$obj_billperiod->setPeriod($months ,$billing_cycle,$YearID);																																				
