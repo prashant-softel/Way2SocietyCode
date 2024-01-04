@@ -166,7 +166,7 @@ class servicerequest
 			$CCEmailIDOfCategory = $sqlSR[0]['email_cc'];
 		}
 		//echo $EmailIDOfCategory;
-		$this->sendEmail($request_no, $_POST['reportedby'], 'Raised', $_POST['details'], $_POST['email'], $EmailIDOfCategory, $CCEmailIDOfCategory,$_POST['unit_no2']);
+		$this->sendEmail($request_no, $_POST['reportedby'], 'Raised', $_POST['details'], $_POST['email'], $EmailIDOfCategory, $CCEmailIDOfCategory,$_POST['unit_no2'], $society_id);
 		
 		$this->ServiceRequestMobileNotification($request_no, $_POST['category'], $_POST['priority'], $_POST['summery'], $EmailIDOfCategory, $CCEmailIDOfCategory,$sqlSR[0]['unitID'],$sqlSR[0]['co_unitID'], $_POST['unit_no'], true);
 		
