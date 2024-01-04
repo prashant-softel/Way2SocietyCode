@@ -395,7 +395,7 @@ if($_SESSION['role'] && ($_SESSION['role']==ROLE_ADMIN || $_SESSION['role']==ROL
         <td>&nbsp; &nbsp; &nbsp;</td>
         
         <td valign="middle"><?php //echo $star;?></td>
-        <th><b>Created for Tenant </b></th>
+        <th><b>Created for <?php echo ($_SESSION['res_flag'] || $_SESSION['rental_flag'])? 'Tenant':'Unit'; ?>  </b></th>
         <td>&nbsp; : &nbsp;</td>
         <td>
         <input type = "hidden" id = "unit_no" name = "unit_no" value = "0"/> 

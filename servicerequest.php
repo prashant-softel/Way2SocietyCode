@@ -111,8 +111,9 @@ if($_SESSION['is_year_freeze'] == 0)
                 <thead>
                     <tr>
                         <th>No.</th>
-                        <?php echo $_SESSION['res_flag'] ?  "<th>Landlord Name</th>" : ""; ?>
-                        <?php echo $_SESSION['res_flag'] ?  "" : "<th>Unit No.</th>"; ?>
+                        <?php 
+                        echo $_SESSION['res_flag'] ?  "<th>Landlord Name</th>" : ""; 
+                        echo ($_SESSION['res_flag'] || $_SESSION['rental_flag']) ?  "<th>Tenant Name</th>" : "<th>Unit NO.</th>"; ?>
                         <th>Reported By</th>
                         <th>Raised Date</th>
                         <th>Priority</th>
@@ -132,7 +133,13 @@ if($_SESSION['is_year_freeze'] == 0)
                             $landlord_name =  $m_dbConnRoot->select("SELECT `society_name` FROM `society` WHERE `society_id` = '".$requests[$i]['society_id']."'")[0]['society_name'];
 							$cnt=0;
 							$count=0;
-							 $unitNo=$objfetch->GetUnitNumber($requests[$i]['unit_id']);
+                            
+		                    if($_SESSION['res_flag'] == 1 || $_SESSION['rental_flag'] == 1){
+                                $unitNo=$obj_request->GetTenant($requests[$i]['unit_id'], $requests[$i]['society_id']);
+                            }
+                            else{
+                                $unitNo=$objfetch->GetUnitNumber($requests[$i]['unit_id']);
+                            }
 							 $memID=$obj->GetMemberIDNew($requests[$i]['unit_id']);
 							 
 							$CategoryDetails = $obj_request->GetCategoryDetails( $requests[$i]['category']);
@@ -160,9 +167,7 @@ if($_SESSION['is_year_freeze'] == 0)
 	
 	?>	
                         <?php echo $_SESSION['res_flag'] ?  "<td>".$landlord_name."</td>" : ""; ?>
-                       <?php if(empty($_SESSION['res_flag'])){ ?>
-                            <td><a href="view_member_profile.php?scm&id=<?php echo $memID;?>&tik_id=<?php echo time();?>&m&view" target="_blank" ><?php echo $unitNo;?></a></td>
-                        <?php }?>
+                        <td><a href="view_member_profile.php?scm&id=<?php echo $memID;?>&tik_id=<?php echo time();?>&m&view" target="_blank" ><?php echo $unitNo;?></a></td>
                         <td><?php echo $requests[$i]['reportedby'];?></td>
                         <td><?php echo getDisplayFormatDate($requests[$i]['dateofrequest']);?></td>
                         <td><?php echo $requests[$i]['priority'];?></td>

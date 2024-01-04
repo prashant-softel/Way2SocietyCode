@@ -104,7 +104,7 @@ class servicerequest
 		}
 		else
 		{
-			$obj_LatestCount = new latestCount($this->m_dbConn);
+			$obj_LatestCount = new latestCount($this->m_dbConn, $this->m_dbConnRoot, $this->m_landLordDB);
 			$request_no = $obj_LatestCount->getLatestRequestNo($_SESSION['society_id']);
 		}
 
@@ -124,17 +124,20 @@ class servicerequest
 		// change to  $_POST['unit_no'] to $_POST['unit_no2']; in insert statment
 		//echo "query:".$sql; 
 		$society_id = $this->isLandLordDB ? $_SESSION['landLordSocID'] : $_SESSION['society_id'];
+		$contractor_id = "select `contractor_loginid` from servicerequest_category where id ='".$_POST['category']."'";
+		$sql = $this->m_dbConn->select($contractor_id);
+		$contractorid = $sql[0]['contractor_loginid'];
+		
 
 		if($this->isLandLordDB)
 		{
-			$sql = "INSERT INTO `service_request` (`request_no`, `society_id`, `reportedby`, `dateofrequest`, `email`, `phone`, `priority`, `category`, `summery`,`img`, `details`, `status`, `unit_id`) VALUES ('".$request_no."', '".$society_id."', '".$_POST['reported_by']."', '".getDBFormatDate(date('d-m-Y'))."', '".$_POST['email']."', '".$_POST['phone']."', '".$_POST['priority']."', '".$_POST['category']."', '".$_POST['summery']."','$image_collection', '".$details."', 'Raised', '".$_POST['unit_no2']."')";					
+			$sql = "INSERT INTO `service_request` (`request_no`, `society_id`, `reportedby`, `dateofrequest`, `email`, `phone`, `priority`, `category`, `summery`,`img`, `details`, `status`, `unit_id`, `contractor_loginid`) VALUES ('".$request_no."', '".$society_id."', '".$_POST['reported_by']."', '".getDBFormatDate(date('d-m-Y'))."', '".$_POST['email']."', '".$_POST['phone']."', '".$_POST['priority']."', '".$_POST['category']."', '".$_POST['summery']."','$image_collection', '".$details."', 'Raised', '".$_POST['unit_no2']."' , '".$contractorid."')";					
 			
 			$result = $this->m_landLordDB->insert($sql);
 		}
 		else
 		{
-			$sql = "INSERT INTO `service_request` (`request_no`, `society_id`, `reportedby`, `dateofrequest`, `email`, `phone`, `priority`, `category`, `summery`,`img`, `details`, `status`, `unit_id`) VALUES ('".$request_no."', '".$society_id."', '".$_POST['reported_by']."', '".getDBFormatDate(date('d-m-Y'))."', '".$_POST['email']."', '".$_POST['phone']."', '".$_POST['priority']."', '".$_POST['category']."', '".$_POST['summery']."','$image_collection', '".$details."', 'Raised', '".$_POST['unit_no2']."')";					
-		
+			$sql = "INSERT INTO `service_request` (`request_no`, `society_id`, `reportedby`, `dateofrequest`, `email`, `phone`, `priority`, `category`, `summery`,`img`, `details`, `status`, `unit_id`, `contractor_loginid`) VALUES ('".$request_no."', '".$society_id."', '".$_POST['reported_by']."', '".getDBFormatDate(date('d-m-Y'))."', '".$_POST['email']."', '".$_POST['phone']."', '".$_POST['priority']."', '".$_POST['category']."', '".$_POST['summery']."','$image_collection', '".$details."', 'Raised', '".$_POST['unit_no2']."' , '".$contractorid."')";					
 			$result = $this->m_dbConn->insert($sql);
 		}
 
@@ -154,6 +157,7 @@ class servicerequest
 		{
 			$_SESSION['renovation_service_request_id'] = $result;
 		}
+		
 		$sqlSR = $this->GetCategoryDetails( $_POST['category']);
 		$EmailIDOfCategory = ""; 
 		if(isset($sqlSR) && sizeof($sqlSR) > 0)
@@ -437,6 +441,18 @@ class servicerequest
 				}
 			
 			}
+			else if ($_SESSION['role'] && $_SESSION['role']=='Contractor')
+			{
+				
+				if( $type == "assign")
+				{
+					 $sql = "SELECT m1.* FROM service_request m1 LEFT JOIN service_request m2 ON (m1.request_no = m2.request_no AND m1.request_id <= m2.request_id) WHERE m2.request_id AND m1.category = '".$catID."' and m1.visibility='1' and m1.contractor_loginid = '".$_SESSION['login_id']."'";
+				}
+				else
+				{
+					 $sql = "SELECT m1.* FROM service_request m1 LEFT JOIN service_request m2 ON (m1.request_no = m2.request_no AND m1.request_id < m2.request_id) WHERE  m2.request_id IS NULL  and m1.`visibility`='1' and m1.contractor_loginid = '".$_SESSION['login_id']."'";
+				}
+			}
 			
 			else
 			{
@@ -470,11 +486,11 @@ class servicerequest
 				}
 				else if($_SESSION['role']==ROLE_ADMIN_MEMBER  )
 				{
-				 $sql .= ' NOT IN ( m1.status="Resolved", m1.status="Closed")  and m1.unit_id="'.$_SESSION['unit_id'].'" ';
+				 $sql .= 'and m1.status NOT IN ("Resolved","Closed")  and m1.unit_id="'.$_SESSION['unit_id'].'" ';
 				}
 				else
 				{
-					 $sql .= ' NOT IN ( m1.status="Resolved", m1.status="Closed")';
+					 $sql .= 'and m1.status NOT IN ("Resolved","Closed")';
 				}
 				
 			}
@@ -482,7 +498,7 @@ class servicerequest
 			else if($type <> "resolved") 
 			{
 				
-				 $sql .= '   NOT IN ( m1.status="Resolved", m1.status="Closed")';	
+				 $sql .= 'and m1.status NOT IN ("Resolved","Closed")';	
 			}
 			
 			$sql .= '  ORDER BY m1.request_no DESC';
@@ -717,13 +733,37 @@ class servicerequest
 	
 	public function getUpdatedStatus($requestNo, $soc_id)
 	{
+		$sql = "SELECT `status` FROM `service_request_history` WHERE `visibility`='1' and `request_no` = '".$requestNo."'  ";
+
 		if($_SESSION['society_id'] != $soc_id)
 		{
 			$DBName = $this->m_objUtility->getDBName($soc_id);
+			$mysqlicon = mysqli_connect(DB_HOST_SER_REQ, DB_USER_SER_REQ, DB_PASSWORD_SER_REQ, $DBName);
+			$allresobj = mysqli_query($mysqlicon, $sql);
+			$result = mysqli_fetch_all($allresobj, MYSQLI_ASSOC);
+			mysqli_close($mysqlicon);
 		}
-		$sql = "SELECT `status` FROM `service_request_history` WHERE `visibility`='1' and `request_no` = '".$requestNo."'  ";
-		$result = $this->m_dbConn->select($sql);
+		else
+		{
+			$result = $this->m_dbConn->select($sql);
+		}
+
 		return $result[sizeof($result) - 1]['status'];	
+	}
+
+	
+	public function GetTenant($unitID, $soc_id)
+	{
+		$sql = 'SELECT tenant_name FROM `tenant_module` where tenant_id ='.$unitID.'';
+
+		$DBName = $this->m_objUtility->getDBName($soc_id);
+
+		$mysqlicon = mysqli_connect(DB_HOST_SER_REQ, DB_USER_SER_REQ, DB_PASSWORD_SER_REQ, $DBName);
+		$allresobj = mysqli_query($mysqlicon, $sql);
+		$result = mysqli_fetch_all($allresobj, MYSQLI_ASSOC);
+		mysqli_close($mysqlicon);
+
+		return $result[0]['tenant_name'];	
 	}
 		
 	public function comboboxEx($query, $id, $dbselected = false)
@@ -768,6 +808,8 @@ class servicerequest
 				}
 			}	
 		}
+
+		
 		return $str;
 	}
 	
@@ -1003,10 +1045,10 @@ class servicerequest
 
 	}
 	
-	public function sendEmail($requestNo, $name, $status, $desc, $email,$catEmail = '',$catEmailCC = '', $RequestedID)
+	public function sendEmail($requestNo, $name, $status, $desc, $email,$catEmail = '',$catEmailCC = '', $RequestedID, $society_id='')
 	{	
 		$RequestedEmailID = $this->m_objUtility->GetmemberDetail($RequestedID);
-		$details = $this->getViewDetails($requestNo,true);
+		$details = $this->getViewDetails($requestNo,true, $society_id);
 
 		$CategoryDetails = $this->GetCategoryDetails($details[0]['category']);
 		//print_r($CategoryDetails);

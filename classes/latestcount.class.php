@@ -15,13 +15,13 @@
 			public $landLordDB;
 			public $isLandLordDB;
 			
-			function __construct($dbConn ,$landLordDB)
+			function __construct($dbConn , $dbConnRoot='',$landLordDB='')
 			{
 				$this->Conn = new dbop();
 				$this->m_dbConn = $dbConn;
 				$this->m_dbConnRoot = $dbConnRoot;
-				$this->m_objLog = new changeLog($this->Conn, $this->m_dbConnRoot = "", $this->landLordDB);
 				$this->landLordDB = $landLordDB;
+				$this->m_objLog = new changeLog($this->Conn, $this->m_dbConnRoot = "", $this->landLordDB);
 				if($_SESSION['landLordDB']){
 					$this->isLandLordDB = true;
 				}	
@@ -225,9 +225,15 @@
 			function getLatestRequestNo($society_id)
 			{
 				$sqlSelect = "select MAX(`request_no`) as max from `service_request` where `society_id`='" .$society_id."'" ;	
-				$sqlResult = $this->m_dbConn->select($sqlSelect);	
-				//$length = sizeof($sqlResult);
-				//echo "length: ".$length;
+				if($this->isLandLordDB) 
+				{
+					$sqlResult = $this->landLordDB->select($sqlSelect);	
+				}
+				else
+				{
+					$sqlResult = $this->m_dbConn->select($sqlSelect);	
+				}
+
 				$sqlCounter = $sqlResult[0]['max'];			
 				
 				
