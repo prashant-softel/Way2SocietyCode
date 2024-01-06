@@ -110,6 +110,7 @@ if($_SESSION['is_year_freeze'] == 0 && $_SESSION['rental_flag'] ==0 )
                         <th style="text-align:center">Case Id.</th>
                         <th style="text-align:center">Landlord Name.</th>
                         <th style="text-align:center">Tenant Name</th>
+                        <th style="text-align:center">Case Assigned To</th>
                         <th style="text-align:center">Created Date</th>
                         <th style="text-align:center">Next Due Date</th>
                         <th style="text-align:center">Category</th>
@@ -141,7 +142,7 @@ if($_SESSION['is_year_freeze'] == 0 && $_SESSION['rental_flag'] ==0 )
 								$prevRequestNo = $requests[$i]['request_no'];
 					?>
                     <tr>
-                     <td style="text-align:center"><a href="viewlegalcase.php?rq=<?php echo $requests[$i]['request_id'];?>" target="_blank"><?php echo $i+1;?></a></td>
+                     <td style="text-align:center"><a href="viewlegalcase.php?rq=<?php echo $requests[$i]['request_id'];?>&socid=<?php echo $requests[$i]['society_id'];?>" target="_blank"><?php echo $i+1;?></a></td>
                         <td style="text-align:center"><?php echo $landlord_name ;?></td>
                         
                           <?php
@@ -156,6 +157,7 @@ if($_SESSION['is_year_freeze'] == 0 && $_SESSION['rental_flag'] ==0 )
 	
 	?>	
                         <td style="text-align:center"><?php echo $requests[$i]['tenant_name'];?> </td>
+                        <td style="text-align:center"><?php echo $requests[$i]['caseAssignedTo'];?> </td>
                         <td style="text-align:center"><?php echo getDisplayFormatDate($requests[$i]['dateofrequest']);?></td>
                         <td style="text-align:center"><?php echo  getDisplayFormatDate($latestStatus[0]['up_hearing_date']);?></td>
                         <td style="text-align:center"><?php echo $CategoryDetails[0]['category'];?></td>

@@ -1,6 +1,46 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <head>
 <title>W2S - Add New Legal Case</title>
+<style>
+.dropbtn {
+  background-color: #04AA6D;
+  color: white;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+.dropbtn:hover, .dropbtn:focus {
+  background-color: #3e8e41;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f6f6f6;
+  min-width: 230px;
+  overflow: auto;
+  border: 1px solid #ddd;
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown a:hover {background-color: #ddd;}
+
+.show {display: block;}
+</style>
 </head>
 
 <?php 
@@ -356,22 +396,23 @@ else
         	<th><b>Created for Tenant</b></th>
         	<td>&nbsp; : &nbsp;</td>
         	<td>
-        		<?php 
-				if($_SESSION['landLordDB']){
-					$t_data = $obj_servicerequest->getTenants($_SESSION['unit_id']);
-				 }
-				?>
         		<input type = "hidden" id = "unit_no" name = "unit_no" value = "0"/> 
-        		<select id="tenant_id" name="tenant_id" value="" onchange="loadTanant(this.value);"> 
-        		<?php 
-				$options = "<option value='0'>Select Tenant</option>";
-				for($i=0;$i < sizeof($t_data); $i++)
-				{
-					$options .="<option value='".$t_data[$i]['tenantValue']."'>".$t_data[$i]['name']."</option>";
-				}
-				echo $options;
-				?>
-            	</select>
+				<div class="dropdown">
+					<input type="text" placeholder="Select Tenant" id="myInput" name="myInput" onclick="showOptions()" onkeyup="filterFunction()" autocomplete="off" >
+					<input type="hidden" id="tenant_id" name="tenant_id">
+					<div id="myDropdown" class="dropdown-content">
+						<?php
+						if($_SESSION['landLordDB']){
+							$t_data = $obj_servicerequest->getTenants($_SESSION['unit_id']);
+						 }
+						// PHP code to generate dropdown options dynamically
+						for($i=0;$i < sizeof($t_data); $i++)
+						{
+							echo '<a href="#" onclick="selectOption(\'' . $t_data[$i]['name'] . '\', \'' .  $t_data[$i]['tenantValue'] . '\');">' . $t_data[$i]['name'] . '</a>';
+						}
+						?>
+					</div>
+				</div>
             </td>
 		</tr>
     
@@ -381,26 +422,6 @@ else
             </td>
         </tr>
 	    <tr><td><br></td></tr>
-    	<tr align="left">
-        	<td valign="middle"><?php echo $star;?></td>
-        	<th><b>Email </b></th>
-        	<td>&nbsp; : &nbsp;</td>
-        	<?php 
-        	if($MemberDetails[0]['email']<>'')
-			{?>
-      			<td>  <input type="text" name="email" value="<?php echo $MemberDetails[0]['email'];?>" id="email" /></td>
-      <?php }
-	  		else
-	  		{?>
-       			<td><input type="text" name="email" value="<?php echo $loginEmailID;?>" id="email" /></td>
-      <?php }?>
-      		<td>&nbsp; &nbsp; &nbsp;</td>
-      		<td valign="middle"><?php //echo $star;?></td>
-        	<th><b>Phone </b></th>
-        	<td>&nbsp; : &nbsp;</td>
-        	<td><input type="text" name="phone" value="<?php if($MemberDetails[0]['mob'] == "") { echo "0"; } else { echo $MemberDetails[0]['mob'];}?>" id="phone" onKeyPress="return blockNonNumbers(this, event, true, true);"/></td>
-		</tr>   
-    	<tr><td><br></td></tr>
     	<tr align="left">
         	<td valign="middle"><?php echo $star;?></td>
         	<th><b>Priority</b></th>
@@ -414,6 +435,13 @@ else
             	</select>
         	</td>
         	<td>&nbsp; &nbsp; &nbsp;</td>
+      		<td valign="middle"><?php //echo $star;?></td>
+        	<th><b>Phone </b></th>
+        	<td>&nbsp; : &nbsp;</td>
+        	<td><input type="text" name="phone" value="<?php if($MemberDetails[0]['mob'] == "") { echo "0"; } else { echo $MemberDetails[0]['mob'];}?>" id="phone" onKeyPress="return blockNonNumbers(this, event, true, true);"/></td>
+		</tr>   
+    	<tr><td><br></td></tr>
+    	<tr align="left">
         	<td valign="middle"><?php echo $star;?></td>
         	<th><b>Category</b></th>
         	<td>&nbsp; : &nbsp;</td>
@@ -422,6 +450,20 @@ else
             		<?php echo $combo_category = $obj_servicerequest->combobox("SELECT `id`, `category` FROM `legalcase_category` WHERE `status` = 'Y'", 0); ?>
             	</select>
        	 	</td>
+			<td>&nbsp; &nbsp; &nbsp;</td>
+			<td valign="middle"><?php echo $star;?></td>
+        	<th><b>Email </b></th>
+        	<td>&nbsp; : &nbsp;</td>
+			<?php 
+					if($MemberDetails[0]['email']<>'')
+					{?>
+						<td>  <input type="text" name="email" value="<?php echo $MemberDetails[0]['email'];?>" id="email" /></td>
+				<?php }
+					else
+					{?>
+						<td><input type="text" name="email" value="<?php echo $loginEmailID;?>" id="email" /></td>
+			<?php }
+			?>
 		</tr>
     	<tr><td><br></td></tr>
      	<tr align="left">
@@ -431,7 +473,7 @@ else
         	<td><input type="text" name="case_no" id="case_no" value=""></td>
         	<td>&nbsp; &nbsp; &nbsp;</td>
         	<td valign="middle"><?php echo $star;?></td>
-        	<th><b>Outstanding Rent</b></th>
+        	<th><b>Outstanding Amount</b></th>
         	<td>&nbsp; : &nbsp;</td>
         	<td>
         		<input type="text" name="outstanding_amt" id="outstanding_amt" onKeyPress="return blockNonNumbers(this, event, true, false);" value=""/>
@@ -440,7 +482,7 @@ else
     	<tr><td><br></td></tr>
      	<tr align="left">
         	<td valign="middle"><?php //echo $star;?></td>
-        	<th><b>Open On</b></th>
+        	<th><b>Created On</b></th>
         	<td>&nbsp; : &nbsp;</td>
         	<td>
         		<input type="text" name="open_on" id="open_on" class="basics" value="<?php echo date('d-m-Y');?>" readonly />
@@ -456,11 +498,11 @@ else
     	<tr><td><br></td></tr>
   
     	<tr id="upload"> 
-        	<td valign="top"><?php echo $star;?></td>
-        	<td><b>Title</b></td>   
+			<td valign="top"><?php //echo $star;?></td>
+        	<th><b>Case Assigned To</b></th>
         	<td>&nbsp; : &nbsp;</td>
-        	<td><textarea name="summery" id="summery" rows="2" cols="50" style="max-width:10;"></textarea></td>
-      		<td id = "uploadTd1">&nbsp; &nbsp; &nbsp;</td>
+        	<td><input type="text" name="caseAssignedTo" id="caseAssignedTo" value=""></td>
+        	<td>&nbsp; &nbsp; &nbsp;</td>
        		<td valign="left" id = "uploadTd2"></td>
         	<td id = "uploadTd3"><b>Upload Image</b></td>
         	<td id = "uploadTd4">&nbsp; : &nbsp;</td>
@@ -476,6 +518,14 @@ else
 	 	 	 }
 		}
 		?>
+       </tr>
+       <tr><td><br></td></tr>
+    	<tr id="title"> 
+			<td valign="top"><?php echo $star;?></td>
+        	<td><b>Title</b></td>   
+        	<td>&nbsp; : &nbsp;</td>
+        	<td><textarea name="summery" id="summery" rows="2" cols="50" style="max-width:10;"></textarea></td>
+      		<td id = "uploadTd1">&nbsp; &nbsp; &nbsp;</td>
        </tr>
        <tr><td><br></td></tr>
        
@@ -546,6 +596,33 @@ if(isset($_REQUEST['deleteid']) && $_REQUEST['deleteid'] <> '')
 }
 ?>
 <script>
+	function showOptions() {
+  document.getElementById("myDropdown").classList.toggle("show");
+}
+
+function filterFunction() {
+  var input, filter, div, a, i;
+  input = document.getElementById("myInput");
+  filter = input.value.toUpperCase();
+  div = document.getElementById("myDropdown");
+  a = div.getElementsByTagName("a");
+  for (i = 0; i < a.length; i++) {
+    txtValue = a[i].textContent || a[i].innerText;
+    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+      a[i].style.display = "";
+    } else {
+      a[i].style.display = "none";
+    }
+  }
+}
+
+function selectOption(name, value) {
+	event.preventDefault(); 
+	document.getElementById("myInput").value = name;
+	document.getElementById("tenant_id").value = value;
+	document.getElementById("myDropdown").classList.remove("show");
+	loadTanant(value);
+}
 var value = jQuery("#category :selected").text();
 //alert(value);
 var text = $("#category option:selected").text();
@@ -575,7 +652,7 @@ function loadTanant(id)
 }
 function selectCategory()
 {
-	var SelTenat = jQuery("#tenant_id :selected").text();
+	var SelTenat = jQuery("#tenant_id").val();
 	var SelCategory = jQuery("#category :selected").text();
 	//alert(SelTenat);
 	//alert(SelCategory);

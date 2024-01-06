@@ -268,6 +268,14 @@ if($details <> "")
     </tr> 
     <tr><td colspan="10"><br /></td></tr>   
     <tr style="background-color:#bce8f1;font-size:14px;"  height="25">
+    	<th colspan="10"  align="left"> Case Assigned To</th>
+   	</tr>
+    <tr>
+    	<td colspan="10" align="left"><span style="margin-left:10px; float: left;margin-top: 5px;"><?php echo $details[0]['caseAssignedTo'];?></span></td>
+    </tr>
+    <tr><td colspan="10"><br /></td></tr> 
+    <tr><td colspan="10"><br /></td></tr>   
+    <tr style="background-color:#bce8f1;font-size:14px;"  height="25">
     	<th colspan="10"  align="left"> Title</th>
    	</tr>
     <tr>

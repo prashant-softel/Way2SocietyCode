@@ -129,12 +129,12 @@ class legalcase
 		$society_id = $this->isLandLordDB ? $_SESSION['landLordSocID'] : $_SESSION['society_id'];
 		if($this->isLandLordDB)
 		{
-		$sql = "INSERT INTO `legal_case` (`request_no`, `society_id`, `reportedby`, `dateofrequest`, `email`, `phone`, `priority`, `category`, `summery`,`img`, `details`, `status`, `unit_id`,`case_no`,`outstanding_rent`,`open_on`,`case_open_date`,`tenant_name`) VALUES ('".$request_no."', '".$society_id."', '".$_POST['reported_by']."', '".getDBFormatDate(date('d-m-Y'))."', '".$_POST['email']."', '".$_POST['phone']."', '".$_POST['priority']."', '".$_POST['category']."', '".$_POST['summery']."','$image_collection', '".$details."', 'Created', '".$_POST['unit_no2']."','".$_POST['case_no']."','".$_POST['outstanding_amt']."','".getDBFormatDate($_POST['open_on'])."','".getDBFormatDate($_POST['open_date'])."','".$array_tenant[1]."')";	
+		$sql = "INSERT INTO `legal_case` (`request_no`, `society_id`, `reportedby`, `dateofrequest`, `email`, `phone`, `priority`, `category`, `summery`,`img`, `details`, `status`, `unit_id`,`case_no`,`outstanding_rent`,`open_on`,`case_open_date`,`tenant_name`,`caseAssignedTo`) VALUES ('".$request_no."', '".$society_id."', '".$_POST['reported_by']."', '".getDBFormatDate(date('d-m-Y'))."', '".$_POST['email']."', '".$_POST['phone']."', '".$_POST['priority']."', '".$_POST['category']."', '".$_POST['summery']."','$image_collection', '".$details."', 'Created', '".$_POST['unit_no2']."','".$_POST['case_no']."','".$_POST['outstanding_amt']."','".getDBFormatDate($_POST['open_on'])."','".getDBFormatDate($_POST['open_date'])."','".$array_tenant[1]."','".$_POST['caseAssignedTo']."')";	
 		 $result = $this->m_landLordDB->insert($sql);
 		}
 		else 
 		{
-			 $sql = "INSERT INTO `legal_case` (`request_no`, `society_id`, `reportedby`, `dateofrequest`, `email`, `phone`, `priority`, `category`, `summery`,`img`, `details`, `status`, `unit_id`,`case_no`,`outstanding_rent`,`open_on`,`case_open_date`,,`tenant_name`) VALUES ('".$request_no."', '".$society_id."', '".$_POST['reported_by']."', '".getDBFormatDate(date('d-m-Y'))."', '".$_POST['email']."', '".$_POST['phone']."', '".$_POST['priority']."', '".$_POST['category']."', '".$_POST['summery']."','".$image_collection."', '".$details."', 'Created', '".$_POST['unit_no2']."','".$_POST['case_no']."','".$_POST['outstanding_amt']."','".getDBFormatDate($_POST['open_on'])."','".getDBFormatDate($_POST['open_date'])."','".$array_tenant[1]."')";	
+			 $sql = "INSERT INTO `legal_case` (`request_no`, `society_id`, `reportedby`, `dateofrequest`, `email`, `phone`, `priority`, `category`, `summery`,`img`, `details`, `status`, `unit_id`,`case_no`,`outstanding_rent`,`open_on`,`case_open_date`,,`tenant_name`,`caseAssignedTo`) VALUES ('".$request_no."', '".$society_id."', '".$_POST['reported_by']."', '".getDBFormatDate(date('d-m-Y'))."', '".$_POST['email']."', '".$_POST['phone']."', '".$_POST['priority']."', '".$_POST['category']."', '".$_POST['summery']."','".$image_collection."', '".$details."', 'Created', '".$_POST['unit_no2']."','".$_POST['case_no']."','".$_POST['outstanding_amt']."','".getDBFormatDate($_POST['open_on'])."','".getDBFormatDate($_POST['open_date'])."','".$array_tenant[1]."','".$_POST['caseAssignedTo']."')";	
 			$result = $this->m_dbConn->insert($sql);
 		}
 		//echo "query:".$sql;  	
@@ -821,9 +821,8 @@ class legalcase
 	public function getTenants($id)
 	{
 		//$query = "SELECT CONCAT(tenant_id,'-',tenant_name ) as tenant_id, tenant_name FROM `tenant_module`";
-		$query = "SELECT CONCAT(u.unit_no,' - ',tm.tenant_name) as name,CONCAT(tm.tenant_id,'_',u.unit_no,' - ',tm.tenant_name) as tenantValue,tm.tenant_id,tm.tenant_name,u.unit_no FROM `tenant_module` as tm join unit as u on u.unit_id =tm.unit_id";
+		$query = "SELECT CONCAT(u.unit_no,' - ',tm.tenant_name) as name,CONCAT(tm.tenant_id,'_',u.unit_no,' - ',tm.tenant_name) as tenantValue,tm.tenant_id,tm.tenant_name,u.unit_no FROM `tenant_module` as tm join unit as u on u.unit_id =tm.unit_id where tm.end_date >= CURDATE()  GROUP BY u.unit_no";
 		if($_SESSION['landLordDB']){
-			// $landLordDB = true;
 			return $data = $this->m_landLordDB->select($query);
 		}
 		else
