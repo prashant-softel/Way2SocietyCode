@@ -206,6 +206,7 @@ $(document).ready(function(){
 		$(document).ready(function()
 		{
 			$("#error").fadeIn("slow");
+			$("#addTenantError").fadeIn("slow");
 		});
         setTimeout('hide_error()',8000);	
     }
@@ -214,6 +215,7 @@ $(document).ready(function(){
 		$(document).ready(function()
 		{
 			$("#error").fadeOut("slow");
+			$("#addTenantError").fadeOut("slow");
 		});
     }
 	
@@ -480,7 +482,7 @@ function addNewVehicle()
 	document.getElementById('vehiclecount').value=vehicleCount;
 			document.getElementById("parkingType_"+vehicleCount).innerHTML = "<?php echo $obj_tenant->combobox07("Select `Id`,`ParkingType` from `parking_type` where Status = 'Y' AND IsVisible = '1'", "0");?>";
 }
-
+var monthDiff;
 function getTotalMonth()
 {
 	var startDate = document.getElementById('start_date').value;
@@ -497,11 +499,55 @@ function getTotalMonth()
 		var month1 = parseInt(firstDate[1]);
 		var month2 = parseInt(secondDate[1]);
 		
-		var monthDiff = (year2 - year1) * 12 + (month2 - month1)+1;
-	
-		//document.getElementById('Lease_Period').value = monthDiff;		
+		monthDiff = (year2 - year1) * 12 + (month2 - month1);
+			
 	}
 }
+function getContractvalue()
+{
+	var Annual_rent = document.getElementById('annual_rent').value;
+	var contract_value = Annual_rent * monthDiff;
+   document.getElementById('contract_value').value = contract_value;
+}
+function updateEnddate()
+{
+	
+	var originalDate = document.getElementById('start_date').value;
+
+	var parts = originalDate.split('-');
+	var day = parts[0];
+	var month = parts[1];
+	var year = parts[2];
+
+	
+	var originalDateObject = new Date(year, month, day);
+
+	
+	originalDateObject.setFullYear(originalDateObject.getFullYear() + 1);
+
+	
+	var prepopulatedDay = originalDateObject.getDate();
+	var prepopulatedMonth = originalDateObject.getMonth(); // Months are zero-based
+	var prepopulatedYear = originalDateObject.getFullYear();
+	if (prepopulatedDay < 10) { 
+		prepopulatedDay = '0' + prepopulatedDay; 
+	} 
+	if (prepopulatedMonth < 10) { 
+		prepopulatedMonth = '0' + prepopulatedMonth; 
+	}
+
+	
+	var prepopulatedDateString = prepopulatedDay + '-' + prepopulatedMonth + '-' + prepopulatedYear;
+
+	
+	document.getElementById('end_date').value = prepopulatedDateString;
+	getTotalMonth();
+}
+
+            
+
+
+
 function enable_company()
 {
 	var checkBox = document.getElementById("company");
@@ -523,35 +569,35 @@ function enable_company()
   	}
 }
 
-function updateEndDate()
-{
-	var startDate = document.getElementById('start_date').value;
-	var totalMonth = parseInt(document.getElementById('Lease_Period').value);
-	var firstDate = startDate.split('-');
-	var year1 = parseInt(firstDate[2]);
-	var month1 = parseInt(firstDate[1]) - 1;
-	var date1 = parseInt(firstDate[0]);		
+// function updateEndDate()
+// {
+// 	var startDate = document.getElementById('start_date').value;
+// 	var totalMonth = parseInt(document.getElementById('Lease_Period').value);
+// 	var firstDate = startDate.split('-');
+// 	var year1 = parseInt(firstDate[2]);
+// 	var month1 = parseInt(firstDate[1]) - 1;
+// 	var date1 = parseInt(firstDate[0]);		
 	
-	var dt = new Date(year1,month1,date1);
+// 	var dt = new Date(year1,month1,date1);
 	
-	var endDate = dt.setMonth(dt.getMonth()+totalMonth); // It's return date in milisecond
+// 	var endDate = dt.setMonth(dt.getMonth()+totalMonth); // It's return date in milisecond
 	
-	var endDate = new Date(endDate);
+// 	var endDate = new Date(endDate);
 	
-	var year2 = endDate.getFullYear();
-	var month2 = endDate.getMonth()+1; // in js jan month start from 1 due to that we addded 1
-	var date2 = endDate.getDate();
+// 	var year2 = endDate.getFullYear();
+// 	var month2 = endDate.getMonth()+1; // in js jan month start from 1 due to that we addded 1
+// 	var date2 = endDate.getDate();
 	
-	if (date2 < 10) { 
-		date2 = '0' + date2; 
-	} 
-	if (month2 < 10) { 
-		month2 = '0' + month2; 
-	}
+// 	if (date2 < 10) { 
+// 		date2 = '0' + date2; 
+// 	} 
+// 	if (month2 < 10) { 
+// 		month2 = '0' + month2; 
+// 	}
 	
-	var updatedEndDate = date2+'-'+month2+'-'+year2;	
-	document.getElementById('end_date').value = updatedEndDate;
-}
+// 	var updatedEndDate = date2+'-'+month2+'-'+year2;	
+// 	document.getElementById('end_date').value = updatedEndDate;
+// }
 
 function loadchanges()
 {	
@@ -1136,7 +1182,7 @@ function removeData(count)
 		{
 		}
 		?>
-		<form name="tenant" id="tenant" method="post" action="process/rentaltenant.process.php" enctype="multipart/form-data"  onSubmit="return val();">
+		<form name="tenant" id="tenant" method="post" action="process/rentaltenant.process.php" enctype="multipart/form-data"  onSubmit="return validate();">
 		<input type="hidden" name="form_error"  id="form_error" value="<?php echo $_REQUEST["form_error"]; ?>" />
 		<input type="hidden" name="ssid" value="<?php echo $_GET['ssid'];?>">
 		<input type="hidden" name="wwid" value="<?php echo $_GET['wwid'];?>">
@@ -1170,6 +1216,8 @@ function removeData(count)
 		<?php
 		}
 		?>
+    		<tr height="30"><td colspan="4" align="center"><font color="red" style="size:11px;"><b id="addTenantError"></b></font></td></tr>
+
         	<tr>
             	<td style="text-align:center;width: 200px;"><a target="_blank" href="images/noimage.png" ><img name="profileHref" id="profileHref" <?php 
 				if(isset($_REQUEST['edit']) || isset($_REQUEST['view']))
@@ -1253,7 +1301,7 @@ function removeData(count)
         				<td style="text-align:right"></td>
 						<td style="text-align:right"><?php echo $star;?>&nbsp;<b>Lease Start Date</b></td>
             			<td style="text-align:left">&nbsp; : &nbsp;</td>
-						<td style="text-align:left" id="td_2"><input type="text" name="start_date" id="start_date" class="basics" onChange="getTotalMonth();vacantUnit();" size="10"   style="width:80px;" /></td>
+						<td style="text-align:left" id="td_2"><input type="text" name="start_date" id="start_date" class="basics" onChange="getTotalMonth();vacantUnit();updateEnddate();" size="10"   style="width:80px;" /></td>
 					</tr>
 					<tr>
         				<td style="text-align:right"></td>
@@ -1420,7 +1468,7 @@ function removeData(count)
 <br />
 </table>
 <tr align="left">
-	<td valign="left"><b>Add More Cheques</b>
+	<td valign="left"><b>No of Cheques</b>
 	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 		<select id = "nochq" name="nochq" style= "width: 55px">
 		<option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
@@ -1828,6 +1876,105 @@ echo "<br>";*/
 	}
 ?>
 <script>
+function validate()
+{
+	var wing_id = document.getElementById('wing_id').value;
+	var unit_no = document.getElementById('unit_no').value;
+	var t_name = document.getElementById('t_name').value;
+	var start_date = document.getElementById('start_date').value;
+	var end_date = document.getElementById('end_date').value;
+	var security_deposit = document.getElementById('security_deposit').value;
+	var annual_rent = document.getElementById('annual_rent').value;
+	var contract_value = document.getElementById('contract_value').value;
+
+	if(wing_id == "0")
+	{
+		document.getElementById('addTenantError').style.display = "";
+		document.getElementById('addTenantError').innerHTML = "Please Select Building";	
+		document.getElementById('wing_id').focus();
+		go_error();
+		return false;
+	}
+	if(unit_no == "0")
+	{
+		document.getElementById('addTenantError').style.display = "";
+		document.getElementById('addTenantError').innerHTML = "Please Select Flat No.";	
+		document.getElementById('unit_no').focus();
+		go_error();
+		return false;
+	}
+	if(t_name == "")
+	{
+		document.getElementById('addTenantError').style.display = "";
+		document.getElementById('addTenantError').innerHTML = "Please Enter Tenant Name";	
+		document.getElementById('t_name').focus();
+		go_error();
+		return false;
+	}
+	if(start_date == "")
+	{
+		document.getElementById('addTenantError').style.display = "";
+		document.getElementById('addTenantError').innerHTML = "Please Select Start Date";	
+		document.getElementById('start_date').focus();
+		go_error();
+		return false;
+	}
+	if(end_date == "")
+	{
+		document.getElementById('addTenantError').style.display = "";
+		document.getElementById('addTenantError').innerHTML = "Please Select Enter Date";	
+		document.getElementById('t_name').focus();
+		go_error();
+		return false;
+	}
+	if(security_deposit == "")
+	{
+		document.getElementById('addTenantError').style.display = "";
+		document.getElementById('addTenantError').innerHTML = "Please Add Security Deposit";	
+		document.getElementById('security_deposit').focus();
+		go_error();
+		return false;
+	}
+	if(annual_rent == "")
+	{
+		document.getElementById('addTenantError').style.display = "";
+		document.getElementById('addTenantError').innerHTML = "Please Add Annual Rent";	
+		document.getElementById('annual_rent').focus();
+		go_error();
+		return false;
+	}
+
+	if(security_deposit > annual_rent)
+	{
+		document.getElementById('addTenantError').style.display = "";
+		document.getElementById('addTenantError').innerHTML = "Security Diposite cannont be more than Annual Rent";	
+		document.getElementById('security_deposit').focus();
+		go_error();
+		return false;
+	}
+
+	if(contract_value == "")
+	{
+		document.getElementById('addTenantError').style.display = "";
+		document.getElementById('addTenantError').innerHTML = "Please Add Contract Value";	
+		document.getElementById('contract_value').focus();
+		go_error();
+		return false;
+	}
+
+	var yearDiff = Math.floor(monthDiff / 12);
+	var checkContractValue = yearDiff * annual_rent;
+
+	if(contract_value != checkContractValue)
+	{
+		document.getElementById('addTenantError').style.display = "";
+		document.getElementById('addTenantError').innerHTML = "Contract Value Should be " + checkContractValue;	
+		document.getElementById('contract_value').focus();
+		go_error();
+		return false;
+	}
+
+}
     
 	function fetchUnits() {
 		// console.log("hi");
