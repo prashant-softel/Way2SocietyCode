@@ -226,12 +226,12 @@ class rentaltenant
 			echo "<br>Lease Document type not found";
 		}
 		
-		if(($_REQUEST['insert']=='Update' || $_REQUEST['insert']=='Renew') && $errorExists==0){
+		if($_REQUEST['insert']=='Update' && $errorExists==0){
 
 			$profilename = "tenantProfile_".$_REQUEST['unit_id']."_".$_REQUEST['tenant_id']."_".basename($_FILES['profilePhoto']['name']);
 			if($_SERVER['HTTP_HOST'] == "localhost" )
 			{		
-				$uploaddir = $_SERVER['DOCUMENT_ROOT']."W2S-New/html/Uploaded_Documents";			   
+				$uploaddir = "../Uploaded_Documents";			   
 			}
 			else
 			{
@@ -353,7 +353,7 @@ class rentaltenant
 				//echo " fileName: ".$fileName;
 				if($_SERVER['HTTP_HOST'] == "localhost" )
 				{		
-					$uploaddir = $_SERVER['DOCUMENT_ROOT']."W2S-New/html/Uploaded_Documents";			   
+					$uploaddir = "../Uploaded_Documents";			   			   
 				}
 				else
 				{
@@ -377,7 +377,7 @@ class rentaltenant
 			return "Update";
 		}	
 				
-		if($_REQUEST['insert']=='Submit' && $errorExists==0)
+		if(($_REQUEST['insert']=='Submit' || $_REQUEST['insert']=='Renew') && $errorExists==0)
 		{
 
 			$srResult = 0;
@@ -505,7 +505,7 @@ class rentaltenant
 					//echo "HTTP POST : ".$_SERVER['HTTP_HOST'];
 					if($_SERVER['HTTP_HOST'] == "localhost" )
 					{		
-						$uploaddir = $_SERVER['DOCUMENT_ROOT']."/Alshola/Uploaded_Documents";			   
+						$uploaddir = "../Uploaded_Documents";			   			   
 					}
 					else
 					{
@@ -605,7 +605,7 @@ class rentaltenant
 						//echo " fileName: ".$fileName;
 						if($_SERVER['HTTP_HOST'] == "localhost" )
 						{		
-							$uploaddir = $_SERVER['DOCUMENT_ROOT']."/Alshola/Uploaded_Documents";			   
+							$uploaddir = "../Uploaded_Documents";			   			   
 						}
 						else
 						{
@@ -801,7 +801,7 @@ class rentaltenant
 					//echo "HTTP POST : ".$_SERVER['HTTP_HOST'];
 					if($_SERVER['HTTP_HOST'] == "localhost" )
 					{		
-						$uploaddir = $_SERVER['DOCUMENT_ROOT']."/Alshola/Uploaded_Documents";			   
+						$uploaddir = "../Uploaded_Documents";			   			   
 					}
 					else
 					{
@@ -902,7 +902,7 @@ class rentaltenant
 						//echo " fileName: ".$fileName;
 						if($_SERVER['HTTP_HOST'] == "localhost" )
 						{		
-							$uploaddir = $_SERVER['DOCUMENT_ROOT']."/Alshola/Uploaded_Documents";			   
+							$uploaddir = "../Uploaded_Documents";			   			   
 						}
 						else
 						{
@@ -1165,7 +1165,7 @@ class rentaltenant
 					//echo "HTTP POST : ".$_SERVER['HTTP_HOST'];
 					if($_SERVER['HTTP_HOST'] == "localhost" )
 					{		
-						$uploaddir = $_SERVER['DOCUMENT_ROOT']."/Alshola/Uploaded_Documents";			   
+						$uploaddir = "../Uploaded_Documents";			   			   
 					}
 					else
 					{
@@ -1262,7 +1262,7 @@ class rentaltenant
 						//echo " fileName: ".$fileName;
 						if($_SERVER['HTTP_HOST'] == "localhost" )
 						{		
-							$uploaddir = $_SERVER['DOCUMENT_ROOT']."/Alshola/Uploaded_Documents";			   
+							$uploaddir = "../Uploaded_Documents";			   			   
 						}
 						else
 						{
@@ -1463,7 +1463,7 @@ class rentaltenant
 				$fileName = "tenantProfile_".$unitNo."_".$Tenant_id."_".basename($photoFile['name']);
 				if($_SERVER['HTTP_HOST'] == "localhost" )
 				{		
-					$uploaddir = $_SERVER['DOCUMENT_ROOT']."/beta_aws_master/Uploaded_Documents";			   
+					$uploaddir = "../Uploaded_Documents";			   			   
 				}
 				else
 				{
@@ -1497,7 +1497,7 @@ class rentaltenant
 				$fileName = "tenant_".$unitNo."_".$result."_".basename($_FILES['userfile'.$i]['name']);
 				if($_SERVER['HTTP_HOST'] == "localhost" )
 				{		
-					$uploaddir = $_SERVER['DOCUMENT_ROOT']."/beta_aws_master/Uploaded_Documents";			   
+					$uploaddir = "../Uploaded_Documents";			   			   
 				}
 				else
 				{
